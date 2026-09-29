@@ -1,16 +1,16 @@
-.cijfers { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
-.cijfer { border: 1px solid var(--lijn); border-radius: 24px; padding: 20px 22px; display: flex; flex-direction: column; gap: 4px; text-decoration: none; }
+.cijfers { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+.cijfer { background: var(--wit); border-radius: 24px; padding: 20px 22px; display: flex; flex-direction: column; gap: 4px; text-decoration: none; }
 .cijfer b { font-family: "PP Neue Machina", Fustat, sans-serif; font-weight: 800; font-size: 40px; line-height: 1; }
 .cijfer span { font-size: 14px; font-weight: 600; }
-.cijfer-geel { background: var(--geel); border-color: var(--geel); }
+.cijfer-geel { background: var(--geel); }
 .cijfer-geel span { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 
-.blok { border: 1px solid var(--lijn); border-radius: 24px; padding: 20px 24px; display: flex; flex-direction: column; }
+.blok { background: var(--wit); border-radius: 24px; padding: 20px 24px; display: flex; flex-direction: column; }
 .blok-kop { display: flex; align-items: baseline; gap: 10px; padding-bottom: 10px; }
 .blok-kop h2 { margin: 0; font-size: 17px; font-weight: 700; }
 .blok-kop span { font-size: 13px; }
 
-.bezetting { margin-bottom: 20px; padding-bottom: 10px; }
+.bezetting { padding-bottom: 10px; }
 .bez-rij { display: grid; grid-template-columns: minmax(0, 1fr) repeat(7, 48px) 64px 200px; gap: 8px; min-height: 58px; align-items: center; border-top: 1px solid var(--lijn); font-size: 14px; }
 .bez-rij > span:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
 .bez-kop { min-height: 36px; border-top: 0; border-bottom: 1px solid var(--lijn); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }

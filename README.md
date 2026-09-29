@@ -25,7 +25,7 @@ Migraties staan in `supabase/migrations`. Row level security staat aan op alle t
 
 ## Status
 
-- [x] Inloggen met Microsoft, uitloggen, sessie verlopen
+- [x] Inloggen met Microsoft, uitloggen, sessie verlopen (ook na 8 uur niets doen; na opnieuw inloggen terug op dezelfde pagina)
 - [x] Navigatiebalk met profielmenu
 - [x] Weekplanning: vakken, opmerkingen per week, afwezigheid, legenda, wijzigingslog
 - [x] Weekplanning: week- en dagweergave, meerdere vakken tegelijk (Ctrl/⌘/Shift-klik: bewerken, kopiëren, plakken, leegmaken), vorige week kopiëren, wijzigingenpaneel

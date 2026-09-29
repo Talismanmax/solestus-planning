@@ -58,7 +58,7 @@
 
 .legenda { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; font-size: 10px; }
 .legenda b { font-size: 11px; margin-right: 4px; }
-.legenda .pil { padding: 2px 9px; border-radius: 999px; font-weight: 700; }
+.legenda .pil { height: auto; padding: 2px 9px; border-radius: 999px; font-size: 10px; font-weight: 700; }
 .toelichting { font-size: 10px; }
 
 /* Kaartjes met cijfers */

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Icoon from "@/components/Icoon";
+import { markeerActief } from "@/lib/actief";
 import { createClient } from "@/lib/supabase/client";
 
 /** Inloggen met Microsoft. `volgende` = pagina om na het inloggen naartoe te gaan; `anderAccount` laat Microsoft een account kiezen. */
@@ -10,6 +11,7 @@ export default function InlogKnop({ label, volgende, anderAccount = false, alsLi
 
   async function inloggen() {
     setBezig(true);
+    markeerActief();
     const supabase = createClient();
     const terug = volgende && volgende.startsWith("/") && !volgende.startsWith("//") ? `?volgende=${encodeURIComponent(volgende)}` : "";
     await supabase.auth.signInWithOAuth({

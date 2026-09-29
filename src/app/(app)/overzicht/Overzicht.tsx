@@ -6,10 +6,11 @@ import { useState } from "react";
 import "./overzicht.css";
 import AfwezigheidPaneel from "@/components/AfwezigheidPaneel";
 import ExportMenu from "@/components/ExportMenu";
+import WeekKiezer from "@/components/WeekKiezer";
 import { overzichtNaarExcel } from "@/lib/excel";
 import type { AfwezigheidMetNaam } from "@/lib/laden";
 import { berekenOverzicht, type OverzichtMedewerker } from "@/lib/overzicht";
-import { STATUS, aantalDagen, periodeKort, plusDagen, vandaagNL, weekBereik, weekParam, type Afwezigheid, type Opdrachtgever, type Vak } from "@/lib/planning";
+import { STATUS, aantalDagen, periodeKort, plusDagen, vandaagNL, weekParam, type Afwezigheid, type Opdrachtgever, type Vak } from "@/lib/planning";
 
 type Props = {
   week: number; maandag: string;
@@ -28,8 +29,6 @@ export default function Overzicht(p: Props) {
   const o = berekenOverzicht(p.maandag, p.medewerkers, p.opdrachtgevers, p.vakken, p.afwezigheid);
   const max = Math.max(1, ...o.bezetting.map((r) => r.totaal));
   const wp = weekParam(p.maandag);
-  const vorigeWeek = weekParam(plusDagen(p.maandag, -7));
-  const volgendeWeek = weekParam(plusDagen(p.maandag, 7));
   const vandaag = vandaagNL();
   const standaardVan = vandaag >= p.maandag && vandaag <= plusDagen(p.maandag, 6) ? vandaag : p.maandag;
 
@@ -41,16 +40,14 @@ export default function Overzicht(p: Props) {
   }
 
   return (
-    <main className="pagina">
+    <main className="pagina" style={{ gap: 20 }}>
       <div className="kop">
         <div>
           <h1 className="machina">Overzicht</h1>
-          <div className="kop-meta">Bezetting en beschikbaarheid in week {p.week} · {weekBereik(p.maandag)}</div>
+          <div className="kop-meta">Bezetting en beschikbaarheid in week {p.week}</div>
         </div>
-        <div className="weekkiezer">
-          <Link className="icoonknop" href={`/overzicht?week=${vorigeWeek}`} aria-label="Vorige week"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg></Link>
-          <Link className="knop" href="/overzicht">Deze week</Link>
-          <Link className="icoonknop" href={`/overzicht?week=${volgendeWeek}`} aria-label="Volgende week"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg></Link>
+        <div className="kop-acties">
+          <WeekKiezer pad="/overzicht" maandag={p.maandag} />
           <ExportMenu
             uitleg={`Het overzicht van week ${p.week}.`}
             keuzes={[

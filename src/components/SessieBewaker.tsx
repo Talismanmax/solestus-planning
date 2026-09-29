@@ -4,7 +4,11 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import InlogKnop from "@/app/inloggen/InlogKnop";
 import Woordmerk from "@/components/Woordmerk";
+import { laatstActief, markeerActief } from "@/lib/actief";
 import { createClient } from "@/lib/supabase/client";
+
+/** Na zoveel tijd zonder muis- of toetsenbordgebruik (in welk tabblad dan ook) wordt de sessie beëindigd. */
+const NIET_ACTIEF_MS = 8 * 60 * 60 * 1000;
 
 /**
  * Houdt de sessie in de gaten. Verloopt die terwijl de planning openstaat (bijv. na lang niets doen),
@@ -18,15 +22,36 @@ export default function SessieBewaker({ naam, email, initialen, startVerlopen = 
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => { if (event === "SIGNED_OUT") setVerlopen(true); });
+    let vorige = 0;
+    const actief = () => {
+      const nu = Date.now();
+      if (nu - vorige < 30_000) return;
+      vorige = nu;
+      markeerActief();
+    };
     const controleer = async () => {
       if (document.visibilityState !== "visible") return;
+      if (Date.now() - laatstActief() > NIET_ACTIEF_MS) {
+        await supabase.auth.signOut({ scope: "local" });
+        setVerlopen(true);
+        return;
+      }
       const { data: u, error } = await supabase.auth.getUser();
       // Alleen bij een echte afwijzing (geen netwerkfout) de sessie als verlopen zien.
       if (!u.user && error && error.status && error.status >= 400 && error.status < 500) setVerlopen(true);
     };
+    const gebeurtenissen = ["pointerdown", "keydown", "wheel", "pointermove"] as const;
+    gebeurtenissen.forEach((g) => window.addEventListener(g, actief, { passive: true }));
+    // Eerst de controle (een oude tijdstempel van gisteren telt), daarna pas deze pagina als activiteit zien.
+    controleer().then(actief);
     document.addEventListener("visibilitychange", controleer);
     const klok = setInterval(controleer, 5 * 60 * 1000);
-    return () => { data.subscription.unsubscribe(); document.removeEventListener("visibilitychange", controleer); clearInterval(klok); };
+    return () => {
+      data.subscription.unsubscribe();
+      gebeurtenissen.forEach((g) => window.removeEventListener(g, actief));
+      document.removeEventListener("visibilitychange", controleer);
+      clearInterval(klok);
+    };
   }, [supabase]);
 
   if (!verlopen) return null;
