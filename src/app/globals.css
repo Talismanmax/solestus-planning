@@ -161,3 +161,36 @@ textarea.invoer { height: auto; min-height: 80px; padding: 10px 12px; resize: ve
 /* Ingepland tijdens afwezigheid */
 .vak { position: relative; }
 .conflict { position: absolute; right: 4px; top: 4px; width: 16px; height: 16px; border-radius: 8px; background: var(--fout); color: var(--wit); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+/* Wijzigingen */
+.wijzigingen { list-style: none; margin: 0; padding: 0; }
+.wijzigingen li { display: flex; flex-direction: column; gap: 4px; padding: 12px 0; border-bottom: 1px solid var(--lijn); font-size: 14px; }
+.wijzigingen small { font-size: 12px; }
+
+/* Vorige week kopiëren */
+.menu-anker .kopieer-menu { top: 50px; width: 380px; padding: 20px; gap: 12px; }
+.kopieer-menu h2 { margin: 0; font-size: 17px; }
+.kopieer-menu p { margin: 0; font-size: 14px; line-height: 20px; }
+.vink { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 20px; cursor: pointer; }
+.vink input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--zwart); flex-shrink: 0; }
+.kopieer-knoppen { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+
+/* Selectie van meerdere vakken */
+.vak.geselecteerd { box-shadow: inset 0 0 0 2px var(--zwart); }
+.dagcel.geselecteerd { background: var(--geel-licht); }
+.selectiebalk { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 35; background: var(--wit); border-radius: 18px; box-shadow: 0 0 0 1.5px var(--zwart), var(--schaduw); padding: 8px 8px 8px 16px; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; }
+.selectiebalk > span { margin-right: 8px; }
+
+/* Week- of dagweergave */
+.dagtabs { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; padding: 12px; border-bottom: 1px solid var(--lijn); }
+.dagtab { height: 56px; border: 0; border-radius: 12px; background: var(--grijs); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.dagtab b { font-family: "PP Neue Machina", Fustat, sans-serif; font-size: 20px; line-height: 1; }
+.dagtab[aria-pressed="true"] { background: var(--zwart); color: var(--wit); box-shadow: inset 0 -4px 0 var(--geel); }
+.dagkop-groot { display: flex; justify-content: space-between; align-items: baseline; padding: 16px 16px 8px; }
+.dagkop-groot h2 { margin: 0; font-size: 24px; }
+.dagrij { display: grid; grid-template-columns: 240px 360px minmax(0, 1fr); gap: 12px; align-items: center; padding: 6px 16px; border-bottom: 1px solid var(--lijn); }
+.dagrij .vak { flex-direction: row; justify-content: space-between; align-items: center; }
+.dagrij .vak small { font-size: 13px; }
+.link-knop { align-self: flex-start; border: 0; background: none; padding: 0; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.groepkeuze { width: auto; height: 42px; font-weight: 600; padding-right: 32px; }
+.dagrij .vak { padding-right: 28px; }

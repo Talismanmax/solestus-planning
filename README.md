@@ -28,6 +28,8 @@ Migraties staan in `supabase/migrations`. Row level security staat aan op alle t
 - [x] Inloggen met Microsoft, uitloggen, sessie verlopen
 - [x] Navigatiebalk met profielmenu
 - [x] Weekplanning: vakken, opmerkingen per week, afwezigheid, legenda, wijzigingslog
+- [x] Weekplanning: week- en dagweergave, meerdere vakken tegelijk (Ctrl/⌘/Shift-klik: bewerken, kopiëren, plakken, leegmaken), vorige week kopiëren, wijzigingenpaneel
+- [ ] Vaste inzet per medewerker
 - [x] Stamgegevens: overzicht, kantoormedewerker toevoegen
 - [x] Scania-ritten (Easyflex2go-relatie Manpower AB)
 - [x] Overzicht: kerncijfers, bezetting per opdrachtgever, beschikbaar en afwezig per dag

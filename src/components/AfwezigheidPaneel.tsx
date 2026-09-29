@@ -9,12 +9,12 @@ type Mw = { id: string; naam: string };
 
 /** Afwezigheid voor een periode invoeren, wijzigen of verwijderen. Roept onKlaar aan met een melding na opslaan. */
 export default function AfwezigheidPaneel(props: {
-  medewerkers: Mw[]; bestaand: Afwezigheid | null; standaardVan: string;
+  medewerkers: Mw[]; bestaand: Afwezigheid | null; standaardVan: string; standaardMedewerker?: string;
   onSluit: () => void; onKlaar: (melding: string, fout?: boolean) => void;
 }) {
   const supabase = useMemo(() => createClient(), []);
   const b = props.bestaand;
-  const [mwId, setMwId] = useState(b?.medewerker_id ?? "");
+  const [mwId, setMwId] = useState(b?.medewerker_id ?? props.standaardMedewerker ?? "");
   const [soort, setSoort] = useState<VakStatus>(b?.soort ?? "vakantie");
   const [van, setVan] = useState(b?.van ?? props.standaardVan);
   const [tot, setTot] = useState(b?.tot_en_met ?? props.standaardVan);

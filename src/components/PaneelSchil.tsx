@@ -1,8 +1,17 @@
+"use client";
+
+import { useEffect } from "react";
+
 export default function PaneelSchil({ boven, titel, sub, onSluit, children, voet }: { boven: string; titel: string; sub: string; onSluit: () => void; children: React.ReactNode; voet: React.ReactNode }) {
+  useEffect(() => {
+    const toets = (e: KeyboardEvent) => { if (e.key === "Escape") onSluit(); };
+    document.addEventListener("keydown", toets);
+    return () => document.removeEventListener("keydown", toets);
+  }, [onSluit]);
   return (
     <>
       <div className="paneel-achter" onClick={onSluit} />
-      <aside className="paneel" role="dialog" aria-label={titel} onKeyDown={(e) => { if (e.key === "Escape") onSluit(); }}>
+      <aside className="paneel" role="dialog" aria-label={titel}>
         <div className="paneel-kop">
           <div>
             <div style={{ fontSize: 13 }}>{boven}</div>
