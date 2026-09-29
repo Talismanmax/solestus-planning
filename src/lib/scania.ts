@@ -2,13 +2,13 @@ import { STATUS, type Afwezigheid, type Vak } from "./planning";
 import { dagTijd, naarIso, tijd } from "./tijd";
 
 export type Dienst = "dag" | "nacht";
-export type Route = "ishoj" | "rade";
+export type Route = "ishoj" | "rade" | "extra";
 export type RitDeel = { id?: string; volgorde: number; van: string; naar: string; vertrek: string; aankomst: string };
-export type Rit = { id: string; vertrekdatum: string; dienst: Dienst; route: Route; chauffeur_id: string | null; notitie: string | null; rit_delen: RitDeel[] };
+export type Rit = { id: string; vertrekdatum: string; dienst: Dienst; route: Route; chauffeur_id: string | null; notitie: string | null; omschrijving?: string | null; rit_delen: RitDeel[] };
 export type Chauffeur = { id: string; naam: string; groep: "nl" | "int" | "kantoor"; nationaliteit: string | null };
 
-export const ROUTE_NAAM: Record<Route, string> = { ishoj: "Zwolle – Ishøj – Zwolle", rade: "Zwolle – Rade – Zwolle (swap)" };
-export const ROUTE_KORT: Record<Route, string> = { ishoj: "Ishøj", rade: "Rade · swap" };
+export const ROUTE_NAAM: Record<Route, string> = { ishoj: "Zwolle – Ishøj – Zwolle", rade: "Zwolle – Rade – Zwolle (swap)", extra: "Extra opdracht" };
+export const ROUTE_KORT: Record<Route, string> = { ishoj: "Ishøj", rade: "Rade · swap", extra: "Extra" };
 export const RUST_UREN = 11;
 
 function plusDag(datum: string, n: number) {
@@ -24,6 +24,8 @@ export function standaardDelen(datum: string, dienst: Dienst, route: Route): Rit
   if (route === "rade") {
     return [{ volgorde: 1, van: "Zwolle", naar: "Rade (swap) – Zwolle", vertrek: t(0, start), aankomst: t(eindDag, eind) }];
   }
+  // Extra opdracht: één deel met dezelfde tijden; van, naar en tijden past de planner aan.
+  if (route === "extra") return [{ volgorde: 1, van: "Zwolle", naar: "Zwolle", vertrek: t(0, start), aankomst: t(eindDag, eind) }];
   // Terug uit Ishøj: dag vertrekt de volgende dag 09.00, nacht de volgende dag 20.00.
   const terug = dienst === "dag" ? "09:00" : "20:00";
   return [
@@ -68,7 +70,7 @@ export function afwezigOp(mwId: string, datum: string, afwezigheid: Afwezigheid[
 
 export type RitMelding = { kort: string; lang: string };
 
-const PLAATS: Record<Route, string> = { ishoj: "Ishøj", rade: "Rade" };
+const PLAATS: Record<Route, string> = { ishoj: "Ishøj", rade: "Rade", extra: "de extra opdracht" };
 const DAG_KORT = ["zo", "ma", "di", "wo", "do", "vr", "za"];
 const MAAND = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
 const dm = (datum: string) => { const d = new Date(datum + "T00:00:00Z"); return `${d.getUTCDate()} ${MAAND[d.getUTCMonth()]}`; };
@@ -106,6 +108,10 @@ export function ritTekst(r: Rit, taal: "nl" | "en" = "nl"): string {
   const dienst = taal === "en" ? (r.dienst === "dag" ? "day" : "night") : r.dienst;
   const kop = `- ${t(d[0].vertrek)} (${dienst})`;
   if (r.route === "rade") return `${kop}: Zwolle – Rade (swap) – Zwolle, ${taal === "en" ? "back" : "terug"} ${t(d[0].aankomst)}`;
+  if (r.route === "extra") {
+    const wat = r.omschrijving?.trim() || (taal === "en" ? "extra job" : "extra opdracht");
+    return `${kop} ${"EXTRA"} ${wat}: ${d.map((x) => `${x.van} ${t(x.vertrek)} > ${x.naar} ${t(x.aankomst)}`).join(" | ")}`;
+  }
   const heen = d[0], terug = d[1];
   const t1 = `Zwolle > Ishøj ${t(heen.aankomst)}`;
   const t2 = terug ? ` | Ishøj ${t(terug.vertrek)} > Zwolle ${t(terug.aankomst)}` : "";

@@ -1,4 +1,5 @@
 /* Scania-ritten, volgens het design */
+:root { --extra: #5b3fd6; --extra-bg: #efebfd; }
 .knop-hoog { height: 48px; border-radius: 14px; padding: 0 16px; }
 .scania-cijfers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
 .cijferkaart { background: var(--wit); border-radius: 24px; padding: 20px 24px; display: flex; flex-direction: column; gap: 4px; }
@@ -27,6 +28,17 @@
 .rit-chauffeur small { font-size: 12px; }
 .rit-open { display: flex; align-items: center; gap: 6px; }
 .rit-let { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 8px; background: var(--fout-bg); color: var(--fout); }
+/* Extra opdracht (bijv. pendelen): violet, zodat hij opvalt tussen de vaste ritten */
+.rit-rij.rit-extra { background: var(--extra-bg); box-shadow: inset 5px 0 0 var(--extra); padding-left: 14px; margin-left: -14px; width: calc(100% + 14px); border-radius: 0 10px 10px 0; }
+.rit-rij.rit-extra:not(:disabled):hover { background: #e2dbfb; }
+.rit-extra .rit-deel .rit-deel + .rit-deel { margin-top: 4px; }
+.extra-label { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--extra); color: var(--wit); }
+.rit-extra .rit-dienst > span:last-child { font-weight: 700; color: var(--extra); }
+.knop-extra { background: var(--extra-bg); color: var(--extra); box-shadow: inset 0 0 0 1.5px var(--extra); }
+.knop-extra:hover { background: #e2dbfb; }
+.route-keuze button.route-extra { display: flex; align-items: center; gap: 8px; color: var(--extra); }
+.route-keuze button.route-extra small { font-weight: 600; color: var(--zwart); opacity: .6; }
+.route-keuze button.route-extra[aria-pressed="true"] { background: var(--extra-bg); box-shadow: inset 0 0 0 2px var(--extra); }
 .rit-leeg { padding: 24px 0 12px; border-top: 1px solid var(--lijn); }
 
 .scania-zij { display: flex; flex-direction: column; gap: 16px; }

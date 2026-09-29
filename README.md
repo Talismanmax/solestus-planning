@@ -31,7 +31,7 @@ Migraties staan in `supabase/migrations`. Row level security staat aan op alle t
 - [x] Weekplanning: week- en dagweergave, meerdere vakken tegelijk (Ctrl/⌘/Shift-klik: bewerken, kopiëren, plakken, leegmaken), vorige week kopiëren, wijzigingenpaneel
 - [x] Vaste inzet per medewerker (Stamgegevens → medewerker bewerken; weekplanning → Vaste inzet vult lege vakken)
 - [x] Stamgegevens: overzicht, kantoormedewerker toevoegen, medewerker bewerken, opdrachtgever bewerken (korte naam in het rooster, verbergen in de planning); status uit Easyflex2go, niet-actieve relaties en medewerkers (alles behalve status Actief) automatisch verborgen; medewerkers ook zelf te verbergen met het vinkje Actief
-- [x] Scania-ritten (Easyflex2go-relatie Manpower AB), met standaardweek (`STANDAARDWEEK` in `src/lib/scania.ts`)
+- [x] Scania-ritten (Easyflex2go-relatie Manpower AB), met standaardweek (`STANDAARDWEEK` in `src/lib/scania.ts`); extra opdrachten (bijv. pendelen) in violet
 - [x] Overzicht: kerncijfers, bezetting per opdrachtgever, beschikbaar en afwezig per dag
 - [x] Afwezigheid voor een periode invoeren, wijzigen en verwijderen (vanuit Overzicht)
 - [x] Export: PDF (weekplanning liggend/staand, Scania, overzicht) via afdrukpagina's onder `/afdruk`, Excel (weekplanning, bezetting)

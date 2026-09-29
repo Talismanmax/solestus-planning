@@ -81,3 +81,8 @@
 .pdienst { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; box-shadow: inset 0 0 0 1.2px var(--zwart); }
 .pdienst.nacht { background: var(--zwart); color: var(--wit); }
 .pt small { font-size: 10px; }
+
+/* Extra opdracht van Scania: violette rand links, label EXTRA (ook zwart-wit herkenbaar) */
+.pt tr.pextra td { background: #efebfd; }
+.pt tr.pextra td:first-child { box-shadow: inset 4px 0 0 #5b3fd6; }
+.pextra-label { display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: .06em; padding: 1px 7px; border-radius: 999px; background: #5b3fd6; color: #fff; }

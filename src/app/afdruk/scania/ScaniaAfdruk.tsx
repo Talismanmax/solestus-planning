@@ -20,7 +20,7 @@ export default function ScaniaAfdruk({ week, maandag, d, gebruiker }: {
   const door = gebruiker?.naam?.split(" ")[0] || gebruiker?.email.split("@")[0] || "onbekend";
 
   return (
-    <Blad stand="liggend" titel={`Scania-ritten week ${week}`} sub={`${weekBereik(maandag)} · ${ROUTE_NAAM.ishoj} en ${ROUTE_NAAM.rade}`} voet={`Gemaakt op ${gemaaktOp()} door ${door}`}>
+    <Blad stand="liggend" titel={`Scania-ritten week ${week}`} sub={`${weekBereik(maandag)} · ${ROUTE_NAAM.ishoj} en ${ROUTE_NAAM.rade}${ritten.some((r) => r.route === "extra") ? " · met extra opdrachten" : ""}`} voet={`Gemaakt op ${gemaaktOp()} door ${door}`}>
       {d.laadFout && <p className="let">De ritten konden niet volledig worden geladen: {d.laadFout}</p>}
       <div className="pcijfers" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
         <div className="pcijfer"><b>{ritten.length}</b><span>ritten</span></div>
@@ -39,12 +39,12 @@ export default function ScaniaAfdruk({ week, maandag, d, gebruiker }: {
             const info = dagInfo(r.vertrekdatum, i);
             const nieuweDag = k === 0 || ritten[k - 1].vertrekdatum !== r.vertrekdatum;
             return (
-              <tr key={r.id}>
+              <tr key={r.id} className={r.route === "extra" ? "pextra" : undefined}>
                 <td><b>{nieuweDag ? `${info.kort} ${info.nummer} ${info.maand}` : ""}</b></td>
-                <td><span className={`pdienst${r.dienst === "nacht" ? " nacht" : ""}`}>{r.dienst === "dag" ? "Dag" : "Nacht"}</span></td>
-                <td>{r.route === "rade" ? "Zwolle – Rade (swap)" : "Zwolle – Ishøj"}</td>
+                <td>{r.route === "extra" ? <span className="pextra-label">EXTRA</span> : <span className={`pdienst${r.dienst === "nacht" ? " nacht" : ""}`}>{r.dienst === "dag" ? "Dag" : "Nacht"}</span>}</td>
+                <td>{r.route === "extra" ? <b>{r.omschrijving?.trim() || "Extra opdracht"}</b> : r.route === "rade" ? "Zwolle – Rade (swap)" : "Zwolle – Ishøj"}</td>
                 <td>{delen[0] ? <><b style={{ fontWeight: 600 }}>{delen[0].titel}</b><br /><small>{delen[0].tijden}</small></> : "–"}</td>
-                <td>{delen[1] ? <><b style={{ fontWeight: 600 }}>{delen[1].titel}</b><br /><small>{delen[1].tijden}</small></> : r.route === "rade" ? "Swap in Rade" : "–"}</td>
+                <td>{delen.length > 1 ? delen.slice(1).map((d, j) => <div key={j}><b style={{ fontWeight: 600 }}>{d.titel}</b><br /><small>{d.tijden}</small></div>) : r.route === "rade" ? "Swap in Rade" : "–"}</td>
                 <td className={r.chauffeur_id ? undefined : "pgeel"}><b>{r.chauffeur_id ? naam.get(r.chauffeur_id) ?? "Onbekend" : "Nog geen chauffeur"}</b>{r.notitie && <><br /><small>{r.notitie}</small></>}</td>
                 <td>{waarsch.get(r.id)!.map((w) => <div key={w} className="let">(!) {w}</div>)}</td>
               </tr>
@@ -66,7 +66,7 @@ export default function ScaniaAfdruk({ week, maandag, d, gebruiker }: {
         </section>
         <section>
           <h2 className="ptitel">Toelichting</h2>
-          <p style={{ margin: "0 0 6px", fontSize: 11 }}>Dag = vertrek 09.00 · Nacht = vertrek 21.00. Bij Rade (swap) staat de hele rit onder Heen.</p>
+          <p style={{ margin: "0 0 6px", fontSize: 11 }}>Dag = vertrek 09.00 · Nacht = vertrek 21.00. Bij Rade (swap) staat de hele rit onder Heen. EXTRA = extra opdracht van Scania naast de vaste ritten (bijv. pendelen).</p>
           <p style={{ margin: 0, fontSize: 11 }}>Nog geen chauffeur = rit staat open. Vragen over een rit? Bel 0570-781010.</p>
         </section>
       </div>

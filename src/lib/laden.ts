@@ -15,7 +15,7 @@ export async function laadWeek(supabase: Db, jaar: number, week: number, maandag
     supabase.from("week_opmerkingen").select("id, medewerker_id, tekst").eq("jaar", jaar).eq("week", week),
     supabase.from("wijzigingen").select("tijdstip, omschrijving, gebruikers(naam, email)").order("tijdstip", { ascending: false }).limit(1).maybeSingle(),
     // Scania-ritten van deze week, voor het weekbericht aan de chauffeur.
-    supabase.from("scania_ritten").select("id, vertrekdatum, dienst, route, chauffeur_id, notitie, rit_delen(id, volgorde, van, naar, vertrek, aankomst)")
+    supabase.from("scania_ritten").select("id, vertrekdatum, dienst, route, chauffeur_id, notitie, omschrijving, rit_delen(id, volgorde, van, naar, vertrek, aankomst)")
       .gte("vertrekdatum", maandag).lte("vertrekdatum", zondag).not("chauffeur_id", "is", null).order("vertrekdatum"),
   ]);
   const fout = mw.error || og.error || vk.error || af.error || op.error;
@@ -36,7 +36,7 @@ export async function laadWeek(supabase: Db, jaar: number, week: number, maandag
 export async function laadScania(supabase: Db, maandag: string) {
   const zondag = plusDagen(maandag, 6);
   const [ritten, chauffeurs, scania, afw, vakken] = await Promise.all([
-    supabase.from("scania_ritten").select("id, vertrekdatum, dienst, route, chauffeur_id, notitie, rit_delen(id, volgorde, van, naar, vertrek, aankomst)")
+    supabase.from("scania_ritten").select("id, vertrekdatum, dienst, route, chauffeur_id, notitie, omschrijving, rit_delen(id, volgorde, van, naar, vertrek, aankomst)")
       .gte("vertrekdatum", plusDagen(maandag, -2)).lte("vertrekdatum", plusDagen(zondag, 1)).order("vertrekdatum"),
     supabase.from("medewerkers").select("id, naam, groep, nationaliteit").eq("actief", true).eq("verborgen", false).in("groep", ["nl", "int"]).order("naam"),
     supabase.from("opdrachtgevers").select("id, naam").ilike("naam", SCANIA_RELATIE).eq("actief", true).limit(1).maybeSingle(),

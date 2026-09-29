@@ -8,7 +8,7 @@ import PaneelSchil, { PaneelVoet } from "@/components/PaneelSchil";
 import WeekKiezer from "@/components/WeekKiezer";
 import { createClient } from "@/lib/supabase/client";
 import { dagInfo, isoWeek, plusDagen, weekParam, type Afwezigheid, type Vak } from "@/lib/planning";
-import { ROUTE_NAAM, STANDAARDWEEK, afwezigOp, deelRegel, ritMeldingen, ritTekst, rustVoor, RUST_UREN, standaardDelen, type Chauffeur, type Dienst, type Rit, type RitDeel, type Route } from "@/lib/scania";
+import { ROUTE_KORT, ROUTE_NAAM, STANDAARDWEEK, afwezigOp, deelRegel, ritMeldingen, ritTekst, rustVoor, RUST_UREN, standaardDelen, type Chauffeur, type Dienst, type Rit, type RitDeel, type Route } from "@/lib/scania";
 import { naarIso, naarLokaal } from "@/lib/tijd";
 
 type Props = {
@@ -16,13 +16,12 @@ type Props = {
   afwezigheid: Afwezigheid[]; vakken: Vak[]; magWijzigen: boolean; laadFout: string | null;
 };
 
-const ROUTE_TABEL: Record<Route, string> = { ishoj: "Ishøj", rade: "Rade · swap" };
 const OOK_IN_PLANNING = "scania-ook-in-weekplanning";
 
 export default function Scania(p: Props) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
-  const [bewerk, setBewerk] = useState<Rit | "nieuw" | null>(null);
+  const [bewerk, setBewerk] = useState<Rit | "nieuw" | "extra" | null>(null);
   const [menu, setMenu] = useState<"vullen" | "export" | "kopieren" | null>(null);
   const [metChauffeurs, setMetChauffeurs] = useState(true);
   const [tekst, setTekst] = useState<string | null>(null);
@@ -47,6 +46,7 @@ export default function Scania(p: Props) {
   const perChauffeur = new Map<string, number>();
   inWeek.forEach((r) => { if (r.chauffeur_id) perChauffeur.set(r.chauffeur_id, (perChauffeur.get(r.chauffeur_id) ?? 0) + 1); });
   const openAantal = inWeek.filter((r) => !r.chauffeur_id).length;
+  const extraAantal = inWeek.filter((r) => r.route === "extra").length;
   const metWaarschuwing = inWeek.filter((r) => meldingen.get(r.id)!.length).length;
   const vorigeWeek = isoWeek(plusDagen(p.maandag, -7)).week;
 
@@ -81,13 +81,13 @@ export default function Scania(p: Props) {
   async function vorigeWeekKopieren() {
     setMenu(null);
     setBezig(true);
-    const { data, error } = await supabase.from("scania_ritten").select("vertrekdatum, dienst, route, chauffeur_id, notitie, rit_delen(volgorde, van, naar, vertrek, aankomst)")
+    const { data, error } = await supabase.from("scania_ritten").select("vertrekdatum, dienst, route, chauffeur_id, notitie, omschrijving, rit_delen(volgorde, van, naar, vertrek, aankomst)")
       .gte("vertrekdatum", plusDagen(p.maandag, -7)).lte("vertrekdatum", plusDagen(p.maandag, -1));
     if (error) { setBezig(false); toon("Kopiëren lukte niet.", true); return; }
     if (!data?.length) { setBezig(false); toon(`Week ${vorigeWeek} heeft geen ritten.`); return; }
     const plus7 = (iso: string) => new Date(new Date(iso).getTime() + 7 * 86400000).toISOString();
     for (const r of data as Omit<Rit, "id">[]) {
-      const { data: nieuw, error: e1 } = await supabase.from("scania_ritten").insert({ vertrekdatum: plusDagen(r.vertrekdatum, 7), dienst: r.dienst, route: r.route, chauffeur_id: metChauffeurs ? r.chauffeur_id : null, notitie: null }).select("id").single();
+      const { data: nieuw, error: e1 } = await supabase.from("scania_ritten").insert({ vertrekdatum: plusDagen(r.vertrekdatum, 7), dienst: r.dienst, route: r.route, omschrijving: r.omschrijving ?? null, chauffeur_id: metChauffeurs ? r.chauffeur_id : null, notitie: null }).select("id").single();
       if (e1 || !nieuw) { setBezig(false); toon("Kopiëren is deels mislukt.", true); router.refresh(); return; }
       const delen = r.rit_delen.map((d) => ({ rit_id: nieuw.id, volgorde: d.volgorde, van: d.van, naar: d.naar, vertrek: plus7(d.vertrek), aankomst: plus7(d.aankomst) }));
       if (delen.length) await supabase.from("rit_delen").insert(delen);
@@ -185,6 +185,7 @@ export default function Scania(p: Props) {
               </>
             )}
           </div>
+          {p.magWijzigen && <button type="button" className="knop knop-hoog knop-extra" onClick={() => setBewerk("extra")}><Icoon naam="plus" />Extra opdracht</button>}
           {p.magWijzigen && <button type="button" className="knop knop-zwart knop-hoog" onClick={() => setBewerk("nieuw")}><Icoon naam="plus" />Rit toevoegen</button>}
         </div>
       </div>
@@ -193,7 +194,7 @@ export default function Scania(p: Props) {
       {!p.scaniaId && <div className="voorbeeld">Opdrachtgever Scania (Easyflex2go-relatie “Manpower AB”) is niet gevonden in de stamgegevens. Ritten worden wel opgeslagen, maar niet in de weekplanning gezet.</div>}
 
       <div className="scania-cijfers">
-        <div className="cijferkaart"><b>{inWeek.length}</b><span>Ritten deze week</span></div>
+        <div className="cijferkaart"><b>{inWeek.length}</b><span>Ritten deze week{extraAantal ? ` · waarvan ${extraAantal} extra` : ""}</span></div>
         <div className="cijferkaart geel"><b>{openAantal}</b><span>Zonder chauffeur</span></div>
         <div className="cijferkaart"><b>{perChauffeur.size}</b><span>Chauffeurs ingezet</span></div>
         <div className="cijferkaart zwart"><b>{metWaarschuwing}</b><span>Ritten met een waarschuwing</span></div>
@@ -208,12 +209,16 @@ export default function Scania(p: Props) {
             const info = dagInfo(r.vertrekdatum, i);
             const m = meldingen.get(r.id)!;
             return (
-              <button type="button" key={r.id} className={`rit-rij${eersteVanDag(r, k) ? " rit-eerste" : ""}`} disabled={!p.magWijzigen} onClick={() => setBewerk(r)}
-                aria-label={`Rit ${info.kort} ${info.nummer} ${info.maand}, ${r.dienst}, ${naam.get(r.chauffeur_id ?? "") ?? "nog geen chauffeur"}`}>
+              <button type="button" key={r.id} className={`rit-rij${eersteVanDag(r, k) ? " rit-eerste" : ""}${r.route === "extra" ? " rit-extra" : ""}`} disabled={!p.magWijzigen} onClick={() => setBewerk(r)}
+                aria-label={`${r.route === "extra" ? `Extra opdracht ${r.omschrijving ?? ""},` : "Rit"} ${info.kort} ${info.nummer} ${info.maand}, ${r.dienst}, ${naam.get(r.chauffeur_id ?? "") ?? "nog geen chauffeur"}`}>
                 <span className="rit-dag">{eersteVanDag(r, k) ? `${info.kort} ${info.nummer} ${info.maand}` : ""}</span>
-                <span className="rit-dienst"><span className={`dienst dienst-${r.dienst}`}>{r.dienst === "dag" ? "Dag" : "Nacht"}</span><span>{ROUTE_TABEL[r.route]}</span></span>
+                <span className="rit-dienst">
+                  {r.route === "extra"
+                    ? <><span className="extra-label">Extra</span><span>{r.omschrijving?.trim() || "Extra opdracht"}</span></>
+                    : <><span className={`dienst dienst-${r.dienst}`}>{r.dienst === "dag" ? "Dag" : "Nacht"}</span><span>{ROUTE_KORT[r.route]}</span></>}
+                </span>
                 <span className="rit-deel">{delen[0] ? <><b>{delen[0].titel}</b><small>{delen[0].tijden}</small></> : "–"}</span>
-                <span className="rit-deel">{delen[1] ? <><b>{delen[1].titel}</b><small>{delen[1].tijden}</small></> : r.route === "rade" ? <b>Swap in Rade</b> : "–"}</span>
+                <span className="rit-deel">{delen.slice(1).length ? delen.slice(1).map((d, j) => <span key={j} className="rit-deel"><b>{d.titel}</b><small>{d.tijden}</small></span>) : r.route === "rade" ? <b>Swap in Rade</b> : "–"}</span>
                 <span className="rit-chauffeur">
                   {r.chauffeur_id ? <b>{naam.get(r.chauffeur_id) ?? "Onbekend"}</b> : <b className="rit-open"><span className="bolletje" style={{ width: 9, height: 9 }} />Nog geen chauffeur</b>}
                   {m.map((x) => <span key={x.kort} className="rit-let">! {x.kort}</span>)}
@@ -255,9 +260,10 @@ export default function Scania(p: Props) {
 
       {bewerk && (
         <RitPaneel
-          key={bewerk === "nieuw" ? "nieuw" : bewerk.id}
+          key={typeof bewerk === "string" ? bewerk : bewerk.id}
           week={p.week}
-          rit={bewerk === "nieuw" ? null : bewerk}
+          rit={typeof bewerk === "string" ? null : bewerk}
+          nieuweRoute={bewerk === "extra" ? "extra" : "ishoj"}
           standaardDatum={dagen[0]}
           chauffeurs={p.chauffeurs}
           opScania={new Set(inWeek.map((r) => r.chauffeur_id).filter(Boolean) as string[])}
@@ -289,7 +295,7 @@ export default function Scania(p: Props) {
 }
 
 function RitPaneel(props: {
-  week: number; rit: Rit | null; standaardDatum: string; chauffeurs: Chauffeur[]; opScania: Set<string>;
+  week: number; rit: Rit | null; nieuweRoute: Route; standaardDatum: string; chauffeurs: Chauffeur[]; opScania: Set<string>;
   afwezig: (id: string, d: string) => string | null; alleRitten: Rit[]; afwezigheid: Afwezigheid[]; scaniaId: string | null; vakken: Vak[];
   ookInPlanning: boolean; setOokInPlanning: (v: boolean) => void;
   onSluit: () => void; onKlaar: (t: string) => void; onFout: (t: string) => void;
@@ -298,28 +304,46 @@ function RitPaneel(props: {
   const r = props.rit;
   const [datum, setDatum] = useState(r?.vertrekdatum ?? props.standaardDatum);
   const [dienst, setDienst] = useState<Dienst>(r?.dienst ?? "dag");
-  const [route, setRoute] = useState<Route>(r?.route ?? "ishoj");
-  const [delen, setDelen] = useState<RitDeel[]>(r ? [...r.rit_delen].sort((a, b) => a.volgorde - b.volgorde) : standaardDelen(props.standaardDatum, "dag", "ishoj"));
+  const [route, setRoute] = useState<Route>(r?.route ?? props.nieuweRoute);
+  const [omschrijving, setOmschrijving] = useState(r?.omschrijving ?? "");
+  const [delen, setDelen] = useState<RitDeel[]>(r ? [...r.rit_delen].sort((a, b) => a.volgorde - b.volgorde) : standaardDelen(props.standaardDatum, "dag", props.nieuweRoute));
+  const extra = route === "extra";
   const [chauffeur, setChauffeur] = useState(r?.chauffeur_id ?? "");
   const [zoek, setZoek] = useState("");
   const [notitie, setNotitie] = useState(r?.notitie ?? "");
   const [bezig, setBezig] = useState(false);
 
   function wijzig(d: string, di: Dienst, ro: Route) {
+    // Bij een extra opdracht met eigen plaatsen alleen de tijden meeschuiven, de plaatsen blijven.
+    if (ro === "extra" && route === "extra") {
+      const oud = delen[0] ? Date.parse(delen[0].vertrek) : 0;
+      const nieuw = Date.parse(standaardDelen(d, di, ro)[0].vertrek);
+      const schuif = (iso: string) => new Date(Date.parse(iso) + (nieuw - oud)).toISOString();
+      setDatum(d); setDienst(di);
+      setDelen(delen.map((x) => ({ ...x, vertrek: schuif(x.vertrek), aankomst: schuif(x.aankomst) })));
+      return;
+    }
     setDatum(d); setDienst(di); setRoute(ro);
     setDelen(standaardDelen(d, di, ro));
   }
+  const zetDeel = (i: number, w: Partial<RitDeel>) => setDelen(delen.map((x, j) => (j === i ? { ...x, ...w } : x)));
+  function deelErbij() {
+    const laatste = delen[delen.length - 1];
+    const plus = (iso: string, uur: number) => new Date(Date.parse(iso) + uur * 3600000).toISOString();
+    setDelen([...delen, { volgorde: delen.length + 1, van: laatste?.naar ?? "Zwolle", naar: laatste?.van ?? "Zwolle", vertrek: plus(laatste.aankomst, 1), aankomst: plus(laatste.aankomst, 2) }]);
+  }
 
-  const proef: Rit = { id: r?.id ?? "nieuw", vertrekdatum: datum, dienst, route, chauffeur_id: chauffeur || null, notitie, rit_delen: delen };
+  const proef: Rit = { id: r?.id ?? "nieuw", vertrekdatum: datum, dienst, route, chauffeur_id: chauffeur || null, notitie, omschrijving, rit_delen: delen };
   const rust = chauffeur ? rustVoor(proef, props.alleRitten) : null;
   const waarschuwing = chauffeur ? ritMeldingen(proef, props.alleRitten, props.afwezigheid, props.vakken).map((m) => m.lang).join(" ") : "";
   const tijdenFout = delen.some((d) => d.aankomst <= d.vertrek);
+  const invulFout = extra && (!omschrijving.trim() || delen.some((d) => !d.van.trim() || !d.naar.trim()));
 
   async function opslaan() {
-    if (tijdenFout) return;
+    if (tijdenFout || invulFout) return;
     setBezig(true);
     const { data: auth } = await supabase.auth.getUser();
-    const rij = { vertrekdatum: datum, dienst, route, chauffeur_id: chauffeur || null, notitie: notitie.trim() || null, gewijzigd_door: auth.user?.id ?? null, gewijzigd_op: new Date().toISOString() };
+    const rij = { vertrekdatum: datum, dienst, route, omschrijving: extra ? omschrijving.trim() : null, chauffeur_id: chauffeur || null, notitie: notitie.trim() || null, gewijzigd_door: auth.user?.id ?? null, gewijzigd_op: new Date().toISOString() };
     let id = r?.id;
     if (id) {
       const { error } = await supabase.from("scania_ritten").update(rij).eq("id", id);
@@ -336,13 +360,13 @@ function RitPaneel(props: {
     if (props.ookInPlanning && chauffeur && props.scaniaId) {
       const bestaand = props.vakken.find((v) => v.medewerker_id === chauffeur && v.datum === datum);
       if (!bestaand || (bestaand.status === "werk" && bestaand.opdrachtgever_id === props.scaniaId)) {
-        await supabase.from("vakken").upsert({ medewerker_id: chauffeur, datum, status: "werk", opdrachtgever_id: props.scaniaId, notitie: `${route === "rade" ? "Rade" : "Ishøj"} · ${dienst}`, gewijzigd_door: auth.user?.id ?? null, gewijzigd_op: new Date().toISOString() }, { onConflict: "medewerker_id,datum" });
+        await supabase.from("vakken").upsert({ medewerker_id: chauffeur, datum, status: "werk", opdrachtgever_id: props.scaniaId, notitie: extra ? `Extra: ${omschrijving.trim()}` : `${route === "rade" ? "Rade" : "Ishøj"} · ${dienst}`, gewijzigd_door: auth.user?.id ?? null, gewijzigd_op: new Date().toISOString() }, { onConflict: "medewerker_id,datum" });
       }
     }
     const naam = props.chauffeurs.find((c) => c.id === chauffeur)?.naam;
     const dag = new Date(datum + "T12:00:00Z").toLocaleDateString("nl-NL", { weekday: "short", day: "numeric", month: "short" }).replace(".", "");
-    if (auth.user) await supabase.from("wijzigingen").insert({ gebruiker_id: auth.user.id, omschrijving: `Scania-rit ${dag}, ${dienst}: ${naam ?? "nog geen chauffeur"}`, tabel: "scania_ritten", record_id: id });
-    props.onKlaar(r ? "Rit opgeslagen" : "Rit toegevoegd");
+    if (auth.user) await supabase.from("wijzigingen").insert({ gebruiker_id: auth.user.id, omschrijving: `${extra ? `Scania extra opdracht (${omschrijving.trim()})` : "Scania-rit"} ${dag}, ${dienst}: ${naam ?? "nog geen chauffeur"}`, tabel: "scania_ritten", record_id: id });
+    props.onKlaar(r ? (extra ? "Extra opdracht opgeslagen" : "Rit opgeslagen") : (extra ? "Extra opdracht toegevoegd" : "Rit toegevoegd"));
   }
 
   async function verwijderen() {
@@ -368,15 +392,15 @@ function RitPaneel(props: {
       </button>
     );
   };
-  const legLabel = (i: number) => route === "rade" ? "Rit via Rade (swap): Zwolle → Rade → Zwolle" : i === 0 ? "Heen: Zwolle → Ishøj" : "Terug: Ishøj → Zwolle";
+  const legLabel = (i: number) => extra ? `Deel ${i + 1}` : route === "rade" ? "Rit via Rade (swap): Zwolle → Rade → Zwolle" : i === 0 ? "Heen: Zwolle → Ishøj" : "Terug: Ishøj → Zwolle";
 
   return (
     <PaneelSchil
       boven={`Scania · week ${props.week}`}
-      titel={r ? "Rit bewerken" : "Nieuwe rit"}
-      sub={ROUTE_NAAM[route]}
+      titel={extra ? (r ? "Extra opdracht bewerken" : "Extra opdracht") : r ? "Rit bewerken" : "Nieuwe rit"}
+      sub={extra ? "Naast de vaste ritten, bijv. pendelen" : ROUTE_NAAM[route]}
       onSluit={props.onSluit}
-      voet={<PaneelVoet opslaan={opslaan} opslaanLabel={bezig ? "Opslaan…" : "Opslaan"} uit={bezig || tijdenFout} onAnnuleren={props.onSluit} gevaar={r ? { label: "Verwijderen", onClick: verwijderen, uit: bezig } : undefined} />}
+      voet={<PaneelVoet opslaan={opslaan} opslaanLabel={bezig ? "Opslaan…" : "Opslaan"} uit={bezig || tijdenFout || invulFout} onAnnuleren={props.onSluit} gevaar={r ? { label: "Verwijderen", onClick: verwijderen, uit: bezig } : undefined} />}
     >
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, alignItems: "end" }}>
         <div className="veld"><label className="veld-kop" htmlFor="rit-datum">Vertrekdatum</label><input id="rit-datum" className="invoer" type="date" value={datum} onChange={(e) => e.target.value && wijzig(e.target.value, dienst, route)} /></div>
@@ -391,17 +415,32 @@ function RitPaneel(props: {
         <div className="route-keuze">
           <button type="button" aria-pressed={route === "ishoj"} onClick={() => wijzig(datum, dienst, "ishoj")}>{ROUTE_NAAM.ishoj}</button>
           <button type="button" aria-pressed={route === "rade"} onClick={() => wijzig(datum, dienst, "rade")}>{ROUTE_NAAM.rade}</button>
+          <button type="button" className="route-extra" aria-pressed={extra} onClick={() => wijzig(datum, dienst, "extra")}>Extra opdracht <small>bijv. pendelen</small></button>
         </div>
       </fieldset>
+      {extra && (
+        <div className="veld">
+          <label className="veld-kop" htmlFor="rit-omschrijving">Wat is de opdracht?</label>
+          <input id="rit-omschrijving" className="invoer" value={omschrijving} onChange={(e) => setOmschrijving(e.target.value)} maxLength={60} placeholder="bijv. Pendelen Zwolle – Meppel" autoFocus={!r} />
+        </div>
+      )}
       {delen.map((d, i) => (
         <fieldset key={i} className="rit-tijden">
-          <legend>{legLabel(i)}</legend>
+          <legend style={extra ? { display: "flex", justifyContent: "space-between" } : undefined}>{legLabel(i)}{extra && delen.length > 1 && <button type="button" className="link-knop" style={{ fontSize: 12 }} onClick={() => setDelen(delen.filter((_, j) => j !== i))}>Verwijderen</button>}</legend>
+          {extra && (
+            <div style={{ marginBottom: 10 }}>
+              <label className="veld"><span style={{ fontSize: 12, fontWeight: 600 }}>Van</span><input className="invoer" value={d.van} onChange={(e) => zetDeel(i, { van: e.target.value })} maxLength={40} /></label>
+              <label className="veld"><span style={{ fontSize: 12, fontWeight: 600 }}>Naar</span><input className="invoer" value={d.naar} onChange={(e) => zetDeel(i, { naar: e.target.value })} maxLength={40} /></label>
+            </div>
+          )}
           <div>
             <label className="veld"><span style={{ fontSize: 12, fontWeight: 600 }}>Vertrek</span><input className="invoer" type="datetime-local" value={naarLokaal(d.vertrek)} onChange={(e) => e.target.value && setDelen(delen.map((x, j) => j === i ? { ...x, vertrek: naarIso(e.target.value) } : x))} /></label>
             <label className="veld"><span style={{ fontSize: 12, fontWeight: 600 }}>Aankomst</span><input className="invoer" type="datetime-local" value={naarLokaal(d.aankomst)} onChange={(e) => e.target.value && setDelen(delen.map((x, j) => j === i ? { ...x, aankomst: naarIso(e.target.value) } : x))} /></label>
           </div>
         </fieldset>
       ))}
+      {extra && <button type="button" className="knop knop-tekst" style={{ alignSelf: "flex-start" }} onClick={deelErbij}><Icoon naam="plus" />Deel toevoegen</button>}
+      {invulFout && <p className="hint">Vul de opdracht en bij elk deel van en naar in.</p>}
       {tijdenFout && <p className="infoblok" style={{ background: "var(--fout-bg)", color: "var(--fout)", fontWeight: 600 }} role="alert">De aankomst moet na het vertrek liggen.</p>}
       <div className="veld">
         <label className="veld-kop" htmlFor="rit-chauffeur">Chauffeur</label>
