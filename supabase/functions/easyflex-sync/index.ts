@@ -128,6 +128,9 @@ Deno.serve(async (req) => {
         return {
           id: f.id,
           naam: naamVan(f),
+          voornaam: f.first_name?.trim() ?? "",
+          tussenvoegsel: f.insertion?.trim() ?? "",
+          achternaam: f.last_name?.trim() ?? "",
           regnr: (f.easyflex_registration_number ?? "").trim(),
           nat: iso,
           groep: iso === "NL" || iso === "" ? "nl" : "int",

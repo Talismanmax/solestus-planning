@@ -8,7 +8,7 @@ import { GROEPEN, geldigeVasteInzet, opdrachtgeverLabel, vasteInzetLabel, type V
 
 export type MwStam = {
   id: string; naam: string; groep: string; bv: string | null; werkmaatschappijen: string[]; nationaliteit: string | null;
-  certificaten: string[]; bron: string; ef_registratienummer: string | null; ef_id?: number | null; ef_status?: string | null; telefoon: string | null; actief: boolean; verborgen?: boolean; vaste_inzet: unknown;
+  certificaten: string[]; bron: string; ef_registratienummer: string | null; ef_id?: number | null; ef_status?: string | null; telefoon: string | null; actief: boolean; verborgen?: boolean; voornaam?: string | null; tussenvoegsel?: string | null; achternaam?: string | null; vaste_inzet: unknown;
 };
 type Og = { id: string; naam: string; korte_naam: string | null; plaats: string | null; verborgen?: boolean };
 
@@ -121,6 +121,11 @@ export default function MedewerkerPaneel({ mw, opdrachtgevers, bvs, onSluit, onK
           <fieldset className="ef-blok">
             <legend className="veld-kop" style={{ float: "left", width: "100%", padding: 0, display: "flex", gap: 8, alignItems: "center" }}>Easyflex2go <span className="bron-ef">leidend</span></legend>
             <div style={{ clear: "both", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div className="veld"><label className="veld-kop" style={{ fontSize: 12, fontWeight: 600 }} htmlFor="mw-voornaam">Voornaam</label><input id="mw-voornaam" className="invoer" value={mw.voornaam ?? "–"} disabled /></div>
+              <div style={{ display: "grid", gridTemplateColumns: "0.6fr 1fr", gap: 12 }}>
+                <div className="veld"><label className="veld-kop" style={{ fontSize: 12, fontWeight: 600 }} htmlFor="mw-tussenvoegsel">Tussenvoegsel</label><input id="mw-tussenvoegsel" className="invoer" value={mw.tussenvoegsel ?? ""} disabled /></div>
+                <div className="veld"><label className="veld-kop" style={{ fontSize: 12, fontWeight: 600 }} htmlFor="mw-achternaam">Achternaam</label><input id="mw-achternaam" className="invoer" value={mw.achternaam ?? "–"} disabled /></div>
+              </div>
               <div className="veld"><label className="veld-kop" style={{ fontSize: 12, fontWeight: 600 }} htmlFor="mw-regnr">Registratienummer</label><input id="mw-regnr" className="invoer" value={mw.ef_registratienummer ?? "–"} disabled /></div>
               <div className="veld"><label className="veld-kop" style={{ fontSize: 12, fontWeight: 600 }} htmlFor="mw-efid">EF2GO-id</label><input id="mw-efid" className="invoer" value={mw.ef_id ?? "–"} disabled /></div>
             </div>
