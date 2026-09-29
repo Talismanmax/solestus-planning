@@ -49,7 +49,6 @@ export default function Scania(p: Props) {
     return w;
   }
 
-  // ---- Week vullen: vorige week kopiëren ----
   async function vorigeWeekKopieren() {
     setMenu(null);
     if (inWeek.length && !confirm(`Deze week heeft al ${inWeek.length} rit(ten). Ritten van vorige week toevoegen?`)) return;
@@ -76,12 +75,11 @@ export default function Scania(p: Props) {
     if (data.user) await supabase.from("wijzigingen").insert({ gebruiker_id: data.user.id, omschrijving, tabel: "scania_ritten", record_id: recordId ?? null });
   }
 
-  // ---- Export als tekst ----
   function exportTekst() {
     setMenu(null);
     const per = new Map<string, Rit[]>();
     const open: Rit[] = [];
-    for (const r of [...inWeek].sort((a, b) => a.rit_delen[0]?.vertrek.localeCompare(b.rit_delen[0]?.vertrek ?? "") ?? 0)) {
+    for (const r of [...inWeek].sort((a, b) => (a.rit_delen[0]?.vertrek ?? "").localeCompare(b.rit_delen[0]?.vertrek ?? ""))) {
       if (!r.chauffeur_id) { open.push(r); continue; }
       per.set(r.chauffeur_id, [...(per.get(r.chauffeur_id) ?? []), r]);
     }
@@ -241,7 +239,6 @@ function RitPaneel(props: {
     const { error: e2 } = await supabase.from("rit_delen").insert(delen.map((d, i) => ({ rit_id: id, volgorde: i + 1, van: d.van, naar: d.naar, vertrek: d.vertrek, aankomst: d.aankomst })));
     if (e2) { setBezig(false); props.onFout("De tijden zijn niet opgeslagen."); return; }
 
-    // In de weekplanning zetten, alleen als dat vak leeg is of al Scania is.
     if (chauffeur && props.scaniaId) {
       const bestaand = props.vakken.find((v) => v.medewerker_id === chauffeur && v.datum === datum);
       if (!bestaand || (bestaand.status === "werk" && bestaand.opdrachtgever_id === props.scaniaId)) {

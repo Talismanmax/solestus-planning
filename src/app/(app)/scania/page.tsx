@@ -10,7 +10,6 @@ export default async function ScaniaPagina({ searchParams }: { searchParams: Pro
   const supabase = await createClient();
   const gebruiker = await getGebruiker();
 
-  // Ook de dag ervoor en erna, voor de rustcontrole rond de weekgrens.
   const [ritten, chauffeurs, scania, afw, vakken] = await Promise.all([
     supabase.from("scania_ritten").select("id, vertrekdatum, dienst, route, chauffeur_id, notitie, rit_delen(id, volgorde, van, naar, vertrek, aankomst)")
       .gte("vertrekdatum", plusDagen(maandag, -2)).lte("vertrekdatum", plusDagen(zondag, 1)).order("vertrekdatum"),
