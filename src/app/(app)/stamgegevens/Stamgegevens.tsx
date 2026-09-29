@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { GROEPEN, tijdstipNL } from "@/lib/planning";
 
-type Mw = { id: string; naam: string; groep: string; bv: string | null; nationaliteit: string | null; certificaten: string[]; bron: string; ef_registratienummer: string | null; telefoon: string | null; actief: boolean };
+type Mw = { id: string; naam: string; groep: string; bv: string | null; werkmaatschappijen: string[]; nationaliteit: string | null; certificaten: string[]; bron: string; ef_registratienummer: string | null; telefoon: string | null; actief: boolean };
 type Og = { id: string; naam: string; plaats: string | null; korte_naam: string | null; actief: boolean; werkmaatschappijen: string[]; kvk_nummer: number | null };
 
 const BVS = ["Solestus Shared Services B.V.", "Solestus Nederland B.V.", "Solestus Personeelsdiensten B.V.", "Solestus Payroll Solutions B.V."];
@@ -81,7 +81,7 @@ export default function Stamgegevens(p: { medewerkers: Mw[]; opdrachtgevers: Og[
                 <td><strong>{m.naam}</strong>{m.ef_registratienummer && <div className="hint">Reg.nr. {m.ef_registratienummer}</div>}</td>
                 <td>{groepLabel(m.groep)}{m.bron === "easyflex" && <div className="hint">volgt uit nationaliteit</div>}</td>
                 <td>{m.nationaliteit ?? "–"}</td>
-                <td>{m.bv ?? "–"}</td>
+                <td>{m.werkmaatschappijen.length > 1 ? m.werkmaatschappijen.join(", ") : m.bv ?? "–"}{m.werkmaatschappijen.length > 1 && <div className="hint">actief bij {m.werkmaatschappijen.length} werkmaatschappijen</div>}</td>
                 <td>{m.certificaten.join(", ") || "–"}</td>
                 <td>{m.bron === "easyflex" ? <Slot /> : "Handmatig"}</td>
               </tr>

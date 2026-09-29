@@ -1,0 +1,3 @@
+-- Zie Supabase-migratie "medewerkers_samenvoegen": tabel ef_flexkrachten, kolom werkmaatschappijen
+-- op medewerkers, en functie public.medewerkers_samenvoegen(jsonb). Flexkrachtrecords met hetzelfde
+-- Easyflex2go-registratienummer worden één medewerker in de planning.
