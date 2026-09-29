@@ -1,13 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import PaneelSchil from "@/components/PaneelSchil";
+import Icoon from "@/components/Icoon";
+import PaneelSchil, { PaneelVoet } from "@/components/PaneelSchil";
 import { createClient } from "@/lib/supabase/client";
 import { GROEPEN, geldigeVasteInzet, opdrachtgeverLabel, vasteInzetLabel, type VasteInzet } from "@/lib/planning";
 
 export type MwStam = {
   id: string; naam: string; groep: string; bv: string | null; werkmaatschappijen: string[]; nationaliteit: string | null;
-  certificaten: string[]; bron: string; ef_registratienummer: string | null; telefoon: string | null; actief: boolean; vaste_inzet: unknown;
+  certificaten: string[]; bron: string; ef_registratienummer: string | null; ef_id?: number | null; ef_status?: string | null; telefoon: string | null; actief: boolean; vaste_inzet: unknown;
 };
 type Og = { id: string; naam: string; korte_naam: string | null; plaats: string | null; verborgen?: boolean };
 
@@ -63,34 +64,33 @@ export default function MedewerkerPaneel({ mw, opdrachtgevers, bvs, onSluit, onK
     <PaneelSchil
       boven="Stamgegevens"
       titel={mw.naam}
-      sub={`${groepLabel}${mw.bv ? ` · ${mw.bv}` : ""}`}
+      sub={`${mw.groep === "kantoor" ? "kantoor" : "chauffeur"}${mw.bv ? ` · ${mw.bv}` : ""}`}
       onSluit={onSluit}
-      voet={<>
-        <div style={{ flexGrow: 1 }} />
-        <button type="button" className="knop" onClick={onSluit}>Annuleren</button>
-        <button type="button" className="knop knop-zwart" disabled={bezig} onClick={opslaan}>Opslaan</button>
-      </>}
+      voet={<PaneelVoet opslaan={opslaan} uit={bezig} onAnnuleren={onSluit} />}
     >
       {ef && (
-        <div className="melding" style={{ maxWidth: "none" }}>
-          Naam, nationaliteit, groep, BV, certificaten en status komen uit Easyflex2go. Pas ze daar aan; de planning neemt het automatisch over.
-        </div>
+        <p className="infoblok slot-melding">
+          <Icoon naam="slot" />
+          <span>Naam, nationaliteit, groep, BV, certificaten en status komen uit Easyflex2go. Pas ze daar aan; de planning neemt het automatisch over.</span>
+        </p>
       )}
-      <label className="veld"><span>Naam</span><input className="invoer" value={naam} onChange={(e) => setNaam(e.target.value)} disabled={ef} /></label>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <label className="veld"><span>Groep</span><input className="invoer" value={groepLabel} disabled /></label>
-        <label className="veld"><span>Nationaliteit</span><input className="invoer" value={mw.nationaliteit ?? "–"} disabled /></label>
+      <div className="veld"><label className="veld-kop" htmlFor="mw-naam">Naam</label><input id="mw-naam" className="invoer" value={naam} onChange={(e) => setNaam(e.target.value)} disabled={ef} /></div>
+      <div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="veld"><label className="veld-kop" htmlFor="mw-groep">Groep</label><input id="mw-groep" className="invoer" value={groepLabel} disabled /></div>
+          <div className="veld"><label className="veld-kop" htmlFor="mw-nat">Nationaliteit</label><input id="mw-nat" className="invoer" value={mw.nationaliteit ?? "–"} disabled /></div>
+        </div>
+        {ef && <p className="hint" style={{ margin: "8px 0 0", fontSize: 12, lineHeight: "17px" }}>Volgt uit de nationaliteit in Easyflex2go: NL is Chauffeurs NL, anders internationaal.</p>}
       </div>
-      {ef && <span className="hint" style={{ marginTop: -10 }}>Groep volgt uit de nationaliteit in Easyflex2go: NL is Chauffeurs NL, anders internationaal.</span>}
-      <label className="veld">
-        <span>BV / contract</span>
+      <div className="veld">
+        <label className="veld-kop" htmlFor="mw-bv">BV / contract</label>
         {ef
-          ? <input className="invoer" value={mw.werkmaatschappijen.length > 1 ? mw.werkmaatschappijen.join(", ") : mw.bv ?? "–"} disabled />
-          : <select className="invoer" value={bv} onChange={(e) => setBv(e.target.value)}>{bvs.map((b) => <option key={b}>{b}</option>)}</select>}
-      </label>
+          ? <input id="mw-bv" className="invoer" value={mw.werkmaatschappijen.length > 1 ? mw.werkmaatschappijen.join(", ") : mw.bv ?? "–"} disabled />
+          : <select id="mw-bv" className="invoer" value={bv} onChange={(e) => setBv(e.target.value)}>{bvs.map((b) => <option key={b}>{b}</option>)}</select>}
+      </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <label className="veld"><span>Certificaten</span><input className="invoer" value={certificaten} onChange={(e) => setCertificaten(e.target.value)} disabled={ef} placeholder="Bijv. CE, Code 95" /></label>
-        <label className="veld"><span>Telefoon</span><input className="invoer" type="tel" value={telefoon} onChange={(e) => setTelefoon(e.target.value)} placeholder="06-…" /></label>
+        <div className="veld"><label className="veld-kop" htmlFor="mw-cert">Certificaten</label><input id="mw-cert" className="invoer" value={certificaten} onChange={(e) => setCertificaten(e.target.value)} disabled={ef} placeholder="bijv. CE, Code 95" /></div>
+        <div className="veld"><label className="veld-kop" htmlFor="mw-tel">Telefoon</label><input id="mw-tel" className="invoer" type="tel" value={telefoon} onChange={(e) => setTelefoon(e.target.value)} placeholder="06-…" /></div>
       </div>
 
       <fieldset className="vaste-inzet">
@@ -109,14 +109,21 @@ export default function MedewerkerPaneel({ mw, opdrachtgevers, bvs, onSluit, onK
               onClick={() => setDagen(dagen.includes(i) ? dagen.filter((x) => x !== i) : [...dagen, i])}>{d}</button>
           ))}
         </div>
-        <span className="hint">Met “Vaste inzet” in de weekplanning komen deze dagen automatisch in lege vakken. Afwezigheid en wat al gepland is, blijven staan.</span>
+        <span className="hint">Met Vaste inzet invullen in de planning komen deze dagen automatisch in lege vakken.</span>
       </fieldset>
 
       {ef ? (
-        <div className="melding" style={{ maxWidth: "none" }}>
-          <strong>Easyflex2go</strong>
-          Registratienummer {mw.ef_registratienummer ?? "–"} · {mw.actief ? "actief" : "niet actief (niet zichtbaar in de planning)"}
-        </div>
+        <>
+          <fieldset className="ef-blok">
+            <legend className="veld-kop" style={{ float: "left", width: "100%", padding: 0, display: "flex", gap: 8, alignItems: "center" }}>Easyflex2go <span className="bron-ef">leidend</span></legend>
+            <div style={{ clear: "both", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div className="veld"><label className="veld-kop" style={{ fontSize: 12, fontWeight: 600 }} htmlFor="mw-regnr">Registratienummer</label><input id="mw-regnr" className="invoer" value={mw.ef_registratienummer ?? "–"} disabled /></div>
+              <div className="veld"><label className="veld-kop" style={{ fontSize: 12, fontWeight: 600 }} htmlFor="mw-efid">EF2GO-id</label><input id="mw-efid" className="invoer" value={mw.ef_id ?? "–"} disabled /></div>
+            </div>
+            <span className="hint">Status in Easyflex2go: {mw.ef_status ?? (mw.actief ? "Actief" : "niet actief")}. Uitgeschreven in Easyflex2go betekent: niet meer zichtbaar in de planning.</span>
+          </fieldset>
+          <label className="vink" style={{ opacity: 0.55 }}><input type="checkbox" checked={mw.actief} disabled />Actief (zichtbaar in de planning)</label>
+        </>
       ) : (
         <label className="vink"><input type="checkbox" checked={actief} onChange={(e) => setActief(e.target.checked)} />Actief (zichtbaar in de planning)</label>
       )}

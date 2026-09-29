@@ -311,3 +311,22 @@ button.pil[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--wit), 0 0 0 4px va
 .nav-link, .nav-wijzigingen { white-space: nowrap; }
 .paneel .dagkeuze { flex-wrap: nowrap; gap: 5px; }
 .paneel .dagkeuze button:not(.knop-link) { width: 42px; height: 42px; flex-shrink: 0; }
+
+/* Stamgegevens */
+.koppeling { background: var(--wit); border-radius: 24px; padding: 16px 16px 16px 18px; display: flex; align-items: center; gap: 14px; }
+.koppeling > div { flex-grow: 1; display: flex; flex-direction: column; gap: 2px; font-size: 14px; line-height: 20px; }
+.koppeling-icoon { width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: var(--geel); display: flex; align-items: center; justify-content: center; }
+.koppeling .knop { background: var(--grijs); }
+.koppeling.mislukt { background: var(--fout-bg); color: var(--fout); }
+.koppeling.mislukt .koppeling-icoon { background: var(--fout); color: var(--wit); }
+.knop.knop-fout, .koppeling .knop.knop-fout { background: var(--fout); color: var(--wit); }
+.knop.knop-fout:hover { background: #6f2111; }
+.stam-kaart { padding: 20px 24px 10px; }
+.stam-kop { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding-bottom: 12px; }
+.stam-kop h2 { margin: 0; font-size: 17px; font-weight: 700; }
+.stam-kop > span { font-size: 13px; }
+.stam-kop .hint { font-size: 13px; }
+.nr { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.afleid-rij { padding: 10px 0; border-top: 1px solid var(--lijn); }
+.afleid-rij small { font-size: 12px; }
+.slot-melding svg { flex-shrink: 0; margin-top: 1px; }

@@ -1,35 +1,51 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useEffect, useMemo, useState } from "react";
 import MedewerkerPaneel, { type MwStam } from "./MedewerkerPaneel";
 import OpdrachtgeverPaneel, { type OgStam } from "./OpdrachtgeverPaneel";
-import { GROEPEN, opdrachtgeverLabel, tijdstipNL, vasteInzetLabel } from "@/lib/planning";
+import Icoon from "@/components/Icoon";
+import PaneelSchil, { PaneelVoet } from "@/components/PaneelSchil";
+import { leidVasteInzetAf } from "@/lib/afleiden";
+import { createClient } from "@/lib/supabase/client";
+import { GROEPEN, geldigeVasteInzet, opdrachtgeverLabel, plusDagen, vasteInzetLabel, type Vak, type VasteInzet } from "@/lib/planning";
 
 type Mw = MwStam;
 type Og = OgStam;
+type Sync = { tijdstip: string; gelukt: boolean; foutmelding: string | null; medewerkers_bijgewerkt?: number; opdrachtgevers_bijgewerkt?: number };
 
 const BVS = ["Solestus Shared Services B.V.", "Solestus Nederland B.V.", "Solestus Personeelsdiensten B.V.", "Solestus Payroll Solutions B.V."];
 
-const Slot = () => (
-  <span className="slot" title="Komt uit Easyflex2go">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>
-    Easyflex2go
-  </span>
-);
+/** "vandaag om 06.00", "gisteren om 18.00" of "ma 28 sep om 06.00". */
+function wanneer(ts: string) {
+  const d = new Date(ts);
+  const f = (o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("nl-NL", { timeZone: "Europe/Amsterdam", ...o }).format(d);
+  const dag = f({ year: "numeric", month: "2-digit", day: "2-digit" });
+  const nu = new Date();
+  const vandaag = new Intl.DateTimeFormat("nl-NL", { timeZone: "Europe/Amsterdam", year: "numeric", month: "2-digit", day: "2-digit" }).format(nu);
+  const gisteren = new Intl.DateTimeFormat("nl-NL", { timeZone: "Europe/Amsterdam", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(nu.getTime() - 86400000));
+  const tijd = f({ hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).replace(":", ".");
+  if (dag === vandaag) return `vandaag om ${tijd}`;
+  if (dag === gisteren) return `gisteren om ${tijd}`;
+  return `${f({ weekday: "short", day: "numeric", month: "short" }).replace(/\./g, "")} om ${tijd}`;
+}
 
-export default function Stamgegevens(p: { medewerkers: Mw[]; opdrachtgevers: Og[]; laatsteSync: { tijdstip: string; gelukt: boolean; foutmelding: string | null; medewerkers_bijgewerkt?: number; opdrachtgevers_bijgewerkt?: number } | null; magWijzigen: boolean }) {
+export default function Stamgegevens(p: {
+  medewerkers: Mw[]; opdrachtgevers: Og[]; laatsteSync: Sync | null; laatstGelukt: Omit<Sync, "gelukt" | "foutmelding"> | null;
+  week: number; maandag: string; diensten: Record<string, number>; openMedewerker: string | null; magWijzigen: boolean;
+}) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
-  const [tab, setTab] = useState<"mw" | "og">("mw");
   const [zoek, setZoek] = useState("");
   const [nieuw, setNieuw] = useState(false);
-  const [fout, setFout] = useState<string | null>(null);
-  const [bewerk, setBewerk] = useState<Mw | null>(null);
+  const [bewerk, setBewerk] = useState<Mw | null>(() => (p.magWijzigen && p.openMedewerker ? p.medewerkers.find((m) => m.id === p.openMedewerker) ?? null : null));
   const [bewerkOg, setBewerkOg] = useState<Og | null>(null);
+  const [afleiden, setAfleiden] = useState(false);
   const [bijwerken, setBijwerken] = useState(false);
   const [toast, setToast] = useState<{ tekst: string; fout?: boolean } | null>(null);
+  const [ookInactief, setOokInactief] = useState(false);
+  const [ookVerborgen, setOokVerborgen] = useState(false);
+  const ogMap = useMemo(() => new Map(p.opdrachtgevers.map((o) => [o.id, o])), [p.opdrachtgevers]);
 
   function toon(tekst: string, fout = false) {
     setToast({ tekst, fout });
@@ -44,94 +60,120 @@ export default function Stamgegevens(p: { medewerkers: Mw[]; opdrachtgevers: Og[
     setBijwerken(false);
     if (uit?.overgeslagen) toon("Minder dan 5 minuten geleden al bijgewerkt. Probeer het zo nog eens.");
     else if (uit?.gelukt) { toon(`Bijgewerkt: ${uit.medewerkers ?? "?"} medewerkers en ${uit.opdrachtgevers ?? "?"} opdrachtgevers`); router.refresh(); }
-    else { toon(`Bijwerken is niet gelukt: ${uit?.fout ?? error?.message ?? "onbekende fout"}`, true); router.refresh(); }
+    else { toon(`Bijwerken lukte niet: ${uit?.fout ?? error?.message ?? "onbekende fout"}`, true); router.refresh(); }
   }
-  const ogMap = useMemo(() => new Map(p.opdrachtgevers.map((o) => [o.id, o])), [p.opdrachtgevers]);
 
-  const groepLabel = (g: string) => GROEPEN.find((x) => x.id === g)?.label ?? g;
-  const mws = p.medewerkers.filter((m) => !zoek || m.naam.toLowerCase().includes(zoek.toLowerCase()));
-  const ogs = p.opdrachtgevers.filter((o) => !zoek || o.naam.toLowerCase().includes(zoek.toLowerCase()));
-
-  async function voegToe(form: FormData) {
-    setFout(null);
-    const naam = String(form.get("naam") ?? "").trim();
-    if (!naam) { setFout("Vul een naam in."); return; }
-    const { error } = await supabase.from("medewerkers").insert({
-      bron: "handmatig", groep: "kantoor", naam,
-      bv: String(form.get("bv") || "") || null,
-      telefoon: String(form.get("telefoon") || "") || null,
-      nationaliteit: null, volgorde: 1000,
-    });
-    if (error) { setFout("Toevoegen is niet gelukt: " + error.message); return; }
-    const { data } = await supabase.auth.getUser();
-    if (data.user) await supabase.from("wijzigingen").insert({ gebruiker_id: data.user.id, omschrijving: `Kantoormedewerker ${naam} toegevoegd`, tabel: "medewerkers" });
-    setNieuw(false);
-    router.refresh();
-  }
+  const q = zoek.trim().toLowerCase();
+  const actief = p.medewerkers.filter((m) => m.actief);
+  const mws = p.medewerkers.filter((m) => (ookInactief || m.actief) && (!q || m.naam.toLowerCase().includes(q) || (m.ef_registratienummer ?? "").toLowerCase().includes(q)));
+  const kiesbaar = p.opdrachtgevers.filter((o) => !o.verborgen);
+  const ogs = p.opdrachtgevers.filter((o) => (ookVerborgen || !o.verborgen) && (!q || o.naam.toLowerCase().includes(q) || (o.korte_naam ?? "").toLowerCase().includes(q) || String(o.ef_relatie_id ?? "").includes(q)));
 
   const sync = p.laatsteSync;
+  const mislukt = sync && !sync.gelukt;
+  const ok = p.laatstGelukt;
+  const efAantal = actief.filter((m) => m.bron === "easyflex").length;
+
+  const klikbaar = (open: () => void) => p.magWijzigen
+    ? { className: "klikbaar", tabIndex: 0, onClick: open, onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter") open(); } }
+    : {};
+
   return (
     <main className="pagina">
       <div className="kop">
         <div>
-          <h1 className="machina">Stamgegevens</h1>
-          <div className="kop-meta">Medewerkers en opdrachtgevers. Easyflex2go is leidend: gegevens met een slotje pas je daar aan.</div>
+          <div className="kop-titel"><h1 className="machina">Stamgegevens</h1></div>
+          <div className="kop-meta">Easyflex2go is leidend. Chauffeurs en opdrachtgevers komen daaruit; kantoormedewerkers voeg je hier zelf toe.</div>
         </div>
-        {p.magWijzigen && tab === "mw" && <button type="button" className="knop knop-zwart" onClick={() => setNieuw(true)}>Kantoormedewerker toevoegen</button>}
+        <label className="zoekveld">
+          <Icoon naam="zoek" />
+          <input type="search" aria-label="Zoeken" placeholder="Zoek op naam of Easyflex-nummer" value={zoek} onChange={(e) => setZoek(e.target.value)} />
+        </label>
       </div>
 
-      <div className="sync" role="status">
-        <strong>Koppeling Easyflex2go</strong>
-        {sync
-          ? <span>{sync.gelukt ? "Laatst bijgewerkt" : "Laatste poging mislukt"} · {tijdstipNL(sync.tijdstip)}{sync.foutmelding ? ` · ${sync.foutmelding}` : ""}</span>
-          : <span>Nog niet ingesteld. Tot de koppeling draait, staan hier voorbeeldgegevens.</span>}
-        {sync?.gelukt && sync.medewerkers_bijgewerkt != null && <span className="hint">{sync.medewerkers_bijgewerkt} medewerkers · {sync.opdrachtgevers_bijgewerkt} opdrachtgevers · elk uur (ma–za)</span>}
-        <div style={{ flexGrow: 1 }} />
-        {p.magWijzigen && <button type="button" className="knop knop-rand" onClick={nuBijwerken} disabled={bijwerken}>{bijwerken ? "Bezig met bijwerken…" : "Nu bijwerken"}</button>}
-      </div>
-
-      <div className="werkbalk">
-        <div className="seg" role="group" aria-label="Soort">
-          <button type="button" aria-pressed={tab === "mw"} onClick={() => setTab("mw")}>Medewerkers · {p.medewerkers.length}</button>
-          <button type="button" aria-pressed={tab === "og"} onClick={() => setTab("og")}>Opdrachtgevers · {p.opdrachtgevers.filter((o) => !o.verborgen).length} kiesbaar</button>
+      <section className={`koppeling${mislukt ? " mislukt" : ""}`} role="status">
+        <span className="koppeling-icoon"><Icoon naam={mislukt ? "waarschuwing" : "sync"} maat={20} /></span>
+        <div>
+          <b>{mislukt ? "Bijwerken uit Easyflex2go is mislukt" : sync ? "Gekoppeld met Easyflex2go" : "Koppeling met Easyflex2go"}</b>
+          <span>
+            {mislukt
+              ? `${ok ? `Laatst gelukt: ${wanneer(ok.tijdstip)}.` : "Het is nog niet eerder gelukt."} Nieuwe medewerkers of wijzigingen van vandaag staan er mogelijk nog niet in.${sync?.foutmelding ? ` (${sync.foutmelding})` : ""}`
+              : ok
+                ? `Laatst bijgewerkt ${wanneer(ok.tijdstip)} · ${ok.medewerkers_bijgewerkt ?? "?"} medewerkers en ${ok.opdrachtgevers_bijgewerkt ?? "?"} opdrachtgevers. Wijzigingen doe je in Easyflex2go.`
+                : "Nog niet bijgewerkt. Tot de koppeling draait, staan hier voorbeeldgegevens."}
+          </span>
         </div>
-        <input className="zoek" type="search" placeholder="Zoeken" aria-label="Zoeken" value={zoek} onChange={(e) => setZoek(e.target.value)} />
-      </div>
+        {p.magWijzigen && (
+          <button type="button" className={`knop${mislukt ? " knop-fout" : ""}`} onClick={nuBijwerken} disabled={bijwerken}>
+            {bijwerken ? "Bezig met bijwerken…" : mislukt ? "Opnieuw proberen" : "Nu bijwerken"}
+          </button>
+        )}
+      </section>
 
-      {tab === "mw" ? (
+      <section className="kaart stam-kaart" aria-labelledby="h-mw">
+        <div className="stam-kop">
+          <h2 id="h-mw">Medewerkers</h2>
+          <span>{actief.length} actief · {efAantal} uit Easyflex2go · {actief.length - efAantal} handmatig</span>
+          <div style={{ flexGrow: 1 }} />
+          <label className="vink" style={{ fontSize: 13 }}><input type="checkbox" checked={ookInactief} onChange={(e) => setOokInactief(e.target.checked)} />Ook niet-actieve</label>
+          {p.magWijzigen && <button type="button" className="knop" onClick={() => setAfleiden(true)}>Vaste inzet afleiden</button>}
+          {p.magWijzigen && <button type="button" className="knop knop-zwart" onClick={() => setNieuw(true)}><Icoon naam="plus" />Kantoormedewerker toevoegen</button>}
+        </div>
         <table className="tabel">
-          <thead><tr><th>Naam</th><th>Groep</th><th>Nationaliteit</th><th>BV</th><th>Vaste inzet</th><th>Certificaten</th><th>Bron</th></tr></thead>
+          <thead><tr><th>Naam</th><th>Easyflex-nr</th><th>Nat.</th><th>BV</th><th>Vaste inzet</th><th>Certificaten</th><th>Telefoon</th><th aria-label="Acties" /></tr></thead>
           <tbody>
-            {mws.map((m) => (
-              <tr key={m.id} style={{ opacity: m.actief ? 1 : 0.5 }} className={p.magWijzigen ? "klikbaar" : undefined}
-                onClick={p.magWijzigen ? () => setBewerk(m) : undefined}
-                onKeyDown={p.magWijzigen ? (e) => { if (e.key === "Enter") setBewerk(m); } : undefined}
-                tabIndex={p.magWijzigen ? 0 : undefined}>
-                <td><strong>{m.naam}</strong>{m.telefoon && <div className="hint">{m.telefoon}</div>}{m.ef_registratienummer && <div className="hint">Reg.nr. {m.ef_registratienummer}</div>}</td>
-                <td>{groepLabel(m.groep)}{m.bron === "easyflex" && <div className="hint">volgt uit nationaliteit</div>}</td>
-                <td>{m.nationaliteit ?? "–"}</td>
-                <td>{m.werkmaatschappijen.length > 1 ? m.werkmaatschappijen.join(", ") : m.bv ?? "–"}{m.werkmaatschappijen.length > 1 && <div className="hint">actief bij {m.werkmaatschappijen.length} werkmaatschappijen</div>}</td>
-                <td>{vasteInzetLabel(m.vaste_inzet, ogMap)}</td>
-                <td>{m.certificaten.join(", ") || "–"}</td>
-                <td>{m.bron === "easyflex" ? <Slot /> : "Handmatig"}</td>
-              </tr>
-            ))}
+            {GROEPEN.map((g) => {
+              const lijst = mws.filter((m) => m.groep === g.id);
+              if (!lijst.length) return null;
+              return [
+                <tr key={g.id} className="groep"><td colSpan={8}><span><span className="bolletje" />{g.label}</span></td></tr>,
+                ...lijst.map((m) => (
+                  <tr key={m.id} style={{ opacity: m.actief ? 1 : 0.5 }} {...klikbaar(() => setBewerk(m))}>
+                    <td><strong>{m.naam}</strong>{!m.actief && <div className="hint">niet actief{m.ef_status ? ` (${m.ef_status.toLowerCase()})` : ""}</div>}</td>
+                    <td>{m.bron === "easyflex" ? <span className="nr">{m.ef_registratienummer ?? "–"} <span className="bron-ef">EF2GO</span></span> : <span className="bron-hand">handmatig</span>}</td>
+                    <td>{m.nationaliteit ?? "–"}</td>
+                    <td>{m.werkmaatschappijen.length > 1 ? `${m.werkmaatschappijen.length} werkmaatschappijen` : m.bv ?? "–"}</td>
+                    <td>{vasteInzetLabel(m.vaste_inzet, ogMap)}</td>
+                    <td><span className="labels" style={{ padding: 0 }}>{m.certificaten.map((c) => <span key={c} className={`label${/ADR/.test(c) ? " label-adr" : ""}`}>{c}</span>)}</span></td>
+                    <td>{m.telefoon ?? ""}</td>
+                    <td className="getal">{p.magWijzigen && <span className="knop-link" style={{ height: "auto" }}>Bewerken</span>}</td>
+                  </tr>
+                )),
+              ];
+            })}
+            {mws.length === 0 && <tr><td colSpan={8}>Geen medewerkers gevonden.</td></tr>}
           </tbody>
         </table>
-      ) : (
+      </section>
+
+      <section className="kaart stam-kaart" aria-labelledby="h-og">
+        <div className="stam-kop">
+          <h2 id="h-og">Opdrachtgevers</h2>
+          <span>{kiesbaar.length} actief{p.opdrachtgevers.length > kiesbaar.length ? ` · ${p.opdrachtgevers.length - kiesbaar.length} verborgen` : ""}</span>
+          <div style={{ flexGrow: 1 }} />
+          <label className="vink" style={{ fontSize: 13 }}><input type="checkbox" checked={ookVerborgen} onChange={(e) => setOokVerborgen(e.target.checked)} />Ook verborgen</label>
+          <span className="hint">Nieuwe opdrachtgever? Voeg hem toe in Easyflex2go; hij verschijnt hier bij de volgende update.</span>
+        </div>
         <table className="tabel">
-          <thead><tr><th>Naam</th><th>Plaats</th><th>Status in Easyflex2go</th><th>KvK</th><th>Werkmaatschappijen</th><th>Bron</th></tr></thead>
+          <thead><tr><th>Naam</th><th>Plaats</th><th>EF2GO relatie-id</th><th className="getal">Diensten wk {p.week}</th><th aria-label="Acties" /></tr></thead>
           <tbody>
             {ogs.map((o) => (
-              <tr key={o.id} style={{ opacity: o.verborgen ? 0.5 : 1 }} className={p.magWijzigen ? "klikbaar" : undefined}
-                onClick={p.magWijzigen ? () => setBewerkOg(o) : undefined}
-                onKeyDown={p.magWijzigen ? (e) => { if (e.key === "Enter") setBewerkOg(o); } : undefined}
-                tabIndex={p.magWijzigen ? 0 : undefined}>
-                <td><strong>{o.naam}</strong>{(o.korte_naam || opdrachtgeverLabel(o) !== o.naam) && <div className="hint">in het rooster: {opdrachtgeverLabel(o)}</div>}{o.verborgen && <div className="hint">verborgen in de planning</div>}</td><td>{o.plaats ?? "–"}</td><td>{o.ef_status ?? "–"}</td><td>{o.kvk_nummer ?? "–"}</td><td>{o.werkmaatschappijen.map((w) => w.replace(/^Solestus /, "").replace(/ B\.V\.$/, "")).join(", ") || "–"}{o.werkmaatschappijen.length > 1 && <div className="hint">samengevoegd uit {o.werkmaatschappijen.length} relaties</div>}</td><td><Slot /></td></tr>
+              <tr key={o.id} style={{ opacity: o.verborgen ? 0.5 : 1 }} {...klikbaar(() => setBewerkOg(o))}>
+                <td>
+                  <strong>{o.naam}</strong>
+                  {opdrachtgeverLabel(o) !== o.naam && <div className="hint">in het rooster: {opdrachtgeverLabel(o)}</div>}
+                  {o.verborgen && <div className="hint">verborgen in de planning{o.ef_status && o.ef_status !== "Actief" ? ` · ${o.ef_status.toLowerCase()} in Easyflex2go` : ""}</div>}
+                </td>
+                <td>{o.plaats ?? "–"}</td>
+                <td>{o.ef_relatie_id ?? "–"}</td>
+                <td className="getal"><strong>{p.diensten[o.id] ?? 0}</strong></td>
+                <td className="getal">{p.magWijzigen && <span className="knop-link" style={{ height: "auto" }}>Bewerken</span>}</td>
+              </tr>
             ))}
+            {ogs.length === 0 && <tr><td colSpan={5}>Geen opdrachtgevers gevonden.</td></tr>}
           </tbody>
         </table>
-      )}
+      </section>
 
       {bewerk && (
         <MedewerkerPaneel
@@ -140,11 +182,7 @@ export default function Stamgegevens(p: { medewerkers: Mw[]; opdrachtgevers: Og[
           opdrachtgevers={p.opdrachtgevers}
           bvs={BVS}
           onSluit={() => setBewerk(null)}
-          onKlaar={(tekst, fout) => {
-            if (!fout) { setBewerk(null); router.refresh(); }
-            setToast({ tekst, fout });
-            setTimeout(() => setToast(null), fout ? 6000 : 2500);
-          }}
+          onKlaar={(tekst, fout) => { if (!fout) { setBewerk(null); router.refresh(); } toon(tekst, fout); }}
         />
       )}
       {bewerkOg && (
@@ -152,35 +190,106 @@ export default function Stamgegevens(p: { medewerkers: Mw[]; opdrachtgevers: Og[
           key={bewerkOg.id}
           og={bewerkOg}
           onSluit={() => setBewerkOg(null)}
-          onKlaar={(tekst, fout) => {
-            if (!fout) { setBewerkOg(null); router.refresh(); }
-            toon(tekst, fout);
-          }}
+          onKlaar={(tekst, fout) => { if (!fout) { setBewerkOg(null); router.refresh(); } toon(tekst, fout); }}
         />
       )}
-      {toast && <div className={`toast${toast.fout ? " fout" : ""}`} role="status">{toast.tekst}</div>}
-
-      {nieuw && (
-        <>
-          <div className="paneel-achter" onClick={() => setNieuw(false)} />
-          <aside className="paneel" role="dialog" aria-label="Kantoormedewerker toevoegen">
-            <form action={voegToe} style={{ display: "contents" }}>
-              <div className="paneel-kop"><div><div style={{ fontSize: 13 }}>Stamgegevens</div><h2 className="machina">Kantoormedewerker toevoegen</h2></div></div>
-              <div className="paneel-inhoud">
-                <div className="melding" style={{ maxWidth: "none" }}>Chauffeurs komen automatisch uit Easyflex2go. Hier voeg je alleen kantoormedewerkers toe.</div>
-                <label className="veld"><span>Naam</span><input className="invoer" name="naam" required autoFocus /></label>
-                <label className="veld"><span>BV</span><select className="invoer" name="bv" defaultValue={BVS[0]}>{BVS.map((b) => <option key={b}>{b}</option>)}</select></label>
-                <label className="veld"><span>Telefoon (optioneel)</span><input className="invoer" name="telefoon" type="tel" /></label>
-                {fout && <div className="melding melding-fout" role="alert">{fout}</div>}
-              </div>
-              <div className="paneel-voet">
-                <button type="button" className="knop" onClick={() => setNieuw(false)}>Annuleren</button>
-                <button type="submit" className="knop knop-zwart">Toevoegen</button>
-              </div>
-            </form>
-          </aside>
-        </>
+      {nieuw && <KantoorToevoegen onSluit={() => setNieuw(false)} onKlaar={(t, fout) => { if (!fout) { setNieuw(false); router.refresh(); } toon(t, fout); }} />}
+      {afleiden && (
+        <VasteInzetAfleiden
+          maandag={p.maandag}
+          medewerkers={actief}
+          opdrachtgevers={ogMap}
+          onSluit={() => setAfleiden(false)}
+          onKlaar={(t, fout) => { if (!fout) { setAfleiden(false); router.refresh(); } toon(t, fout); }}
+        />
       )}
+      {toast && <div className="toast" role={toast.fout ? "alert" : "status"}>{toast.fout && <Icoon naam="waarschuwing" maat={20} />}<span>{toast.tekst}</span></div>}
     </main>
+  );
+}
+
+function KantoorToevoegen({ onSluit, onKlaar }: { onSluit: () => void; onKlaar: (t: string, fout?: boolean) => void }) {
+  const supabase = useMemo(() => createClient(), []);
+  const [naam, setNaam] = useState("");
+  const [bv, setBv] = useState(BVS[0]);
+  const [telefoon, setTelefoon] = useState("");
+  const [bezig, setBezig] = useState(false);
+
+  async function voegToe() {
+    if (!naam.trim()) return;
+    setBezig(true);
+    const { error } = await supabase.from("medewerkers").insert({ bron: "handmatig", groep: "kantoor", naam: naam.trim(), bv, telefoon: telefoon.trim() || null, nationaliteit: null, volgorde: 1000 });
+    setBezig(false);
+    if (error) { onKlaar("Toevoegen lukte niet: " + error.message, true); return; }
+    const { data } = await supabase.auth.getUser();
+    if (data.user) await supabase.from("wijzigingen").insert({ gebruiker_id: data.user.id, omschrijving: `Kantoormedewerker ${naam.trim()} toegevoegd`, tabel: "medewerkers" });
+    onKlaar(`${naam.trim()} toegevoegd`);
+  }
+
+  return (
+    <PaneelSchil boven="Stamgegevens" titel="Kantoormedewerker toevoegen" sub="kantoor" onSluit={onSluit}
+      voet={<PaneelVoet opslaan={voegToe} opslaanLabel="Toevoegen" uit={!naam.trim() || bezig} onAnnuleren={onSluit} />}>
+      <p className="infoblok">Chauffeurs komen automatisch uit Easyflex2go. Hier voeg je alleen kantoormedewerkers toe.</p>
+      <div className="veld"><label className="veld-kop" htmlFor="kt-naam">Naam</label><input id="kt-naam" className="invoer" value={naam} onChange={(e) => setNaam(e.target.value)} autoFocus /></div>
+      <div className="veld"><label className="veld-kop" htmlFor="kt-bv">BV / contract</label><select id="kt-bv" className="invoer" value={bv} onChange={(e) => setBv(e.target.value)}>{BVS.map((b) => <option key={b}>{b}</option>)}</select></div>
+      <div className="veld"><label className="veld-kop" htmlFor="kt-tel">Telefoon (optioneel)</label><input id="kt-tel" className="invoer" type="tel" value={telefoon} onChange={(e) => setTelefoon(e.target.value)} /></div>
+    </PaneelSchil>
+  );
+}
+
+/** Stelt per medewerker een vaste inzet voor op basis van de afgelopen vier weken. */
+function VasteInzetAfleiden({ maandag, medewerkers, opdrachtgevers, onSluit, onKlaar }: {
+  maandag: string; medewerkers: Mw[]; opdrachtgevers: Map<string, Og>; onSluit: () => void; onKlaar: (t: string, fout?: boolean) => void;
+}) {
+  const supabase = useMemo(() => createClient(), []);
+  const [voorstel, setVoorstel] = useState<[Mw, VasteInzet][] | null>(null);
+  const [gekozen, setGekozen] = useState<Set<string>>(new Set());
+  const [bezig, setBezig] = useState(false);
+
+  useEffect(() => {
+    supabase.from("vakken").select("id, medewerker_id, datum, status, opdrachtgever_id, notitie").gte("datum", plusDagen(maandag, -28)).lt("datum", maandag)
+      .then(({ data, error }) => {
+        if (error) { onKlaar("De planning van de afgelopen weken kon niet worden geladen.", true); return; }
+        const afgeleid = leidVasteInzetAf((data ?? []) as Vak[]);
+        const lijst = medewerkers.filter((m) => afgeleid.has(m.id) && vasteInzetLabel(m.vaste_inzet, opdrachtgevers) !== vasteInzetLabel(afgeleid.get(m.id), opdrachtgevers))
+          .map((m) => [m, afgeleid.get(m.id)!] as [Mw, VasteInzet]);
+        setVoorstel(lijst);
+        setGekozen(new Set(lijst.filter(([m]) => !geldigeVasteInzet(m.vaste_inzet)).map(([m]) => m.id)));
+      });
+    // Eenmalig bij openen van het paneel.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function toepassen() {
+    if (!voorstel) return;
+    setBezig(true);
+    const kies = voorstel.filter(([m]) => gekozen.has(m.id));
+    for (const [m, v] of kies) {
+      const { error } = await supabase.from("medewerkers").update({ vaste_inzet: v }).eq("id", m.id);
+      if (error) { setBezig(false); onKlaar(`Opslaan lukte niet bij ${m.naam}.`, true); return; }
+    }
+    const { data } = await supabase.auth.getUser();
+    if (data.user && kies.length) await supabase.from("wijzigingen").insert({ gebruiker_id: data.user.id, omschrijving: `Vaste inzet afgeleid voor ${kies.length} medewerkers`, tabel: "medewerkers" });
+    setBezig(false);
+    onKlaar(`Vaste inzet ingesteld voor ${kies.length} medewerkers`);
+  }
+
+  return (
+    <PaneelSchil boven="Stamgegevens" titel="Vaste inzet afleiden" sub="uit de afgelopen vier weken" onSluit={onSluit}
+      voet={<PaneelVoet opslaan={toepassen} opslaanLabel={`Toepassen (${gekozen.size})`} uit={!gekozen.size || bezig} onAnnuleren={onSluit} />}>
+      <p className="infoblok">Wie in de afgelopen vier weken op dezelfde weekdag minstens drie keer hetzelfde deed, krijgt dat als voorstel. Vink aan wat je wilt overnemen; bestaande vaste inzet wordt dan vervangen.</p>
+      {voorstel === null && <p style={{ margin: 0 }}>Planning van de afgelopen weken bekijken…</p>}
+      {voorstel?.length === 0 && <p style={{ margin: 0 }}>Geen nieuw patroon gevonden. Iedereen heeft al de vaste inzet die bij de planning past, of er is te weinig gepland.</p>}
+      {voorstel && voorstel.length > 0 && (
+        <div className="stapel-8">
+          {voorstel.map(([m, v]) => (
+            <label key={m.id} className="vink afleid-rij">
+              <input type="checkbox" checked={gekozen.has(m.id)} onChange={(e) => { const n = new Set(gekozen); if (e.target.checked) n.add(m.id); else n.delete(m.id); setGekozen(n); }} />
+              <span><b>{m.naam}</b><br />{vasteInzetLabel(v, opdrachtgevers)}{geldigeVasteInzet(m.vaste_inzet) && <small> (nu: {vasteInzetLabel(m.vaste_inzet, opdrachtgevers)})</small>}</span>
+            </label>
+          ))}
+        </div>
+      )}
+    </PaneelSchil>
   );
 }

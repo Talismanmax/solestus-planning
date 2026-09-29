@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import PaneelSchil from "@/components/PaneelSchil";
+import Icoon from "@/components/Icoon";
+import PaneelSchil, { PaneelVoet } from "@/components/PaneelSchil";
 import { createClient } from "@/lib/supabase/client";
 import { isoWeek, maandagVan, opdrachtgeverLabel, plusDagen, vandaagNL } from "@/lib/planning";
 
@@ -56,23 +57,23 @@ export default function OpdrachtgeverPaneel({ og, onSluit, onKlaar }: {
       titel={opdrachtgeverLabel(og)}
       sub="opdrachtgever"
       onSluit={onSluit}
-      voet={<>
-        <div style={{ flexGrow: 1 }} />
-        <button type="button" className="knop" onClick={onSluit}>Annuleren</button>
-        <button type="button" className="knop knop-zwart" disabled={bezig} onClick={opslaan}>Opslaan</button>
-      </>}
+      voet={<PaneelVoet opslaan={opslaan} uit={bezig} onAnnuleren={onSluit} />}
     >
       {og.ef_relatie_id !== null && (
-        <div className="melding" style={{ maxWidth: "none" }}>
-          Naam, plaats, KvK-nummer en werkmaatschappijen komen uit Easyflex2go. Pas ze daar aan; de planning neemt het automatisch over.
-        </div>
+        <p className="infoblok slot-melding">
+          <Icoon naam="slot" />
+          <span>Naam, plaats, relatie-id en status komen uit Easyflex2go. Pas ze daar aan; de planning neemt het automatisch over.</span>
+        </p>
       )}
       <label className="veld"><span>Naam in Easyflex2go</span><input className="invoer" value={og.naam} disabled /></label>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <label className="veld"><span>Plaats</span><input className="invoer" value={og.plaats ?? "–"} disabled /></label>
+        <label className="veld"><span>EF2GO relatie-id</span><input className="invoer" value={og.ef_relatie_id ?? "–"} disabled /></label>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <label className="veld"><span>Status in Easyflex2go</span><input className="invoer" value={og.ef_status ?? "–"} disabled /></label>
         <label className="veld"><span>KvK-nummer</span><input className="invoer" value={og.kvk_nummer ?? "–"} disabled /></label>
       </div>
-      <label className="veld"><span>Status in Easyflex2go</span><input className="invoer" value={og.ef_status ?? "–"} disabled /></label>
       {og.werkmaatschappijen.length > 0 && (
         <label className="veld"><span>Werkmaatschappijen</span><input className="invoer" value={og.werkmaatschappijen.join(", ")} disabled /></label>
       )}
