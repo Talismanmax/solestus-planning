@@ -5,18 +5,19 @@ export type VakStatus =
 export type Soort = "in" | "vrij" | "weg" | "einde";
 
 /** Label, achtergrond, tekstkleur, soort — gelijk aan het design. */
+/** Kleuren zijn CSS-variabelen (globals.css), zodat ze meeschakelen met dark mode. */
 export const STATUS: Record<VakStatus, { label: string; bg: string; fg: string; soort: Soort }> = {
-  werk: { label: "Ingezet", bg: "#ebece8", fg: "#231f20", soort: "in" },
-  kantoor: { label: "Kantoor", bg: "#E6E8F4", fg: "#363C72", soort: "in" },
-  thuiswerk: { label: "Thuiswerk", bg: "#E3EEF1", fg: "#1F5566", soort: "in" },
-  opleiding: { label: "Opleiding", bg: "#EEE4F5", fg: "#5A3979", soort: "in" },
-  niet_ingezet: { label: "Niet ingezet", bg: "#FBE9C2", fg: "#734D00", soort: "vrij" },
-  nbb: { label: "nbb", bg: "#EAEBE7", fg: "#57616A", soort: "weg" },
-  thuis: { label: "Thuis (rust)", bg: "#E4EDE0", fg: "#3B5A2C", soort: "weg" },
-  vakantie: { label: "Vakantie", bg: "#DCEAFA", fg: "#1D4C84", soort: "weg" },
-  vrij: { label: "Vrij / verlof", bg: "#E9E5F6", fg: "#4A3F7E", soort: "weg" },
-  ziek: { label: "Ziek", bg: "#F8DCD5", fg: "#8A2916", soort: "weg" },
-  einde: { label: "Einde opdracht", bg: "#D33A2C", fg: "#FFFFFF", soort: "einde" },
+  werk: { label: "Ingezet", bg: "var(--st-werk-bg)", fg: "var(--st-werk-fg)", soort: "in" },
+  kantoor: { label: "Kantoor", bg: "var(--st-kantoor-bg)", fg: "var(--st-kantoor-fg)", soort: "in" },
+  thuiswerk: { label: "Thuiswerk", bg: "var(--st-thuiswerk-bg)", fg: "var(--st-thuiswerk-fg)", soort: "in" },
+  opleiding: { label: "Opleiding", bg: "var(--st-opleiding-bg)", fg: "var(--st-opleiding-fg)", soort: "in" },
+  niet_ingezet: { label: "Niet ingezet", bg: "var(--st-niet_ingezet-bg)", fg: "var(--st-niet_ingezet-fg)", soort: "vrij" },
+  nbb: { label: "nbb", bg: "var(--st-nbb-bg)", fg: "var(--st-nbb-fg)", soort: "weg" },
+  thuis: { label: "Thuis (rust)", bg: "var(--st-thuis-bg)", fg: "var(--st-thuis-fg)", soort: "weg" },
+  vakantie: { label: "Vakantie", bg: "var(--st-vakantie-bg)", fg: "var(--st-vakantie-fg)", soort: "weg" },
+  vrij: { label: "Vrij / verlof", bg: "var(--st-vrij-bg)", fg: "var(--st-vrij-fg)", soort: "weg" },
+  ziek: { label: "Ziek", bg: "var(--st-ziek-bg)", fg: "var(--st-ziek-fg)", soort: "weg" },
+  einde: { label: "Einde opdracht", bg: "var(--st-einde-bg)", fg: "var(--st-einde-fg)", soort: "einde" },
 };
 
 export const STATUS_VOLGORDE: VakStatus[] = ["werk", "kantoor", "thuiswerk", "opleiding", "niet_ingezet", "thuis", "nbb", "vakantie", "vrij", "ziek", "einde"];

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Icoon from "./Icoon";
+import ThemaKeuze from "./ThemaKeuze";
 import WijzigingenPaneel from "./WijzigingenPaneel";
 import Woordmerk from "./Woordmerk";
 
@@ -72,6 +73,7 @@ export default function Navigatiebalk({ naam, email, rol, wijzigingenDezeWeek }:
               <span>{email}</span>
               <span>{rolLabel} · Solestus</span>
             </div>
+            <ThemaKeuze />
             <form action="/uitloggen" method="post">
               <button type="submit" role="menuitem" className="menu-item">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" /><path d="M10 8l-4 4 4 4M6 12h10" /></svg>

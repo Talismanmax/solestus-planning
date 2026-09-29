@@ -37,7 +37,7 @@ export default function Legenda({ vandaag, onSluit }: { vandaag: string; onSluit
             <span>Ingepland terwijl de medewerker afwezig is</span>
             <span className="vak open" style={{ minHeight: 32 }}><span className="vak-label"><span className="bolletje" />Open</span></span>
             <span>Werkdag zonder planning</span>
-            <span className="vak" style={{ minHeight: 32, background: "var(--geel)", alignItems: "center" }}><span className="vak-label">{vandaag}</span></span>
+            <span className="vak op-geel" style={{ minHeight: 32, background: "var(--geel)", alignItems: "center" }}><span className="vak-label">{vandaag}</span></span>
             <span>Vandaag</span>
           </div>
         </div>
