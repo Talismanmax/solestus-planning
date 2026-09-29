@@ -52,16 +52,37 @@ export function afwezigOp(mwId: string, datum: string, afwezigheid: Afwezigheid[
   return null;
 }
 
-/** Waarschuwingen bij een rit: te weinig rust, of de chauffeur is afwezig. */
-export function ritWaarschuwingen(r: Rit, alleRitten: Rit[], naam: Map<string, string>, afwezigheid: Afwezigheid[], vakken: Vak[]): string[] {
-  const w: string[] = [];
+export type RitMelding = { kort: string; lang: string };
+
+const PLAATS: Record<Route, string> = { ishoj: "Ishøj", rade: "Rade" };
+const DAG_KORT = ["zo", "ma", "di", "wo", "do", "vr", "za"];
+const MAAND = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+const dm = (datum: string) => { const d = new Date(datum + "T00:00:00Z"); return `${d.getUTCDate()} ${MAAND[d.getUTCMonth()]}`; };
+
+/** Waarschuwingen bij een rit: te weinig rust, of de chauffeur is afwezig. Kort voor in de tabel, lang voor "Let op". */
+export function ritMeldingen(r: Rit, alleRitten: Rit[], afwezigheid: Afwezigheid[], vakken: Vak[]): RitMelding[] {
+  const w: RitMelding[] = [];
   if (!r.chauffeur_id) return w;
-  const n = naam.get(r.chauffeur_id) ?? "Chauffeur";
   const rust = rustVoor(r, alleRitten);
-  if (rust && rust.uren < RUST_UREN) w.push(`Maar ${Math.max(0, Math.round(rust.uren))} uur rust na de vorige rit (terug ${deelRegel({ ...rust.vorige.rit_delen[0], aankomst: einde(rust.vorige) }).tijden.split(" – ")[1]}).`);
-  const a = afwezigOp(r.chauffeur_id, r.vertrekdatum, afwezigheid, vakken);
-  if (a) w.push(`${n} staat op ${a} op deze dag.`);
+  if (rust && rust.uren < RUST_UREN) {
+    const u = Math.max(0, Math.round(rust.uren));
+    w.push({ kort: `Maar ${u} uur rust na vorige rit`, lang: `Maar ${u} uur rust tussen terugkomst uit ${PLAATS[rust.vorige.route]} en vertrek naar ${PLAATS[r.route]}.` });
+  }
+  const dag = DAG_KORT[new Date(r.vertrekdatum + "T00:00:00Z").getUTCDay()];
+  const a = afwezigheid.find((x) => x.medewerker_id === r.chauffeur_id && x.van <= r.vertrekdatum && x.tot_en_met >= r.vertrekdatum);
+  if (a) {
+    const soort = STATUS[a.soort].label;
+    w.push({ kort: `${soort} op ${dag}`, lang: `Ingepland tijdens ${soort.toLowerCase()} (${dm(a.van)} t/m ${dm(a.tot_en_met)}).` });
+  } else {
+    const v = vakken.find((x) => x.medewerker_id === r.chauffeur_id && x.datum === r.vertrekdatum);
+    if (v && STATUS[v.status].soort === "weg") w.push({ kort: `${STATUS[v.status].label} op ${dag}`, lang: `In de weekplanning staat ${STATUS[v.status].label.toLowerCase()} op deze dag.` });
+  }
   return w;
+}
+
+/** Korte waarschuwingen (voor de PDF). */
+export function ritWaarschuwingen(r: Rit, alleRitten: Rit[], afwezigheid: Afwezigheid[], vakken: Vak[]): string[] {
+  return ritMeldingen(r, alleRitten, afwezigheid, vakken).map((m) => m.kort);
 }
 
 /** Regel voor het bericht aan de chauffeur, zoals in het design (Nederlands of Engels). */

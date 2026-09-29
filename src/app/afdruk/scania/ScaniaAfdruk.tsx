@@ -13,7 +13,7 @@ export default function ScaniaAfdruk({ week, maandag, d, gebruiker }: {
   const eerste = (r: (typeof d.ritten)[number]) => [...r.rit_delen].sort((a, b) => a.volgorde - b.volgorde)[0]?.vertrek ?? "";
   const ritten = d.ritten.filter((r) => r.vertrekdatum >= maandag && r.vertrekdatum <= dagen[6])
     .sort((a, b) => a.vertrekdatum.localeCompare(b.vertrekdatum) || eerste(a).localeCompare(eerste(b)));
-  const waarsch = new Map(ritten.map((r) => [r.id, ritWaarschuwingen(r, d.ritten, naam, d.afwezigheid, d.vakken)]));
+  const waarsch = new Map(ritten.map((r) => [r.id, ritWaarschuwingen(r, d.ritten, d.afwezigheid, d.vakken)]));
   const perChauffeur = new Map<string, number>();
   for (const r of ritten) if (r.chauffeur_id) perChauffeur.set(r.chauffeur_id, (perChauffeur.get(r.chauffeur_id) ?? 0) + 1);
   const open = ritten.filter((r) => !r.chauffeur_id).length;
