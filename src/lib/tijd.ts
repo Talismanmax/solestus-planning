@@ -31,11 +31,13 @@ export function naarIso(lokaal: string): string {
 
 const KORT = ["zo", "ma", "di", "wo", "do", "vr", "za"];
 
-/** "ma 09.00" */
-export function dagTijd(iso: string): string {
+const KORT_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** "ma 09.00" (of "Mon 09.00" in het Engels) */
+export function dagTijd(iso: string, taal: "nl" | "en" = "nl"): string {
   const x = delen(new Date(iso));
   const dag = new Date(Date.UTC(+x.j, +x.m - 1, +x.d)).getUTCDay();
-  return `${KORT[dag]} ${x.u}.${x.min}`;
+  return `${(taal === "en" ? KORT_EN : KORT)[dag]} ${x.u}.${x.min}`;
 }
 
 /** "09.00" */

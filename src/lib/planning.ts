@@ -32,6 +32,7 @@ export type Medewerker = {
   id: string; naam: string; groep: Groep; bv: string | null; nationaliteit: string | null;
   certificaten: string[]; bron: "easyflex" | "handmatig"; volgorde: number;
   vaste_inzet?: VasteInzet | null;
+  telefoon?: string | null;
 };
 
 /** Vaste inzet van een medewerker (kolom medewerkers.vaste_inzet). Dagen: 0 = maandag … 6 = zondag. */

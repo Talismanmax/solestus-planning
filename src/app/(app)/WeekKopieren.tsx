@@ -1,21 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import Icoon from "@/components/Icoon";
 
-/** Popover "Vorige week kopiëren" met de twee keuzes uit het design. */
-export default function WeekKopieren({ week, vorigeWeek, ingevuld, onKopieer }: {
-  week: number; vorigeWeek: number; ingevuld: number;
+/** Popover "Vorige week kopiëren" met de twee keuzes uit het design. Open/dicht wordt van buitenaf bestuurd. */
+export default function WeekKopieren({ week, vorigeWeek, ingevuld, open, setOpen, onKopieer }: {
+  week: number; vorigeWeek: number; ingevuld: number; open: boolean; setOpen: (o: boolean) => void;
   onKopieer: (zonderAfwezigheid: boolean, metOpmerkingen: boolean) => Promise<void>;
 }) {
-  const [open, setOpen] = useState(false);
   const [zonderAfwezigheid, setZonderAfwezigheid] = useState(true);
   const [metOpmerkingen, setMetOpmerkingen] = useState(false);
   const [bezig, setBezig] = useState(false);
 
   return (
     <div className="menu-anker">
-      <button type="button" className="knop" aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen(!open)} disabled={bezig}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" /></svg>
+      <button type="button" className="knop" aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen(!open)} disabled={bezig}
+        style={open ? { boxShadow: "0 0 0 3px var(--geel)" } : undefined}>
+        <Icoon naam="kopie" />
         {bezig ? "Bezig met kopiëren…" : "Vorige week kopiëren"}
       </button>
       {open && (
@@ -31,7 +32,7 @@ export default function WeekKopieren({ week, vorigeWeek, ingevuld, onKopieer }: 
             <label className="vink"><input type="checkbox" checked={zonderAfwezigheid} onChange={(e) => setZonderAfwezigheid(e.target.checked)} />Afwezigheid niet meenemen (vakantie, ziek, vrij, einde)</label>
             <label className="vink"><input type="checkbox" checked={metOpmerkingen} onChange={(e) => setMetOpmerkingen(e.target.checked)} />Opmerkingen ook kopiëren</label>
             <div className="kopieer-knoppen">
-              <button type="button" className="knop" onClick={() => setOpen(false)}>Annuleren</button>
+              <button type="button" className="knop knop-tekst" onClick={() => setOpen(false)}>Annuleren</button>
               <button type="button" className="knop knop-zwart" autoFocus onClick={async () => {
                 setOpen(false); setBezig(true);
                 try { await onKopieer(zonderAfwezigheid, metOpmerkingen); } finally { setBezig(false); }

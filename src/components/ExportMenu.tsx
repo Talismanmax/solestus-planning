@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Icoon from "./Icoon";
 
 type Keuze = { titel: string; sub: string; soort: "liggend" | "staand" | "excel" } & ({ href: string } | { onClick: () => Promise<void> });
 
-const Icoon = ({ soort }: { soort: Keuze["soort"] }) =>
+const SoortIcoon = ({ soort }: { soort: Keuze["soort"] }) =>
   soort === "excel"
     ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M4 10h16M4 15h16M10 4v16" /></svg>
     : <span className={`export-blad export-${soort}`} aria-hidden="true" />;
@@ -17,17 +18,18 @@ export default function ExportMenu({ uitleg, keuzes }: { uitleg: string; keuzes:
 
   return (
     <div className="menu-anker">
-      <button type="button" className="knop knop-zwart" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)} disabled={bezig}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></svg>
+      <button type="button" className="knop knop-zwart" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)} disabled={bezig} style={open ? { boxShadow: "0 0 0 3px var(--geel)" } : undefined}>
+        <Icoon naam="download" />
         {bezig ? "Bezig…" : "Exporteren"}
+        <Icoon naam="omlaag" maat={16} />
       </button>
       {open && (
         <>
           <div className="menu-sluiter" onClick={() => setOpen(false)} />
           <div className="menu export-menu" role="menu" aria-label="Exporteren" onKeyDown={(e) => { if (e.key === "Escape") setOpen(false); }}>
-            <span className="export-uitleg">{uitleg}{fout && <strong className="rit-let"> Exporteren is niet gelukt.</strong>}</span>
+            <span className="export-uitleg">{uitleg}{fout && <strong style={{ color: "var(--fout)" }}> Exporteren is niet gelukt.</strong>}</span>
             {keuzes.map((k) => {
-              const inhoud = <><span className="export-icoon"><Icoon soort={k.soort} /></span><span><b>{k.titel}</b><small>{k.sub}</small></span></>;
+              const inhoud = <><span className="export-icoon"><SoortIcoon soort={k.soort} /></span><span><b>{k.titel}</b><small>{k.sub}</small></span></>;
               return "href" in k
                 ? <a key={k.titel} role="menuitem" className="export-keuze" href={k.href} target="_blank" rel="noopener" onClick={() => setOpen(false)}>{inhoud}</a>
                 : <button key={k.titel} type="button" role="menuitem" className="export-keuze" onClick={async () => {

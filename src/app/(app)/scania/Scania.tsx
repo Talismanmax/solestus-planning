@@ -67,8 +67,8 @@ export default function Scania(p: Props) {
       if (!r.chauffeur_id) { open.push(r); continue; }
       per.set(r.chauffeur_id, [...(per.get(r.chauffeur_id) ?? []), r]);
     }
-    const blokken = [...per.entries()].map(([id, rs]) => `${naam.get(id) ?? "Onbekend"}\n${rs.map(ritTekst).join("\n")}`);
-    if (open.length) blokken.push(`Nog geen chauffeur\n${open.map(ritTekst).join("\n")}`);
+    const blokken = [...per.entries()].map(([id, rs]) => `${naam.get(id) ?? "Onbekend"}\n${rs.map((r) => ritTekst(r)).join("\n")}`);
+    if (open.length) blokken.push(`Nog geen chauffeur\n${open.map((r) => ritTekst(r)).join("\n")}`);
     setTekst(`Scania-ritten week ${p.week} (${weekBereik(p.maandag)})\n\n${blokken.join("\n\n") || "Geen ritten gepland."}`);
   }
 

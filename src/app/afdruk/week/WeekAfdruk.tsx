@@ -1,12 +1,12 @@
 import Blad from "../Blad";
 import type { laadWeek } from "@/lib/laden";
-import { GROEPEN, STATUS, STATUS_VOLGORDE, celInhoud, dagInfo, dagTelling, plusDagen, tijdstipNL, weekBereik, type Medewerker } from "@/lib/planning";
+import { GROEPEN, STATUS, opdrachtgeverLabel, STATUS_VOLGORDE, celInhoud, dagInfo, dagTelling, plusDagen, tijdstipNL, weekBereik, type Medewerker } from "@/lib/planning";
 import { gemaaktOp } from "@/lib/tijd";
 
 const DAG_LANG = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag", "Zondag"];
 
-export default function WeekAfdruk({ week, maandag, stand, groepId, d, gebruiker }: {
-  week: number; maandag: string; stand: "liggend" | "staand"; groepId?: string;
+export default function WeekAfdruk({ week, maandag, stand, groepId, ogId, bv, d, gebruiker }: {
+  week: number; maandag: string; stand: "liggend" | "staand"; groepId?: string; ogId?: string; bv?: string;
   d: Awaited<ReturnType<typeof laadWeek>>; gebruiker: { naam: string | null; email: string } | null;
 }) {
   const groep = GROEPEN.find((x) => x.id === groepId);
@@ -15,7 +15,9 @@ export default function WeekAfdruk({ week, maandag, stand, groepId, d, gebruiker
   const ogById = new Map(d.opdrachtgevers.map((o) => [o.id, o]));
   const vakBij = new Map(d.vakken.map((v) => [`${v.medewerker_id}|${v.datum}`, v]));
   const opm = new Map(d.opmerkingen.map((o) => [o.medewerker_id, o.tekst]));
-  const mws = d.medewerkers.filter((m) => !groep || m.groep === groep.id);
+  const ogFilter = ogId ? d.opdrachtgevers.find((o) => o.id === ogId) : undefined;
+  const mws = d.medewerkers.filter((m) => (!groep || m.groep === groep.id) && (!bv || m.bv === bv)
+    && (!ogFilter || d.vakken.some((v) => v.medewerker_id === m.id && v.opdrachtgever_id === ogFilter.id)));
   const cel = (m: Medewerker, i: number) => celInhoud(m, dagen[i], i, vakBij.get(`${m.id}|${dagen[i]}`), d.afwezigheid, ogById);
   const telling = dagen.map((_, i) => dagTelling(mws.map((m) => cel(m, i))));
   const liggend = stand === "liggend";
@@ -23,7 +25,7 @@ export default function WeekAfdruk({ week, maandag, stand, groepId, d, gebruiker
 
   const door = gebruiker?.naam?.split(" ")[0] || gebruiker?.email.split("@")[0] || "onbekend";
   const voet = `Gemaakt op ${gemaaktOp()} door ${door}${liggend && d.laatstGewijzigd ? ` · laatst gewijzigd ${tijdstipNL(d.laatstGewijzigd.tijdstip)}` : ""}`;
-  const filter = groep ? groep.label : "Alle groepen";
+  const filter = [groep ? groep.label : "Alle groepen", ogFilter ? opdrachtgeverLabel(ogFilter) : "Alle opdrachtgevers", bv ?? "Alle BV's"].join(" · ");
 
   return (
     <Blad

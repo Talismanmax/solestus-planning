@@ -1,8 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
+import Icoon from "./Icoon";
 
-export default function PaneelSchil({ boven, titel, sub, onSluit, children, voet }: { boven: string; titel: string; sub: string; onSluit: () => void; children: React.ReactNode; voet: React.ReactNode }) {
+/**
+ * Paneel rechts, zoals in het design: kleine kapitalen erboven, titel in PP Neue Machina,
+ * ondertitel in Zilla Slab, gele lijn eronder. De voet volgt het patroon
+ * Opslaan (zwart) · Annuleren (tekst) · ruimte · gevaarlijke actie (onderstreept).
+ */
+export default function PaneelSchil({ boven, titel, sub, onSluit, children, voet }: {
+  boven: string; titel: string; sub: string; onSluit: () => void; children: React.ReactNode; voet: React.ReactNode;
+}) {
   useEffect(() => {
     const toets = (e: KeyboardEvent) => { if (e.key === "Escape") onSluit(); };
     document.addEventListener("keydown", toets);
@@ -14,17 +22,30 @@ export default function PaneelSchil({ boven, titel, sub, onSluit, children, voet
       <aside className="paneel" role="dialog" aria-label={titel}>
         <div className="paneel-kop">
           <div>
-            <div style={{ fontSize: 13 }}>{boven}</div>
+            <span className="paneel-boven">{boven}</span>
             <h2 className="machina">{titel}</h2>
-            <div style={{ fontSize: 14 }}>{sub}</div>
+            <span className="paneel-sub">{sub}</span>
           </div>
-          <button type="button" className="icoonknop" onClick={onSluit} aria-label="Sluiten">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
-          </button>
+          <button type="button" className="icoonknop" onClick={onSluit} aria-label="Sluiten"><Icoon naam="sluiten" maat={20} /></button>
         </div>
         <div className="paneel-inhoud">{children}</div>
         <div className="paneel-voet">{voet}</div>
       </aside>
+    </>
+  );
+}
+
+/** Standaardvoet: Opslaan, Annuleren en optioneel een onderstreepte actie rechts. */
+export function PaneelVoet({ opslaan, opslaanLabel = "Opslaan", uit = false, onAnnuleren, annulerenLabel = "Annuleren", gevaar }: {
+  opslaan?: () => void; opslaanLabel?: string; uit?: boolean; onAnnuleren: () => void; annulerenLabel?: string;
+  gevaar?: { label: string; onClick: () => void; uit?: boolean };
+}) {
+  return (
+    <>
+      {opslaan && <button type="button" className="knop knop-zwart" disabled={uit} onClick={opslaan}>{opslaanLabel}</button>}
+      <button type="button" className={`knop${opslaan ? " knop-tekst" : ""}`} onClick={onAnnuleren}>{annulerenLabel}</button>
+      <span className="ruimte" />
+      {gevaar && <button type="button" className="knop-link" disabled={gevaar.uit} onClick={gevaar.onClick}>{gevaar.label}</button>}
     </>
   );
 }

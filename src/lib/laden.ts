@@ -7,13 +7,16 @@ type Db = Awaited<ReturnType<typeof createClient>>;
 /** Alles voor de weekplanning (scherm en PDF). */
 export async function laadWeek(supabase: Db, jaar: number, week: number, maandag: string) {
   const zondag = plusDagen(maandag, 6);
-  const [mw, og, vk, af, op, laatst] = await Promise.all([
-    supabase.from("medewerkers").select("id, naam, groep, bv, nationaliteit, certificaten, bron, volgorde, vaste_inzet").eq("actief", true).order("volgorde").order("naam"),
+  const [mw, og, vk, af, op, laatst, rt] = await Promise.all([
+    supabase.from("medewerkers").select("id, naam, groep, bv, nationaliteit, certificaten, bron, volgorde, vaste_inzet, telefoon").eq("actief", true).order("volgorde").order("naam"),
     supabase.from("opdrachtgevers").select("id, naam, korte_naam, plaats, verborgen").eq("actief", true).order("naam"),
     supabase.from("vakken").select("id, medewerker_id, datum, status, opdrachtgever_id, notitie").gte("datum", maandag).lte("datum", zondag),
     supabase.from("afwezigheid").select("id, medewerker_id, soort, van, tot_en_met").lte("van", zondag).gte("tot_en_met", maandag),
     supabase.from("week_opmerkingen").select("id, medewerker_id, tekst").eq("jaar", jaar).eq("week", week),
     supabase.from("wijzigingen").select("tijdstip, omschrijving, gebruikers(naam, email)").order("tijdstip", { ascending: false }).limit(1).maybeSingle(),
+    // Scania-ritten van deze week, voor het weekbericht aan de chauffeur.
+    supabase.from("scania_ritten").select("id, vertrekdatum, dienst, route, chauffeur_id, notitie, rit_delen(id, volgorde, van, naar, vertrek, aankomst)")
+      .gte("vertrekdatum", maandag).lte("vertrekdatum", zondag).not("chauffeur_id", "is", null).order("vertrekdatum"),
   ]);
   const fout = mw.error || og.error || vk.error || af.error || op.error;
   const l = laatst.data as unknown as { tijdstip: string; gebruikers: { naam: string | null; email: string } | null } | null;
@@ -23,6 +26,7 @@ export async function laadWeek(supabase: Db, jaar: number, week: number, maandag
     vakken: (vk.data ?? []) as Vak[],
     afwezigheid: (af.data ?? []) as Afwezigheid[],
     opmerkingen: (op.data ?? []) as WeekOpmerking[],
+    ritten: (rt.data ?? []) as Rit[],
     laatstGewijzigd: l ? { tijdstip: l.tijdstip, door: l.gebruikers?.naam || l.gebruikers?.email || "onbekend" } : null,
     laadFout: fout ? fout.message : null,
   };

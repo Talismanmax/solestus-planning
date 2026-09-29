@@ -64,14 +64,16 @@ export function ritWaarschuwingen(r: Rit, alleRitten: Rit[], naam: Map<string, s
   return w;
 }
 
-/** Regels voor het bericht aan de chauffeur, zoals in het design. */
-export function ritTekst(r: Rit): string {
+/** Regel voor het bericht aan de chauffeur, zoals in het design (Nederlands of Engels). */
+export function ritTekst(r: Rit, taal: "nl" | "en" = "nl"): string {
   const d = [...r.rit_delen].sort((a, b) => a.volgorde - b.volgorde);
-  const kop = `- ${dagTijd(d[0].vertrek)} (${r.dienst})`;
-  if (r.route === "rade") return `${kop}: Zwolle – Rade (swap) – Zwolle, terug ${dagTijd(d[0].aankomst)}`;
+  const t = (iso: string) => dagTijd(iso, taal);
+  const dienst = taal === "en" ? (r.dienst === "dag" ? "day" : "night") : r.dienst;
+  const kop = `- ${t(d[0].vertrek)} (${dienst})`;
+  if (r.route === "rade") return `${kop}: Zwolle – Rade (swap) – Zwolle, ${taal === "en" ? "back" : "terug"} ${t(d[0].aankomst)}`;
   const heen = d[0], terug = d[1];
-  const t1 = `Zwolle > Ishøj ${dagTijd(heen.aankomst)}`;
-  const t2 = terug ? ` | Ishøj ${dagTijd(terug.vertrek)} > Zwolle ${dagTijd(terug.aankomst)}` : "";
+  const t1 = `Zwolle > Ishøj ${t(heen.aankomst)}`;
+  const t2 = terug ? ` | Ishøj ${t(terug.vertrek)} > Zwolle ${t(terug.aankomst)}` : "";
   return `${kop}: ${t1}${t2}`;
 }
 

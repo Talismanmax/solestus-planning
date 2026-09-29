@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import Icoon from "./Icoon";
+import WijzigingenPaneel from "./WijzigingenPaneel";
 import Woordmerk from "./Woordmerk";
 
 const LINKS = [
@@ -12,9 +14,10 @@ const LINKS = [
   { href: "/stamgegevens", label: "Stamgegevens", icoon: <><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20c1-3.5 3.6-5.5 6.5-5.5s5.5 2 6.5 5.5" /><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c1.8.7 3 2.5 3.5 5.2" /></> },
 ];
 
-export default function Navigatiebalk({ naam, email, rol }: { naam: string; email: string; rol: "planner" | "lezer" }) {
+export default function Navigatiebalk({ naam, email, rol, wijzigingenDezeWeek }: { naam: string; email: string; rol: "planner" | "lezer"; wijzigingenDezeWeek: number }) {
   const pad = usePathname();
   const [open, setOpen] = useState(false);
+  const [wijzigingen, setWijzigingen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,7 +29,8 @@ export default function Navigatiebalk({ naam, email, rol }: { naam: string; emai
     return () => { document.removeEventListener("mousedown", klik); document.removeEventListener("keydown", toets); };
   }, [open]);
 
-  const initialen = naam.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  const woorden = naam.trim().split(/\s+/);
+  const initialen = (woorden.length > 1 ? woorden[0][0] + woorden[woorden.length - 1][0] : naam.slice(0, 2)).toUpperCase();
   const rolLabel = rol === "planner" ? "Planner" : "Alleen lezen";
 
   return (
@@ -47,6 +51,11 @@ export default function Navigatiebalk({ naam, email, rol }: { naam: string; emai
         })}
       </nav>
       <div style={{ flexGrow: 1 }} />
+      <button type="button" className="nav-wijzigingen" onClick={() => setWijzigingen(true)} aria-label={`Wijzigingen, ${wijzigingenDezeWeek} deze week`}>
+        <Icoon naam="geschiedenis" />
+        Wijzigingen
+        {wijzigingenDezeWeek > 0 && <span className="teller">{wijzigingenDezeWeek > 99 ? "99+" : wijzigingenDezeWeek}</span>}
+      </button>
       <div className="profiel" ref={ref}>
         <button type="button" className="profiel-knop" aria-expanded={open} aria-haspopup="menu" onClick={() => setOpen(!open)}>
           <span className="avatar machina">{initialen}</span>
@@ -54,7 +63,7 @@ export default function Navigatiebalk({ naam, email, rol }: { naam: string; emai
             <span style={{ fontSize: 14, fontWeight: 700 }}>{naam}</span>
             <span style={{ fontSize: 12 }}>{rolLabel} · Solestus</span>
           </span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ transform: open ? "rotate(180deg)" : "none" }}><path d="M6 9l6 6 6-6" /></svg>
+          <Icoon naam={open ? "omhoog" : "omlaag"} />
         </button>
         {open && (
           <div role="menu" aria-label="Profiel" className="menu">
@@ -72,6 +81,7 @@ export default function Navigatiebalk({ naam, email, rol }: { naam: string; emai
           </div>
         )}
       </div>
+      {wijzigingen && <WijzigingenPaneel onSluit={() => setWijzigingen(false)} />}
     </header>
   );
 }

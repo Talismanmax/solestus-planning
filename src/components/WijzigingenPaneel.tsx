@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import PaneelSchil from "@/components/PaneelSchil";
+import PaneelSchil, { PaneelVoet } from "@/components/PaneelSchil";
 import { createClient } from "@/lib/supabase/client";
-import { tijdstipNL } from "@/lib/planning";
+import { isoWeek, tijdstipNL, vandaagNL } from "@/lib/planning";
 
 type Regel = { id: number; tijdstip: string; omschrijving: string; gebruikers: { naam: string | null; email: string } | null };
 
@@ -12,6 +12,7 @@ export default function WijzigingenPaneel({ onSluit }: { onSluit: () => void }) 
   const supabase = useMemo(() => createClient(), []);
   const [regels, setRegels] = useState<Regel[] | null>(null);
   const [fout, setFout] = useState(false);
+  const week = isoWeek(vandaagNL()).week;
 
   useEffect(() => {
     supabase.from("wijzigingen").select("id, tijdstip, omschrijving, gebruikers(naam, email)").order("tijdstip", { ascending: false }).limit(100)
@@ -20,11 +21,11 @@ export default function WijzigingenPaneel({ onSluit }: { onSluit: () => void }) 
 
   return (
     <PaneelSchil
-      boven="Planning"
+      boven={`Week ${week}`}
       titel="Wijzigingen"
-      sub={regels ? `${regels.length === 100 ? "laatste 100" : regels.length} wijzigingen, nieuwste bovenaan` : "laden…"}
+      sub={regels ? `${regels.length === 100 ? "de laatste 100" : regels.length} wijzigingen, nieuwste bovenaan` : "laden…"}
       onSluit={onSluit}
-      voet={<button type="button" className="knop" onClick={onSluit}>Sluiten</button>}
+      voet={<PaneelVoet onAnnuleren={onSluit} annulerenLabel="Sluiten" />}
     >
       {fout && <div className="melding melding-fout" style={{ maxWidth: "none" }}>De wijzigingen konden niet worden geladen.</div>}
       {regels?.length === 0 && <p style={{ margin: 0 }}>Nog geen wijzigingen.</p>}
@@ -32,7 +33,7 @@ export default function WijzigingenPaneel({ onSluit }: { onSluit: () => void }) 
         <ol className="wijzigingen">
           {regels.map((r) => (
             <li key={r.id}>
-              <small>{tijdstipNL(r.tijdstip)} <b>{r.gebruikers?.naam?.split(" ")[0] || r.gebruikers?.email.split("@")[0] || "onbekend"}</b></small>
+              <small><span>{tijdstipNL(r.tijdstip)}</span><strong>{r.gebruikers?.naam?.split(" ")[0] || r.gebruikers?.email.split("@")[0] || "Koppeling"}</strong></small>
               <span>{r.omschrijving}</span>
             </li>
           ))}
