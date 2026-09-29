@@ -62,6 +62,7 @@ button { cursor: pointer; }
 .inlog-formulier > * { max-width: 472px; }
 .inlog-hint { margin: 12px 0 0; font-size: 12px; }
 .inlog-fout { display: flex; gap: 12px; align-items: flex-start; background: var(--fout-bg); color: var(--fout); border-radius: 16px; padding: 16px; font-size: 13px; line-height: 20px; }
+.inlog-fout svg { flex-shrink: 0; margin-top: 2px; }
 .inlog-tip { display: flex; gap: 12px; align-items: center; background: var(--grijs); border-radius: 16px; padding: 14px 16px; font-size: 13px; line-height: 20px; }
 .inlog-tip-icoon { width: 32px; height: 32px; flex-shrink: 0; border-radius: 10px; background: var(--geel); display: flex; align-items: center; justify-content: center; }
 @media (max-width: 900px) {

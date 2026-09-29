@@ -32,7 +32,8 @@ export async function proxy(request: NextRequest) {
     url.pathname = "/inloggen";
     // Had iemand een sessie-cookie maar is die niet meer geldig: sessie verlopen.
     const hadSessie = request.cookies.getAll().some((c) => c.name.includes("-auth-token"));
-    url.search = hadSessie ? "?staat=verlopen" : "";
+    const terug = pad !== "/" ? `volgende=${encodeURIComponent(pad + request.nextUrl.search)}` : "";
+    url.search = hadSessie ? `?staat=verlopen${terug ? `&${terug}` : ""}` : terug ? `?${terug}` : "";
     return NextResponse.redirect(url);
   }
 
