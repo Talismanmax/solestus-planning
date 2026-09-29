@@ -68,4 +68,6 @@ Lees dit eerst. Het beschrijft de stand van zaken, waar alles draait en wat nog 
 
 ## Design
 
+Het volledige design staat in de map `design/` (zie `design/README.md`): alle schermen uit het canvas als `.dc.html`, plus de tokens, merkregels en logo's van het Solestus design system. Gebruik deze als specificatie bij het bouwen van Overzicht, de exports en de overige panelen.
+
 Design-canvas: https://claude.ai/artifact/RitpwkgKvrgS61cGj6jXny — Solestus design system: https://claude.ai/code/artifact/dbdc72a2-af06-4dd9-823c-a7901d0329b4 — Bouwplan: https://claude.ai/code/artifact/8ebc9257-a293-4108-8310-7aa3c9293837
