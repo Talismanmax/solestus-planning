@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Overzicht · laptop</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:"PP Neue Machina";src:url(/_blob/bcf2594a6f8058c07574ccfd4fae0068) format("opentype");font-weight:800}
+@font-face{font-family:"Fustat";src:url(/_blob/f9f50f5d0b3be0e8117750538e0d6aa7) format("truetype");font-weight:400}
+@font-face{font-family:"Fustat";src:url(/_blob/c8adc3645fcaab6dafca9bdc719e35f2) format("truetype");font-weight:600}
+@font-face{font-family:"Fustat";src:url(/_blob/ea397eaa880f39ab729192fb3c7da838) format("truetype");font-weight:700}
+@font-face{font-family:"Zilla Slab";src:url(/_blob/23cbbfd1d846946868ecf3f4b7d96244) format("truetype");font-weight:300;font-style:italic}
+body{margin:0;font-family:"Fustat",system-ui,sans-serif;color:#231f20;background:#f7f7f6}
+a{color:#231f20}a:hover{color:#231f20}
+button,input,select{font-family:Fustat,system-ui,sans-serif;color:#231f20}
+button{cursor:pointer}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; position: relative; display: flex; flex-direction: column; background: #f7f7f6; font-family: Fustat, system-ui, sans-serif; color: #231f20; overflow: hidden">
+<dc-import name="Navigatiebalk" actief="overzicht" hint-size="1440px,72px"></dc-import>
+<main style="flex-grow: 1; min-width: 0; min-height: 0; box-sizing: border-box; padding: 24px 40px 24px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 36px; line-height: 1.1">Overzicht</h1>
+<span style="font-size: 14px">Bezetting en beschikbaarheid in week 40</span>
+</div>
+<div style="display: flex; align-items: center; gap: 10px">
+<div style="display: flex; align-items: center; gap: 2px; background: #ffffff; border-radius: 14px; padding: 4px">
+<button type="button" aria-label="Vorige week" style="width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg></button>
+<span style="min-width: 150px; display: flex; flex-direction: column; align-items: center; line-height: 1.2"><span style="font-size: 15px; font-weight: 700">Week 40</span><span style="font-size: 12px">28 sep – 4 okt 2026</span></span>
+<button type="button" aria-label="Volgende week" style="width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></button>
+</div>
+<button type="button" onClick="{{toggleExp}}" aria-expanded="{{popExp}}" aria-haspopup="menu" style="height: 48px; padding: 0 14px 0 16px; border: 0; border-radius: 14px; background: #231f20; color: #ffffff; box-shadow: {{expRing}}; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>Exporteren<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px">
+<div style="background: #ffffff; border-radius: 24px; padding: 20px 22px; display: flex; flex-direction: column; gap: 4px"><span style="font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 40px; line-height: 1">31</span><span style="font-size: 14px; font-weight: 600">Ingezette diensten</span></div>
+<div style="background: #ffffff; border-radius: 24px; padding: 20px 22px; display: flex; flex-direction: column; gap: 4px"><span style="font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 40px; line-height: 1">3</span><span style="font-size: 14px; font-weight: 600">Opdrachtgevers bediend</span></div>
+<div style="background: #ffffff; border-radius: 24px; padding: 20px 22px; display: flex; flex-direction: column; gap: 4px"><span style="font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 40px; line-height: 1">2</span><span style="font-size: 14px; font-weight: 600">Niet ingezet, beschikbaar</span></div>
+<div style="background: #ffffff; border-radius: 24px; padding: 20px 22px; display: flex; flex-direction: column; gap: 4px"><span style="font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 40px; line-height: 1">15</span><span style="font-size: 14px; font-weight: 600">Afwezig of niet beschikbaar</span></div>
+<a href="Main.dc.html" style="background: #ffed00; border-radius: 24px; padding: 20px 22px; display: flex; flex-direction: column; gap: 4px; text-decoration: none"><span style="font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 40px; line-height: 1">2</span><span style="font-size: 14px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px">Open vakken ma–vr</span></a>
+</div>
+<section aria-labelledby="h-bez" style="background: #ffffff; border-radius: 24px; padding: 20px 24px 10px; display: flex; flex-direction: column">
+<div style="display: flex; align-items: baseline; gap: 10px; padding-bottom: 10px">
+<h2 id="h-bez" style="margin: 0; font-size: 17px; font-weight: 700">Bezetting per opdrachtgever</h2>
+<span style="font-size: 13px">diensten per dag</span>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) repeat(7, 48px) 64px 200px; gap: 8px; height: 36px; align-items: center; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; border-bottom: 1px solid #ebece8">
+<span>Opdrachtgever</span><span style="text-align: right">ma</span><span style="text-align: right">di</span><span style="text-align: right">wo</span><span style="text-align: right">do</span><span style="text-align: right">vr</span><span style="text-align: right">za</span><span style="text-align: right">zo</span><span style="text-align: right">Totaal</span><span></span>
+</div>
+<sc-for list="{{clients}}" as="c" hint-placeholder-count="3">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) repeat(7, 48px) 64px 200px; gap: 8px; min-height: 58px; align-items: center; border-top: {{c.line}}; font-size: 14px">
+<span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-weight: 700">{{c.name}}</span><span style="font-size: 12px">{{c.who}}</span></span>
+<sc-for list="{{c.days}}" as="d" hint-placeholder-count="7"><span style="text-align: right; font-variant-numeric: tabular-nums; font-weight: 600">{{d.v}}</span></sc-for>
+<span style="text-align: right; font-weight: 700; font-variant-numeric: tabular-nums">{{c.total}}</span>
+<span style="height: 10px; border-radius: 5px; background: #ebece8; overflow: hidden"><span style="display: block; height: 10px; width: {{c.pct}}; border-radius: 5px; background: #231f20"></span></span>
+</div>
+</sc-for>
+</section>
+<div style="flex-grow: 1; min-height: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+<section aria-labelledby="h-besch" style="background: #ffffff; border-radius: 24px; padding: 20px 24px; display: flex; flex-direction: column">
+<div style="display: flex; align-items: baseline; gap: 10px; padding-bottom: 8px"><h2 id="h-besch" style="margin: 0; font-size: 17px; font-weight: 700">Beschikbaar</h2><span style="font-size: 13px">niet ingezet of open</span></div>
+<sc-for list="{{beschikbaar}}" as="r" hint-placeholder-count="7">
+<div style="display: grid; grid-template-columns: 36px minmax(0, 1fr) 20px; gap: 8px; min-height: 40px; align-items: center; border-top: 1px solid #ebece8; font-size: 14px"><span style="font-weight: 700">{{r.d}}</span><span style="font-weight: {{r.fw}}">{{r.names}}</span><span style="text-align: right; font-weight: 700">{{r.n}}</span></div>
+</sc-for>
+</section>
+<section aria-labelledby="h-afw" style="background: #ffffff; border-radius: 24px; padding: 20px 24px; display: flex; flex-direction: column">
+<div style="display: flex; align-items: baseline; gap: 10px; padding-bottom: 8px"><h2 id="h-afw" style="margin: 0; font-size: 17px; font-weight: 700">Afwezig</h2><span style="font-size: 13px">vakantie, ziek, vrij</span></div>
+<sc-for list="{{afwezig}}" as="r" hint-placeholder-count="7">
+<div style="display: grid; grid-template-columns: 36px minmax(0, 1fr) 20px; gap: 8px; min-height: 40px; align-items: center; border-top: 1px solid #ebece8; font-size: 14px"><span style="font-weight: 700">{{r.d}}</span><span style="font-weight: {{r.fw}}">{{r.names}}</span><span style="text-align: right; font-weight: 700">{{r.n}}</span></div>
+</sc-for>
+</section>
+<section aria-labelledby="h-per" style="background: #ffffff; border-radius: 24px; padding: 20px 24px; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px"><h2 id="h-per" style="margin: 0; font-size: 17px; font-weight: 700">Afwezigheid</h2><a href="Afwezigheid.dc.html" style="height: 40px; padding: 0 14px; border-radius: 12px; background: #231f20; color: #ffffff; display: flex; align-items: center; text-decoration: none; font-size: 13px; font-weight: 700">Toevoegen</a></div>
+<a href="Afwezigheid.dc.html" style="display: flex; flex-direction: column; gap: 6px; padding: 12px 0; border-top: 1px solid #ebece8; text-decoration: none">
+<span style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 15px; font-weight: 700">Kees Mulder</span><span style="font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: #DCEAFA; color: #1D4C84">Vakantie</span></span>
+<span style="font-size: 14px">28 sep – 5 okt · 8 dagen</span>
+</a>
+<a href="#" style="display: flex; flex-direction: column; gap: 6px; padding: 12px 0; border-top: 1px solid #ebece8; text-decoration: none">
+<span style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 15px; font-weight: 700">Ricardo Smit</span><span style="font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: #F8DCD5; color: #8A2916">Ziek</span></span>
+<span style="font-size: 14px">28 – 29 sep · 2 dagen</span>
+</a>
+</section>
+</div>
+</main>
+<sc-if value="{{popExp}}" hint-placeholder-val="{{false}}">
+<button type="button" onClick="{{toggleExp}}" aria-label="Menu sluiten" style="position: absolute; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; background: transparent; cursor: default"></button>
+<div role="menu" aria-label="Exporteren" style="position: absolute; top: 160px; right: 40px; width: 320px; box-sizing: border-box; background: #ffffff; border-radius: 20px; box-shadow: 0 12px 40px rgba(35, 31, 32, 0.18); padding: 8px; display: flex; flex-direction: column; gap: 2px">
+<span style="padding: 10px 12px 8px; font-size: 13px; line-height: 18px">Het overzicht van week 40.</span>
+<button type="button" role="menuitem" onClick="{{toggleExp}}" style="height: 60px; border: 0; border-radius: 12px; background: transparent; padding: 0 12px; display: flex; align-items: center; gap: 14px; text-align: left"><span style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 10px; background: #f7f7f6; display: flex; align-items: center; justify-content: center"><span style="width: 24px; height: 17px; border-radius: 3px; box-shadow: inset 0 0 0 2px #231f20; background: #ffffff"></span></span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 14px; font-weight: 700">PDF, A4 liggend</span><span style="font-size: 12px">cijfers, bezetting en afwezigheid</span></span></button>
+<button type="button" role="menuitem" onClick="{{toggleExp}}" style="height: 60px; border: 0; border-radius: 12px; background: transparent; padding: 0 12px; display: flex; align-items: center; gap: 14px; text-align: left"><span style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 10px; background: #f7f7f6; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M4 10h16M4 15h16M10 4v16"></path></svg></span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 14px; font-weight: 700">Excel</span><span style="font-size: 12px">bezetting per opdrachtgever per dag</span></span></button>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+var DAYS = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'];
+var CLIENTS = [
+  ['Opdrachtgever C', 'Peter Bakker, Marius Popescu, Andrius Kazlauskas', [2, 2, 1, 2, 3, 0, 0]],
+  ['Opdrachtgever B', 'Jan de Vries, Ricardo Smit', [1, 1, 1, 1, 2, 0, 0]],
+  ['Manpower / Scania', 'Andrius Kazlauskas, Tomasz Nowak, Kees Mulder', [2, 1, 0, 1, 0, 1, 0]]
+];
+var BESCH = [[], [], ['Ricardo Smit', 'Tomasz Nowak'], ['Ricardo Smit'], ['Tomasz Nowak'], [], []];
+var AFW = [['Kees Mulder', 'Ricardo Smit'], ['Kees Mulder', 'Ricardo Smit'], ['Kees Mulder'], ['Tomasz Nowak'], ['Kees Mulder', 'Lotte Visser'], ['Kees Mulder'], ['Kees Mulder']];
+function dayRows(src) {
+  return src.map(function (l, i) { return { d: DAYS[i], names: l.length ? l.join(', ') : 'niemand', fw: l.length ? '600' : '400', n: l.length ? String(l.length) : '' }; });
+}
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { exp: false }; }
+  renderVals() {
+    var self = this, exp = this.state.exp;
+    var max = 0;
+    CLIENTS.forEach(function (c) { var t = c[2].reduce(function (a, b) { return a + b; }, 0); if (t > max) max = t; });
+    return {
+      popExp: exp, expRing: exp ? '0 0 0 3px #ffed00' : 'none',
+      toggleExp: function () { self.setState({ exp: !exp }); },
+      clients: CLIENTS.map(function (c, i) {
+        var t = c[2].reduce(function (a, b) { return a + b; }, 0);
+        return { name: c[0], who: c[1], total: t, pct: Math.round(t / max * 100) + '%', line: i === 0 ? '0' : '1px solid #ebece8', days: c[2].map(function (v) { return { v: v ? String(v) : '–' }; }) };
+      }),
+      beschikbaar: dayRows(BESCH),
+      afwezig: dayRows(AFW)
+    };
+  }
+}
+</script>
+</body>
+</html>

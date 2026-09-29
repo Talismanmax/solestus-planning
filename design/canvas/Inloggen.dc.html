@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Inloggen · laptop</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:"PP Neue Machina";src:url(/_blob/bcf2594a6f8058c07574ccfd4fae0068) format("opentype");font-weight:800}
+@font-face{font-family:"Fustat";src:url(/_blob/f9f50f5d0b3be0e8117750538e0d6aa7) format("truetype");font-weight:400}
+@font-face{font-family:"Fustat";src:url(/_blob/c8adc3645fcaab6dafca9bdc719e35f2) format("truetype");font-weight:600}
+@font-face{font-family:"Fustat";src:url(/_blob/ea397eaa880f39ab729192fb3c7da838) format("truetype");font-weight:700}
+@font-face{font-family:"Zilla Slab";src:url(/_blob/23cbbfd1d846946868ecf3f4b7d96244) format("truetype");font-weight:300;font-style:italic}
+body{margin:0;font-family:"Fustat",system-ui,sans-serif;color:#231f20;background:#ffffff}
+a{color:#231f20}a:hover{color:#231f20}
+</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #ffffff; font-family: Fustat, system-ui, sans-serif; color: #231f20; overflow: hidden">
+<section style="width: 720px; flex-shrink: 0; box-sizing: border-box; background: #ffed00; padding: 64px; display: flex; flex-direction: column">
+<img src="/_blob/3f1b644f48a1bbfb0b6cff3c909091b3" alt="Solestus leert je kennen" style="width: 300px">
+<div style="flex-grow: 1"></div>
+<h1 style="margin: 0; font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 56px; line-height: 1.1; max-width: 540px">Iedereen op de plek waar hij past.</h1>
+
+</section>
+<section style="flex-grow: 1; box-sizing: border-box; padding: 64px 96px; display: flex; flex-direction: column; justify-content: center; gap: 28px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="align-self: flex-start; font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 15px; background: #231f20; color: #ffffff; border-radius: 999px; padding: 6px 12px">Solestus Planning</span>
+<h2 style="margin: 0; font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 36px">{{title}}</h2>
+<p style="margin: 0; font-size: 16px; line-height: 24px; max-width: 440px">{{intro}}</p>
+</div>
+<sc-if value="{{isError}}" hint-placeholder-val="{{false}}">
+<div role="alert" style="max-width: 440px; background: #F8DCD5; color: #8A2916; border-radius: 16px; padding: 14px 16px; display: flex; gap: 12px">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 2px"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>
+<span style="display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 20px"><strong style="font-size: 15px">Inloggen is niet gelukt</strong>Microsoft kon je niet aanmelden. Gebruik je account van Solestus (eindigt op @solestus.com) en probeer het opnieuw.</span>
+</div>
+</sc-if>
+<sc-if value="{{isOut}}" hint-placeholder-val="{{false}}">
+<div role="status" style="max-width: 440px; background: #f7f7f6; border-radius: 16px; padding: 14px 16px; display: flex; gap: 12px; align-items: center">
+<span style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 10px; background: #ffed00; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg></span>
+<span style="font-size: 14px; line-height: 20px">Werk je op een gedeelde computer? Sluit dan ook je browser, zodat je Microsoft-sessie stopt.</span>
+</div>
+</sc-if>
+<div style="display: flex; flex-direction: column; gap: 12px; max-width: 440px">
+<a href="Main.dc.html" style="height: 56px; border-radius: 14px; background: #231f20; color: #ffffff; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px; font-weight: 700"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>{{cta}}</a>
+<span style="font-size: 13px; line-height: 19px">Je wordt doorgestuurd naar Microsoft. Daarna kom je terug in de planning.</span>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"staat":{"editor":"enum","options":["inloggen","uitgelogd","mislukt"],"default":"inloggen"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var s = this.props.staat || 'inloggen';
+    var T = {
+      inloggen: ['Welkom', 'Log in met je Microsoft-account van Solestus.', 'Inloggen met Microsoft'],
+      uitgelogd: ['Je bent uitgelogd', 'Tot de volgende keer. Wil je verder plannen, log dan opnieuw in.', 'Opnieuw inloggen met Microsoft'],
+      mislukt: ['Probeer het nog eens', 'Log in met je Microsoft-account van Solestus.', 'Opnieuw proberen']
+    }[s] || [];
+    return { title: T[0], intro: T[1], cta: T[2], isError: s === 'mislukt', isOut: s === 'uitgelogd' };
+  }
+}
+</script>
+</body>
+</html>

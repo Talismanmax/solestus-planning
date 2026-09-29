@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>PDF · weekplanning A4 liggend</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:"PP Neue Machina";src:url(/_blob/bcf2594a6f8058c07574ccfd4fae0068) format("opentype");font-weight:800}
+@font-face{font-family:"Fustat";src:url(/_blob/f9f50f5d0b3be0e8117750538e0d6aa7) format("truetype");font-weight:400}
+@font-face{font-family:"Fustat";src:url(/_blob/c8adc3645fcaab6dafca9bdc719e35f2) format("truetype");font-weight:600}
+@font-face{font-family:"Fustat";src:url(/_blob/ea397eaa880f39ab729192fb3c7da838) format("truetype");font-weight:700}
+@font-face{font-family:"Zilla Slab";src:url(/_blob/23cbbfd1d846946868ecf3f4b7d96244) format("truetype");font-weight:300;font-style:italic}
+body{margin:0;background:#ffffff}
+</style>
+</helmet>
+<div style="width: 1123px; height: 794px; box-sizing: border-box; padding: 40px 44px 36px; background: #ffffff; font-family: Fustat, system-ui, sans-serif; color: #231f20; display: flex; flex-direction: column; gap: 12px; overflow: hidden">
+<header style="display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 10px; border-bottom: 5px solid #ffed00">
+<div style="display: flex; align-items: center; gap: 12px">
+<img src="/_blob/60ec94e391e2091fea959bac34195bb6" alt="Solestus" style="height: 18px">
+<span style="font-size: 14px; font-weight: 700; padding-left: 12px; border-left: 1.5px solid #231f20">Planning</span>
+</div>
+<div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px">
+<h1 style="margin: 0; font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 24px; line-height: 1.1">Weekplanning week 40</h1>
+<span style="font-size: 12px">28 sep – 4 okt 2026 · Alle groepen · Alle opdrachtgevers · Alle BV's</span>
+</div>
+</header>
+<div style="display: grid; grid-template-columns: 168px repeat(5, minmax(0, 1fr)) repeat(2, minmax(0, 0.72fr)) 112px; border: 1px solid #b0b1a1; border-radius: 10px; overflow: hidden">
+<span style="padding: 6px 8px; background: #ebece8; font-size: 12px; font-weight: 700; border-bottom: 1px solid #b0b1a1">Medewerker</span>
+<sc-for list="{{heads}}" as="h" hint-placeholder-count="7"><span style="padding: 5px 6px; background: {{h.bg}}; border-left: 1px solid #b0b1a1; border-bottom: 1px solid #b0b1a1; display: flex; flex-direction: column; line-height: 1.2"><span style="font-size: 12px; font-weight: 700">{{h.day}}</span><span style="font-size: 12px">{{h.date}}</span></span></sc-for>
+<span style="padding: 6px 8px; background: #ebece8; font-size: 12px; font-weight: 700; border-left: 1px solid #b0b1a1; border-bottom: 1px solid #b0b1a1">Opmerking</span>
+<span style="padding: 4px 8px; font-size: 12px; font-weight: 600; border-bottom: 1px solid #b0b1a1">Bezetting</span>
+<sc-for list="{{sums}}" as="s" hint-placeholder-count="7"><span style="padding: 4px 6px; font-size: 12px; border-left: 1px solid #b0b1a1; border-bottom: 1px solid #b0b1a1"><strong>{{s.inz}}</strong> in{{s.open}}</span></sc-for>
+<span style="border-left: 1px solid #b0b1a1; border-bottom: 1px solid #b0b1a1"></span>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="12">
+<sc-if value="{{r.grp}}" hint-placeholder-val="{{false}}"><span style="grid-column: 1 / -1; padding: 5px 8px 3px; background: #f7f7f6; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid #b0b1a1">{{r.label}} · {{r.n}}</span></sc-if>
+<sc-if value="{{r.emp}}" hint-placeholder-val="{{true}}">
+<span style="padding: 5px 8px; border-bottom: 1px solid #d8d8d0; display: flex; flex-direction: column; justify-content: center; line-height: 1.25"><span style="font-size: 12.5px; font-weight: 700">{{r.name}}</span><span style="font-size: 12px">{{r.tags}}</span></span>
+<sc-for list="{{r.cells}}" as="c" hint-placeholder-count="7">
+<span style="padding: 3px; border-left: 1px solid #d8d8d0; border-bottom: 1px solid #d8d8d0; background: {{c.colBg}}; min-width: 0"><span style="height: 100%; min-height: 36px; box-sizing: border-box; border-radius: 6px; padding: 3px 6px; background: {{c.bg}}; color: {{c.fg}}; border: {{c.border}}; display: flex; flex-direction: column; justify-content: center; line-height: 1.2; overflow: hidden"><span style="font-size: 12px; font-weight: 700; font-style: {{c.fs}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.label}}</span><sc-if value="{{c.hasSub}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.sub}}</span></sc-if></span></span>
+</sc-for>
+<span style="padding: 5px 8px; border-left: 1px solid #d8d8d0; border-bottom: 1px solid #d8d8d0; font-size: 12px; line-height: 1.3; display: flex; align-items: center">{{r.note}}</span>
+</sc-if>
+</sc-for>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 5px 6px; font-size: 12px">
+<strong style="margin-right: 4px">Legenda</strong>
+<sc-for list="{{legend}}" as="l" hint-placeholder-count="10"><span style="padding: 1px 8px; border-radius: 999px; background: {{l.bg}}; color: {{l.fg}}; font-weight: 700">{{l.label}}</span></sc-for>
+<span style="margin-left: 6px"><em>Cursief</em> = afwezigheid uit een periode · (!) = ingepland tijdens afwezigheid · Open = nog niet gepland</span>
+</div>
+<div style="flex-grow: 1"></div>
+<footer style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid #d8d8d0; font-size: 12px">
+<span>Gemaakt op di 29 sep 2026 om 10:12 door Max · laatst gewijzigd ma 28 sep 16:40</span>
+<span style="font-family: 'Zilla Slab', Georgia, serif; font-style: italic; font-weight: 300; font-size: 15px">Solestus leert je kennen</span>
+<span>Pagina 1 van 1</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1123,"height":794}}'>
+var DAYS = ['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag', 'Zondag'];
+var DATES = ['28 sep', '29 sep', '30 sep', '1 okt', '2 okt', '3 okt', '4 okt'];
+var ST = { werk: ['', '#ebece8', '#231f20', 'in'], kantoor: ['Kantoor', '#E6E8F4', '#363C72', 'in'], thuiswerk: ['Thuiswerk', '#E3EEF1', '#1F5566', 'in'], opleiding: ['Opleiding', '#EEE4F5', '#5A3979', 'in'], niet_ingezet: ['Niet ingezet', '#FBE9C2', '#734D00', 'vrij'], nbb: ['nbb', '#EAEBE7', '#57616A', 'weg'], thuis: ['Thuis (rust)', '#E4EDE0', '#3B5A2C', 'weg'], vakantie: ['Vakantie', '#DCEAFA', '#1D4C84', 'weg'], vrij: ['Vrij / verlof', '#E9E5F6', '#4A3F7E', 'weg'], ziek: ['Ziek', '#F8DCD5', '#8A2916', 'weg'], einde: ['Einde oefening', '#D33A2C', '#FFFFFF', 'einde'] };
+var CL = { sc: 'Scania', b: 'Opdrachtgever B', c: 'Opdrachtgever C' };
+var GROUPS = [['nl', 'Chauffeurs NL'], ['int', 'Chauffeurs internationaal'], ['kantoor', 'Kantoor']];
+var EMP = [
+  ['nl', 'Jan de Vries', 'SNL · CE · Code 95', '', [['werk', 'b', '06:00'], ['werk', 'b', '06:00'], ['werk', 'b', '06:00'], ['werk', 'b', '06:00'], ['werk', 'b', '06:00'], null, null]],
+  ['nl', 'Peter Bakker', 'SPD · ADR', 'Wil zaterdag extra', [['werk', 'c'], ['werk', 'c'], ['opleiding', null, 'Code 95 Rijssen'], ['werk', 'c'], ['werk', 'c'], null, null]],
+  ['nl', 'Kees Mulder', 'SNL · CE', 'Vakantie t/m 5 okt', [['vakantie', null, '', 'p'], ['vakantie', null, '', 'p'], ['vakantie', null, '', 'p'], ['werk', 'sc', 'Rade · nacht', 'c'], ['vakantie', null, '', 'p'], ['vakantie', null, '', 'p'], ['vakantie', null, '', 'p']]],
+  ['nl', 'Ricardo Smit', 'SPD · CE', '', [['ziek', null, '', 'p'], ['ziek', null, '', 'p'], null, ['niet_ingezet'], ['werk', 'b'], null, null]],
+  ['int', 'Andrius Kazlauskas', 'SNL · LT · ADR', 'Rust na Rade-rit', [['werk', 'sc', 'Ishøj · dag'], ['werk', 'sc', 'Rade · nacht'], ['thuis'], ['thuis'], ['werk', 'c', 'buitenland'], null, null]],
+  ['int', 'Marius Popescu', 'SPD · RO', '', [['werk', 'c', 'buitenland'], ['werk', 'c', 'buitenland'], ['werk', 'c', 'buitenland'], ['werk', 'c', 'buitenland'], ['werk', 'c', 'buitenland'], ['nbb'], ['nbb']]],
+  ['int', 'Tomasz Nowak', 'SNL · PL', '', [['werk', 'sc', 'Rade · nacht'], ['thuis'], ['niet_ingezet'], ['vrij'], null, ['werk', 'sc', 'Rade · dag'], null]],
+  ['kantoor', 'Sanne Jansen', 'SSS', '', [['kantoor'], ['kantoor'], ['kantoor'], ['kantoor'], ['thuiswerk'], null, null]],
+  ['kantoor', 'Lotte Visser', 'SSS', '', [['kantoor'], ['thuiswerk'], ['kantoor'], ['opleiding', null, 'VCA'], ['vrij'], null, null]]
+];
+class Component extends DCLogic {
+  renderVals() {
+    var rows = [];
+    GROUPS.forEach(function (g) {
+      var list = EMP.filter(function (e) { return e[0] === g[0]; });
+      rows.push({ grp: true, emp: false, label: g[1], n: list.length });
+      list.forEach(function (e) {
+        rows.push({ grp: false, emp: true, name: e[1], tags: e[2], note: e[3], cells: e[4].map(function (c, i) {
+          var we = i >= 5, v = { colBg: we ? '#fafaf8' : '#ffffff', fs: 'normal', sub: '', hasSub: false, border: '0' };
+          if (!c) { var open = !we && e[0] !== 'kantoor'; v.label = open ? 'Open' : ''; v.bg = 'transparent'; v.fg = '#231f20'; v.border = open ? '1.5px dashed #767676' : '0'; return v; }
+          var s = ST[c[0]];
+          v.label = (c[0] === 'werk' ? CL[c[1]] : s[0]) + (c[3] === 'c' ? ' (!)' : '');
+          v.bg = s[1]; v.fg = s[2]; v.sub = c[2] || ''; v.hasSub = !!c[2]; v.fs = c[3] === 'p' ? 'italic' : 'normal';
+          return v;
+        }) });
+      });
+    });
+    return {
+      rows: rows,
+      heads: DAYS.map(function (d, i) { return { day: d, date: DATES[i], bg: '#ebece8' }; }),
+      sums: DAYS.map(function (d, i) {
+        var inz = 0, open = 0;
+        EMP.forEach(function (e) { var c = e[4][i]; if (!c) { if (i < 5 && e[0] !== 'kantoor') open++; return; } if (ST[c[0]][3] === 'in') inz++; });
+        return { inz: inz, open: open ? ' · ' + open + ' open' : '' };
+      }),
+      legend: Object.keys(ST).filter(function (k) { return k !== 'werk'; }).map(function (k) { return { label: ST[k][0], bg: ST[k][1], fg: ST[k][2] }; })
+    };
+  }
+}
+</script>
+</body>
+</html>

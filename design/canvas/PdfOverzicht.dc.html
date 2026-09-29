@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>PDF · overzicht A4 liggend</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:"PP Neue Machina";src:url(/_blob/bcf2594a6f8058c07574ccfd4fae0068) format("opentype");font-weight:800}
+@font-face{font-family:"Fustat";src:url(/_blob/f9f50f5d0b3be0e8117750538e0d6aa7) format("truetype");font-weight:400}
+@font-face{font-family:"Fustat";src:url(/_blob/c8adc3645fcaab6dafca9bdc719e35f2) format("truetype");font-weight:600}
+@font-face{font-family:"Fustat";src:url(/_blob/ea397eaa880f39ab729192fb3c7da838) format("truetype");font-weight:700}
+@font-face{font-family:"Zilla Slab";src:url(/_blob/23cbbfd1d846946868ecf3f4b7d96244) format("truetype");font-weight:300;font-style:italic}
+body{margin:0;background:#ffffff}
+</style>
+</helmet>
+<div style="width: 1123px; height: 794px; box-sizing: border-box; padding: 40px 44px 36px; background: #ffffff; font-family: Fustat, system-ui, sans-serif; color: #231f20; display: flex; flex-direction: column; gap: 16px; overflow: hidden">
+<header style="display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 10px; border-bottom: 5px solid #ffed00">
+<div style="display: flex; align-items: center; gap: 12px">
+<img src="/_blob/60ec94e391e2091fea959bac34195bb6" alt="Solestus" style="height: 18px">
+<span style="font-size: 14px; font-weight: 700; padding-left: 12px; border-left: 1.5px solid #231f20">Planning</span>
+</div>
+<div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px">
+<h1 style="margin: 0; font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 24px; line-height: 1.1">Overzicht week 40</h1>
+<span style="font-size: 12px">28 sep – 4 okt 2026 · bezetting en beschikbaarheid</span>
+</div>
+</header>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px">
+<div style="border: 1px solid #b0b1a1; border-radius: 10px; padding: 8px 12px; display: flex; align-items: baseline; gap: 8px"><span style="font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 22px">31</span><span style="font-size: 12px; font-weight: 600">ingezette diensten</span></div>
+<div style="border: 1px solid #b0b1a1; border-radius: 10px; padding: 8px 12px; display: flex; align-items: baseline; gap: 8px"><span style="font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 22px">3</span><span style="font-size: 12px; font-weight: 600">opdrachtgevers bediend</span></div>
+<div style="border: 1px solid #b0b1a1; border-radius: 10px; padding: 8px 12px; display: flex; align-items: baseline; gap: 8px"><span style="font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 22px">2</span><span style="font-size: 12px; font-weight: 600">niet ingezet, beschikbaar</span></div>
+<div style="border: 1px solid #b0b1a1; border-radius: 10px; padding: 8px 12px; display: flex; align-items: baseline; gap: 8px"><span style="font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 22px">15</span><span style="font-size: 12px; font-weight: 600">afwezig of niet beschikbaar</span></div>
+<div style="border: 2px solid #231f20; background: #ffed00; border-radius: 10px; padding: 7px 11px; display: flex; align-items: baseline; gap: 8px"><span style="font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 22px">2</span><span style="font-size: 12px; font-weight: 700">open vakken ma–vr</span></div>
+</div>
+<section style="display: flex; flex-direction: column; gap: 6px">
+<h2 style="margin: 0; font-size: 14px; font-weight: 700">Bezetting per opdrachtgever <span style="font-weight: 400; font-size: 12px">· diensten per dag</span></h2>
+<div style="display: grid; grid-template-columns: 180px repeat(7, 52px) 64px minmax(0, 1fr); border: 1px solid #b0b1a1; border-radius: 10px; overflow: hidden">
+<span style="padding: 6px 10px; background: #ebece8; font-size: 12px; font-weight: 700; border-bottom: 1px solid #b0b1a1">Opdrachtgever</span>
+<sc-for list="{{days}}" as="d" hint-placeholder-count="7"><span style="padding: 6px 8px; background: #ebece8; font-size: 12px; font-weight: 700; text-align: right; border-left: 1px solid #b0b1a1; border-bottom: 1px solid #b0b1a1">{{d}}</span></sc-for>
+<span style="padding: 6px 8px; background: #ebece8; font-size: 12px; font-weight: 700; text-align: right; border-left: 1px solid #b0b1a1; border-bottom: 1px solid #b0b1a1">Totaal</span>
+<span style="padding: 6px 10px; background: #ebece8; font-size: 12px; font-weight: 700; border-left: 1px solid #b0b1a1; border-bottom: 1px solid #b0b1a1">Medewerkers</span>
+<sc-for list="{{clients}}" as="c" hint-placeholder-count="3">
+<span style="padding: 8px 10px; font-size: 12.5px; font-weight: 700; border-top: {{c.line}}">{{c.name}}</span>
+<sc-for list="{{c.days}}" as="v" hint-placeholder-count="7"><span style="padding: 8px; font-size: 12.5px; text-align: right; font-variant-numeric: tabular-nums; border-top: {{c.line}}; border-left: 1px solid #d8d8d0">{{v.v}}</span></sc-for>
+<span style="padding: 8px; font-size: 12.5px; font-weight: 700; text-align: right; border-top: {{c.line}}; border-left: 1px solid #d8d8d0">{{c.total}}</span>
+<span style="padding: 8px 10px; font-size: 12px; border-top: {{c.line}}; border-left: 1px solid #d8d8d0">{{c.who}}</span>
+</sc-for>
+</div>
+</section>
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px">
+<section style="display: flex; flex-direction: column">
+<h2 style="margin: 0 0 6px; font-size: 14px; font-weight: 700">Beschikbaar <span style="font-weight: 400; font-size: 12px">· niet ingezet of open</span></h2>
+<sc-for list="{{beschikbaar}}" as="r" hint-placeholder-count="7"><div style="display: grid; grid-template-columns: 30px minmax(0, 1fr) 16px; gap: 6px; padding: 5px 0; border-top: 1px solid #d8d8d0; font-size: 12px"><strong>{{r.d}}</strong><span style="font-weight: {{r.fw}}">{{r.names}}</span><strong style="text-align: right">{{r.n}}</strong></div></sc-for>
+</section>
+<section style="display: flex; flex-direction: column">
+<h2 style="margin: 0 0 6px; font-size: 14px; font-weight: 700">Afwezig <span style="font-weight: 400; font-size: 12px">· vakantie, ziek, vrij</span></h2>
+<sc-for list="{{afwezig}}" as="r" hint-placeholder-count="7"><div style="display: grid; grid-template-columns: 30px minmax(0, 1fr) 16px; gap: 6px; padding: 5px 0; border-top: 1px solid #d8d8d0; font-size: 12px"><strong>{{r.d}}</strong><span style="font-weight: {{r.fw}}">{{r.names}}</span><strong style="text-align: right">{{r.n}}</strong></div></sc-for>
+</section>
+<section style="display: flex; flex-direction: column">
+<h2 style="margin: 0 0 6px; font-size: 14px; font-weight: 700">Afwezigheid <span style="font-weight: 400; font-size: 12px">· lopend en gepland</span></h2>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; padding: 7px 0; border-top: 1px solid #d8d8d0; font-size: 12px"><strong>Kees Mulder</strong><span style="padding: 0 8px; border-radius: 999px; background: #DCEAFA; color: #1D4C84; font-weight: 700">Vakantie</span><span>28 sep – 5 okt · 8 dagen</span></div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; padding: 7px 0; border-top: 1px solid #d8d8d0; border-bottom: 1px solid #d8d8d0; font-size: 12px"><strong>Ricardo Smit</strong><span style="padding: 0 8px; border-radius: 999px; background: #F8DCD5; color: #8A2916; font-weight: 700">Ziek</span><span>28 – 29 sep · 2 dagen</span></div>
+</section>
+</div>
+<div style="flex-grow: 1"></div>
+<footer style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid #d8d8d0; font-size: 12px">
+<span>Gemaakt op di 29 sep 2026 om 10:12 door Max</span>
+<span style="font-family: 'Zilla Slab', Georgia, serif; font-style: italic; font-weight: 300; font-size: 15px">Solestus leert je kennen</span>
+<span>Pagina 1 van 1</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1123,"height":794}}'>
+var DAYS = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'];
+var CLIENTS = [
+  ['Opdrachtgever C', 'Peter Bakker, Marius Popescu, Andrius Kazlauskas', [2, 2, 1, 2, 3, 0, 0]],
+  ['Opdrachtgever B', 'Jan de Vries, Ricardo Smit', [1, 1, 1, 1, 2, 0, 0]],
+  ['Manpower / Scania', 'Andrius Kazlauskas, Tomasz Nowak, Kees Mulder', [2, 1, 0, 1, 0, 1, 0]]
+];
+var BESCH = [[], [], ['Ricardo Smit', 'Tomasz Nowak'], ['Ricardo Smit'], ['Tomasz Nowak'], [], []];
+var AFW = [['Kees Mulder', 'Ricardo Smit'], ['Kees Mulder', 'Ricardo Smit'], ['Kees Mulder'], ['Tomasz Nowak'], ['Kees Mulder', 'Lotte Visser'], ['Kees Mulder'], ['Kees Mulder']];
+function dayRows(src) { return src.map(function (l, i) { return { d: DAYS[i], names: l.length ? l.join(', ') : 'niemand', fw: l.length ? '600' : '400', n: l.length ? String(l.length) : '' }; }); }
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      days: DAYS,
+      clients: CLIENTS.map(function (c, i) { return { name: c[0], who: c[1], total: c[2].reduce(function (a, b) { return a + b; }, 0), line: i === 0 ? '0' : '1px solid #d8d8d0', days: c[2].map(function (v) { return { v: v ? String(v) : '–' }; }) }; }),
+      beschikbaar: dayRows(BESCH),
+      afwezig: dayRows(AFW)
+    };
+  }
+}
+</script>
+</body>
+</html>

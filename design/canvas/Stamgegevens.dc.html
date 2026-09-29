@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Stamgegevens · laptop</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:"PP Neue Machina";src:url(/_blob/bcf2594a6f8058c07574ccfd4fae0068) format("opentype");font-weight:800}
+@font-face{font-family:"Fustat";src:url(/_blob/f9f50f5d0b3be0e8117750538e0d6aa7) format("truetype");font-weight:400}
+@font-face{font-family:"Fustat";src:url(/_blob/c8adc3645fcaab6dafca9bdc719e35f2) format("truetype");font-weight:600}
+@font-face{font-family:"Fustat";src:url(/_blob/ea397eaa880f39ab729192fb3c7da838) format("truetype");font-weight:700}
+@font-face{font-family:"Zilla Slab";src:url(/_blob/23cbbfd1d846946868ecf3f4b7d96244) format("truetype");font-weight:300;font-style:italic}
+body{margin:0;font-family:"Fustat",system-ui,sans-serif;color:#231f20;background:#f7f7f6}
+a{color:#231f20}a:hover{color:#231f20}
+button,input,select{font-family:Fustat,system-ui,sans-serif;color:#231f20}
+button{cursor:pointer}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1280px; position: relative; display: flex; flex-direction: column; background: #f7f7f6; font-family: Fustat, system-ui, sans-serif; color: #231f20; overflow: hidden">
+<dc-import name="Navigatiebalk" actief="stamgegevens" hint-size="1440px,72px"></dc-import>
+<main style="flex-grow: 1; min-width: 0; min-height: 0; box-sizing: border-box; padding: 24px 40px 24px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 36px; line-height: 1.1">Stamgegevens</h1>
+<span style="font-size: 14px">Easyflex2go is leidend. Chauffeurs en opdrachtgevers komen daaruit; kantoormedewerkers voeg je hier zelf toe.</span>
+</div>
+<label style="height: 48px; width: 320px; box-sizing: border-box; border-radius: 14px; background: #ffffff; display: flex; align-items: center; gap: 8px; padding: 0 14px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg><input type="search" aria-label="Zoeken in stamgegevens" placeholder="Zoek op naam of Easyflex-nummer" style="flex-grow: 1; min-width: 0; border: 0; outline: 0; background: transparent; font-size: 14px"></label>
+</div>
+<sc-if value="{{syncOk}}" hint-placeholder-val="{{true}}">
+<section aria-label="Koppeling met Easyflex2go" style="background: #ffffff; border-radius: 20px; padding: 14px 16px 14px 18px; display: flex; align-items: center; gap: 14px">
+<span style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: #ffed00; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#231f20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"></path><path d="M4 3v5h5"></path><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"></path><path d="M20 21v-5h-5"></path></svg></span>
+<span style="flex-grow: 1; display: flex; flex-direction: column; gap: 1px; font-size: 14px; line-height: 20px"><strong>Gekoppeld met Easyflex2go</strong><span>Laatst bijgewerkt vandaag om 06:00 · 7 chauffeurs en 3 opdrachtgevers. Wijzigingen doe je in Easyflex2go.</span></span>
+<button type="button" style="height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: #f7f7f6; font-size: 14px; font-weight: 700">Nu bijwerken</button>
+</section>
+</sc-if>
+<sc-if value="{{syncFail}}" hint-placeholder-val="{{false}}">
+<section role="alert" aria-label="Koppeling met Easyflex2go" style="background: #F8DCD5; color: #8A2916; border-radius: 20px; padding: 14px 16px 14px 18px; display: flex; align-items: center; gap: 14px">
+<span style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: #8A2916; color: #ffffff; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2z"></path><path d="M12 10v5M12 18v.5"></path></svg></span>
+<span style="flex-grow: 1; display: flex; flex-direction: column; gap: 1px; font-size: 14px; line-height: 20px"><strong>Bijwerken uit Easyflex2go is mislukt</strong><span>Laatst gelukt: gisteren om 18:00. Nieuwe medewerkers of wijzigingen van vandaag staan er mogelijk nog niet in.</span></span>
+<button type="button" style="height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: #8A2916; color: #ffffff; font-size: 14px; font-weight: 700">Opnieuw proberen</button>
+</section>
+</sc-if>
+<section aria-labelledby="h-med" style="background: #ffffff; border-radius: 24px; padding: 20px 24px 8px; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 8px">
+<div style="display: flex; align-items: baseline; gap: 10px"><h2 id="h-med" style="margin: 0; font-size: 17px; font-weight: 700">Medewerkers</h2><span style="font-size: 13px">9 actief · 7 uit Easyflex2go · 2 handmatig</span></div>
+<div style="display: flex; gap: 8px">
+<button type="button" style="height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: #f7f7f6; font-size: 14px; font-weight: 700">Vaste inzet afleiden</button>
+<button type="button" onClick="{{newEmp}}" style="height: 44px; padding: 0 18px; border: 0; border-radius: 12px; background: #231f20; color: #ffffff; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>Kantoormedewerker toevoegen</button>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: 196px 136px 48px 240px 156px minmax(0, 1fr) 118px 88px; gap: 8px; height: 44px; align-items: center; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase">
+<span>Naam</span><span>Easyflex-nr</span><span>Nat.</span><span>BV</span><span>Vaste inzet</span><span>Certificaten</span><span>Telefoon</span><span></span>
+</div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="12">
+<sc-if value="{{r.grp}}" hint-placeholder-val="{{false}}">
+<div style="height: 36px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #ebece8; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase"><span style="width: 9px; height: 9px; border-radius: 5px; background: #ffed00; box-shadow: inset 0 0 0 1.5px #231f20"></span>{{r.label}}</div>
+</sc-if>
+<sc-if value="{{r.emp}}" hint-placeholder-val="{{true}}">
+<div style="display: grid; grid-template-columns: 196px 136px 48px 240px 156px minmax(0, 1fr) 118px 88px; gap: 8px; min-height: 50px; align-items: center; border-top: 1px solid #ebece8; font-size: 14px; background: {{r.rowBg}}">
+<span style="font-weight: 700">{{r.name}}</span>
+<span style="display: flex; align-items: center; gap: 6px"><sc-if value="{{r.synced}}" hint-placeholder-val="{{true}}"><span style="font-variant-numeric: tabular-nums">{{r.ef}}</span><span style="font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: #ffed00; box-shadow: inset 0 0 0 1.4px #231f20">EF2GO</span></sc-if><sc-if value="{{r.manual}}" hint-placeholder-val="{{false}}"><span style="font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 6px; box-shadow: inset 0 0 0 1.4px #b0b1a1">handmatig</span></sc-if></span>
+<span>{{r.nat}}</span>
+<span style="font-size: 13px">{{r.bv}}</span>
+<span style="font-size: 13px">{{r.fixed}}</span>
+<span style="display: flex; flex-wrap: wrap; gap: 4px"><sc-for list="{{r.certs}}" as="c" hint-placeholder-count="2"><span style="font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 6px; box-shadow: inset 0 0 0 1.4px #b0b1a1">{{c}}</span></sc-for></span>
+<span style="font-size: 13px">06-[NUMMER]</span>
+<button type="button" onClick="{{r.edit}}" aria-label="{{r.editAria}}" style="height: 36px; border: 0; border-radius: 10px; background: transparent; font-size: 13px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px">Bewerken</button>
+</div>
+</sc-if>
+</sc-for>
+</section>
+<section aria-labelledby="h-opd" style="background: #ffffff; border-radius: 24px; padding: 20px 24px 8px; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 8px">
+<div style="display: flex; align-items: baseline; gap: 10px"><h2 id="h-opd" style="margin: 0; font-size: 17px; font-weight: 700">Opdrachtgevers</h2><span style="font-size: 13px">3 actief</span></div>
+<span style="font-size: 13px; line-height: 19px">Nieuwe opdrachtgever? Voeg hem toe in Easyflex2go; hij verschijnt hier bij de volgende update.</span>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 220px 180px 150px 88px; gap: 8px; height: 44px; align-items: center; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase">
+<span>Naam</span><span>Plaats</span><span>EF2GO relatie-id</span><span style="text-align: right">Diensten wk 40</span><span></span>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 220px 180px 150px 88px; gap: 8px; min-height: 50px; align-items: center; border-top: 1px solid #ebece8; font-size: 14px"><span style="font-weight: 700">Opdrachtgever C</span><span>[PLAATS]</span><span>[RELATIE-ID]</span><span style="text-align: right; font-weight: 700">10</span><button type="button" onClick="{{editC}}" aria-label="Opdrachtgever C bewerken" style="height: 36px; border: 0; background: transparent; font-size: 13px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px">Bewerken</button></div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 220px 180px 150px 88px; gap: 8px; min-height: 50px; align-items: center; border-top: 1px solid #ebece8; font-size: 14px"><span style="font-weight: 700">Opdrachtgever B</span><span>[PLAATS]</span><span>[RELATIE-ID]</span><span style="text-align: right; font-weight: 700">6</span><button type="button" onClick="{{editB}}" aria-label="Opdrachtgever B bewerken" style="height: 36px; border: 0; background: transparent; font-size: 13px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px">Bewerken</button></div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 220px 180px 150px 88px; gap: 8px; min-height: 50px; align-items: center; border-top: 1px solid #ebece8; font-size: 14px"><span style="font-weight: 700">Manpower / Scania</span><span>Zwolle</span><span>[RELATIE-ID]</span><span style="text-align: right; font-weight: 700">5</span><button type="button" onClick="{{editSc}}" aria-label="Manpower / Scania bewerken" style="height: 36px; border: 0; background: transparent; font-size: 13px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px">Bewerken</button></div>
+</section>
+</main>
+<sc-if value="{{open}}" hint-placeholder-val="{{false}}">
+<button type="button" onClick="{{close}}" aria-label="Sluiten" style="position: absolute; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; background: rgba(35, 31, 32, 0.4); cursor: default"></button>
+<aside role="dialog" aria-label="{{title}}" style="position: absolute; top: 0; right: 0; bottom: 0; width: 480px; background: #ffffff; border-radius: 24px 0 0 24px; box-shadow: 0 12px 40px rgba(35, 31, 32, 0.18); display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 28px 28px 20px; border-bottom: 4px solid #ffed00; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase">Stamgegevens</span>
+<h2 style="margin: 0; font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 28px; line-height: 1.1">{{title}}</h2>
+<span style="font-family: 'Zilla Slab', Georgia, serif; font-style: italic; font-weight: 300; font-size: 20px">{{sub}}</span>
+</div>
+<button type="button" onClick="{{close}}" aria-label="Sluiten" style="width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 12px; background: #f7f7f6; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<div style="flex-grow: 1; overflow-y: auto; padding: 22px 28px; display: flex; flex-direction: column; gap: 20px">
+<sc-if value="{{isEmp}}" hint-placeholder-val="{{true}}">
+<sc-if value="{{locked}}" hint-placeholder-val="{{true}}"><p style="margin: 0; background: #ebece8; border-radius: 14px; padding: 12px 14px; font-size: 14px; line-height: 20px; display: flex; gap: 10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg><span>Naam, nationaliteit, groep, BV en status komen uit Easyflex2go (bijgewerkt ma 28 sep 06:00). Pas ze daar aan; de planning neemt het automatisch over.</span></p></sc-if>
+<div style="display: flex; flex-direction: column; gap: 8px"><label for="ef-name" style="font-size: 13px; font-weight: 700">Naam</label><input id="ef-name" type="text" defaultValue="{{e.name}}" disabled="{{locked}}" style="height: 44px; box-sizing: border-box; border: 0; border-radius: 12px; background: {{fieldLocked}}; padding: 0 14px; font-size: 14px"></div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 8px"><label for="ef-group" style="font-size: 13px; font-weight: 700">Groep</label><select id="ef-group" defaultValue="{{e.group}}" disabled="{{true}}" aria-describedby="ef-group-hint" style="height: 44px; border: 0; border-radius: 12px; background: #ebece8; padding: 0 10px; font-size: 14px"><option value="nl">Chauffeurs NL</option><option value="int">Chauffeurs internationaal</option><option value="kantoor">Kantoor</option></select><span id="ef-group-hint" style="font-size: 12px; line-height: 17px">{{groupHint}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px"><label for="ef-nat" style="font-size: 13px; font-weight: 700">Nationaliteit</label><input id="ef-nat" type="text" defaultValue="{{e.nat}}" disabled="{{locked}}" placeholder="NL, LT, RO…" style="height: 44px; box-sizing: border-box; border: 0; border-radius: 12px; background: {{fieldLocked}}; padding: 0 14px; font-size: 14px"></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px"><label for="ef-bv" style="font-size: 13px; font-weight: 700">BV / contract</label><select id="ef-bv" defaultValue="{{e.bv}}" disabled="{{locked}}" style="height: 44px; border: 0; border-radius: 12px; background: {{fieldLocked}}; padding: 0 10px; font-size: 14px"><option value="">Onbekend</option><option>Solestus Personeelsdiensten B.V.</option><option>Solestus Nederland B.V.</option><option>Solestus Payroll Solutions B.V.</option><option>Solestus Shared Services B.V.</option><option>Extern / ZZP</option></select></div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 8px"><label for="ef-certs" style="font-size: 13px; font-weight: 700">Certificaten</label><input id="ef-certs" type="text" defaultValue="{{e.certs}}" placeholder="ADR B+T, Code 95, LZV" style="height: 44px; box-sizing: border-box; border: 0; border-radius: 12px; background: #f7f7f6; padding: 0 14px; font-size: 14px"></div>
+<div style="display: flex; flex-direction: column; gap: 8px"><label for="ef-phone" style="font-size: 13px; font-weight: 700">Telefoon</label><input id="ef-phone" type="tel" placeholder="06-[NUMMER]" style="height: 44px; box-sizing: border-box; border: 0; border-radius: 12px; background: #f7f7f6; padding: 0 14px; font-size: 14px"></div>
+</div>
+<fieldset style="border: 0; margin: 0; padding: 14px; min-width: 0; background: #f7f7f6; border-radius: 16px; display: flex; flex-direction: column; gap: 10px">
+<legend style="float: left; width: 100%; padding: 0; font-size: 13px; font-weight: 700">Vaste inzet</legend>
+<select aria-label="Vaste inzet" defaultValue="{{e.fixed}}" style="clear: both; height: 44px; border: 0; border-radius: 12px; background: #ffffff; padding: 0 10px; font-size: 14px"><option value="">Geen vaste inzet</option><option value="kantoor">Kantoor</option><option value="thuiswerk">Thuiswerk</option><option value="sc">Manpower / Scania</option><option value="b">Opdrachtgever B</option><option value="c">Opdrachtgever C</option></select>
+<div style="display: flex; gap: 6px">
+<sc-for list="{{fixDays}}" as="p" hint-placeholder-count="7"><button type="button" onClick="{{p.pick}}" aria-pressed="{{p.on}}" style="width: 44px; height: 44px; border: 0; border-radius: 12px; background: {{p.bg}}; box-shadow: {{p.ring}}; font-size: 13px; font-weight: 700">{{p.d}}</button></sc-for>
+</div>
+<span style="font-size: 13px; line-height: 19px">Met Vaste inzet invullen in de planning komen deze dagen automatisch in lege vakken.</span>
+</fieldset>
+<sc-if value="{{locked}}" hint-placeholder-val="{{true}}">
+<fieldset style="border: 0; margin: 0; padding: 14px; min-width: 0; background: #f7f7f6; border-radius: 16px; display: flex; flex-direction: column; gap: 10px">
+<legend style="float: left; width: 100%; padding: 0; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px">Easyflex2go<span style="font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: #ffed00; box-shadow: inset 0 0 0 1.4px #231f20">leidend</span></legend>
+<div style="clear: both; display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="ef-reg" style="font-size: 12px; font-weight: 600">Registratienummer</label><input id="ef-reg" type="text" defaultValue="{{e.reg}}" disabled="{{true}}" style="height: 42px; box-sizing: border-box; border: 0; border-radius: 10px; background: #ffffff; padding: 0 12px; font-size: 14px"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="ef-id" style="font-size: 12px; font-weight: 600">EF2GO-id</label><input id="ef-id" type="text" defaultValue="{{e.efid}}" disabled="{{true}}" style="height: 42px; box-sizing: border-box; border: 0; border-radius: 10px; background: #ffffff; padding: 0 12px; font-size: 14px"></div>
+</div>
+<span style="font-size: 13px; line-height: 19px">Status in Easyflex2go: Actief. Uitgeschreven in Easyflex2go betekent: niet meer zichtbaar in de planning.</span>
+</fieldset>
+</sc-if>
+<sc-if value="{{manual}}" hint-placeholder-val="{{false}}"><p style="margin: 0; background: #f7f7f6; border-radius: 14px; padding: 12px 14px; font-size: 14px; line-height: 20px">Kantoormedewerkers staan niet in Easyflex2go. Je beheert hun gegevens hier zelf.</p></sc-if>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 14px"><input type="checkbox" defaultChecked="{{true}}" disabled="{{locked}}" style="width: 18px; height: 18px; margin: 0; accent-color: #231f20">Actief (zichtbaar in de planning)</label>
+</sc-if>
+<sc-if value="{{isCli}}" hint-placeholder-val="{{false}}">
+<p style="margin: 0; background: #ebece8; border-radius: 14px; padding: 12px 14px; font-size: 14px; line-height: 20px; display: flex; gap: 10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg><span>Naam, plaats en relatie-id komen uit Easyflex2go. Pas ze daar aan; de planning neemt het automatisch over.</span></p>
+<div style="display: flex; flex-direction: column; gap: 8px"><label for="cf-name" style="font-size: 13px; font-weight: 700">Naam in Easyflex2go</label><input id="cf-name" type="text" defaultValue="{{c.name}}" disabled="{{true}}" style="height: 44px; box-sizing: border-box; border: 0; border-radius: 12px; background: #ebece8; padding: 0 14px; font-size: 14px"></div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 8px"><label for="cf-place" style="font-size: 13px; font-weight: 700">Plaats</label><input id="cf-place" type="text" defaultValue="{{c.place}}" disabled="{{true}}" style="height: 44px; box-sizing: border-box; border: 0; border-radius: 12px; background: #ebece8; padding: 0 14px; font-size: 14px"></div>
+<div style="display: flex; flex-direction: column; gap: 8px"><label for="cf-ef" style="font-size: 13px; font-weight: 700">EF2GO relatie-id</label><input id="cf-ef" type="text" defaultValue="[RELATIE-ID]" disabled="{{true}}" style="height: 44px; box-sizing: border-box; border: 0; border-radius: 12px; background: #ebece8; padding: 0 14px; font-size: 14px"></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px"><label for="cf-short" style="font-size: 13px; font-weight: 700">Korte naam in het rooster</label><input id="cf-short" type="text" defaultValue="{{c.short}}" style="height: 44px; box-sizing: border-box; border: 0; border-radius: 12px; background: #f7f7f6; padding: 0 14px; font-size: 14px"><span style="font-size: 13px; line-height: 19px">Alleen voor de planning, zodat de naam in een vak past.</span></div>
+<div style="background: #f7f7f6; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; font-weight: 700">In week 40</span><span style="font-size: 14px">{{c.usage}}</span></div>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 14px"><input type="checkbox" defaultChecked="{{true}}" style="width: 18px; height: 18px; margin: 0; accent-color: #231f20">Actief (kiesbaar in de planning)</label>
+</sc-if>
+</div>
+<div style="padding: 18px 28px; border-top: 1px solid #ebece8; display: flex; align-items: center; gap: 8px">
+<button type="button" onClick="{{close}}" style="height: 48px; padding: 0 24px; border: 0; border-radius: 14px; background: #231f20; color: #ffffff; font-size: 15px; font-weight: 700">Opslaan</button>
+<button type="button" onClick="{{close}}" style="height: 48px; padding: 0 16px; border: 0; border-radius: 14px; background: transparent; font-size: 15px; font-weight: 700">Annuleren</button>
+</div>
+</aside>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"paneel":{"editor":"enum","options":["geen","medewerker","opdrachtgever"],"default":"geen"},"koppeling":{"editor":"enum","options":["ok","mislukt"],"default":"ok"},"$preview":{"width":1440,"height":1280}}'>
+var BV = { SPD: 'Solestus Personeelsdiensten B.V.', SNL: 'Solestus Nederland B.V.', SSS: 'Solestus Shared Services B.V.' };
+var GROUPS = [['nl', 'Chauffeurs NL'], ['int', 'Chauffeurs internationaal'], ['kantoor', 'Kantoor']];
+var EMP = [
+  ['nl', 'Jan de Vries', '[NR]', true, 'NL', 'SNL', 'Opdrachtgever B · ma–vr', ['CE', 'Code 95'], false],
+  ['nl', 'Peter Bakker', '[NR]', true, 'NL', 'SPD', 'Opdrachtgever C · ma–vr', ['ADR B+T', 'Code 95'], false],
+  ['nl', 'Kees Mulder', '[NR]', true, 'NL', 'SNL', 'Geen', ['CE'], false],
+  ['nl', 'Ricardo Smit', '[NR]', true, 'NL', 'SPD', 'Geen', ['CE'], true],
+  ['int', 'Andrius Kazlauskas', '[NR]', true, 'LT', 'SNL', 'Geen', ['ADR B+T', 'LZV'], false],
+  ['int', 'Marius Popescu', '[NR]', true, 'RO', 'SPD', 'Opdrachtgever C · ma–vr', ['CE'], true],
+  ['int', 'Tomasz Nowak', '[NR]', true, 'PL', 'SNL', 'Geen', ['CE'], false],
+  ['kantoor', 'Sanne Jansen', '–', false, 'NL', 'SSS', 'Kantoor · ma–do', [], false],
+  ['kantoor', 'Lotte Visser', '–', false, 'NL', 'SSS', 'Kantoor · ma, wo', [], false]
+];
+var FIX = { 'Jan de Vries': ['b', [0, 1, 2, 3, 4]], 'Peter Bakker': ['c', [0, 1, 2, 3, 4]], 'Marius Popescu': ['c', [0, 1, 2, 3, 4]], 'Sanne Jansen': ['kantoor', [0, 1, 2, 3]], 'Lotte Visser': ['kantoor', [0, 2]] };
+var DAYS = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'];
+var CLI = {
+  c: { name: 'Opdrachtgever C', short: 'Opdrachtgever C', place: '[PLAATS]', usage: '10 diensten · Peter Bakker, Marius Popescu, Andrius Kazlauskas' },
+  b: { name: 'Opdrachtgever B', short: 'Opdrachtgever B', place: '[PLAATS]', usage: '6 diensten · Jan de Vries, Ricardo Smit' },
+  sc: { name: 'Manpower / Scania', short: 'Scania', place: 'Zwolle', usage: '5 diensten · Andrius Kazlauskas, Tomasz Nowak, Kees Mulder' }
+};
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { kind: null, emp: 4, cli: 'sc', days: null }; }
+  renderVals() {
+    var self = this, st = this.state, pp = this.props.paneel || 'geen';
+    var kind = st.kind !== null ? st.kind : (pp === 'geen' ? '' : pp);
+    var rows = [];
+    GROUPS.forEach(function (g) {
+      rows.push({ grp: true, emp: false, label: g[1] });
+      EMP.forEach(function (e, i) {
+        if (e[0] !== g[0]) return;
+        rows.push({ grp: false, emp: true, name: e[1], ef: e[2], synced: e[3], manual: !e[3], nat: e[4], bv: BV[e[5]], fixed: e[6], certs: e[7], rowBg: (kind === 'medewerker' && st.emp === i) ? '#fff7a8' : 'transparent', editAria: e[1] + ' bewerken', edit: function () { self.setState({ kind: 'medewerker', emp: i, days: null }); } });
+      });
+    });
+    var isNew = st.emp < 0;
+    var em = isNew ? ['kantoor', '', '', false, 'NL', 'SSS', '', [], false] : EMP[st.emp];
+    var fx = FIX[em[1]] || ['', [0, 1, 2, 3, 4]];
+    var days = st.days || fx[1];
+    var c = st.cli === 'new' ? { name: '', short: '', place: '', usage: 'Nog geen diensten gepland.' } : CLI[st.cli];
+    var locked = kind === 'medewerker' && !isNew && em[3];
+    return {
+      rows: rows,
+      syncOk: this.props.koppeling !== 'mislukt', syncFail: this.props.koppeling === 'mislukt',
+      manual: kind === 'medewerker' && !em[3],
+      groupHint: em[3] ? 'Volgt uit de nationaliteit in Easyflex2go: NL is Chauffeurs NL, anders internationaal.' : 'Handmatig toegevoegde medewerkers staan altijd bij Kantoor.',
+      open: !!kind, isEmp: kind === 'medewerker', isCli: kind === 'opdrachtgever',
+      title: kind === 'medewerker' ? (isNew ? 'Nieuwe kantoormedewerker' : em[1]) : (st.cli === 'new' ? 'Nieuwe opdrachtgever' : c.name),
+      sub: kind === 'medewerker' ? (isNew ? 'vul de basisgegevens in' : (em[0] === 'kantoor' ? 'kantoor' : 'chauffeur') + ' · ' + (BV[em[5]] || 'BV onbekend')) : 'opdrachtgever',
+      close: function () { self.setState({ kind: '' }); },
+      newEmp: function () { self.setState({ kind: 'medewerker', emp: -1, days: null }); },
+      newCli: function () { self.setState({ kind: 'opdrachtgever', cli: 'new' }); },
+      editC: function () { self.setState({ kind: 'opdrachtgever', cli: 'c' }); },
+      editB: function () { self.setState({ kind: 'opdrachtgever', cli: 'b' }); },
+      editSc: function () { self.setState({ kind: 'opdrachtgever', cli: 'sc' }); },
+      locked: locked, fieldLocked: locked ? '#ebece8' : '#f7f7f6',
+      e: { name: em[1], group: em[0], nat: em[4], bv: BV[em[5]] || '', certs: em[7].join(', '), fixed: fx[0], reg: em[2] === '[NR]' ? '[NR]' : '', efid: em[3] ? '[ID]' : '' },
+      efText: locked ? 'Status in Easyflex2go: Actief.' : 'Vul het registratienummer in als je het weet. De koppeling herkent de medewerker daarop; anders zoekt hij op naam. Kantoormedewerkers zonder Easyflex-nummer blijven handmatig.',
+      fixDays: DAYS.map(function (d, i) { var on = days.indexOf(i) >= 0; return { d: d, on: on, bg: on ? '#ffed00' : '#ffffff', ring: on ? 'inset 0 0 0 2px #231f20' : 'none', pick: function () { var dd = days.slice(), at = dd.indexOf(i); if (at >= 0) dd.splice(at, 1); else dd.push(i); self.setState({ days: dd }); } }; }),
+      c: c
+    };
+  }
+}
+</script>
+</body>
+</html>

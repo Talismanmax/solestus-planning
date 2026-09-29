@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Weekplanning · laptop</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:"PP Neue Machina";src:url(/_blob/bcf2594a6f8058c07574ccfd4fae0068) format("opentype");font-weight:800}
+@font-face{font-family:"Fustat";src:url(/_blob/f9f50f5d0b3be0e8117750538e0d6aa7) format("truetype");font-weight:400}
+@font-face{font-family:"Fustat";src:url(/_blob/c8adc3645fcaab6dafca9bdc719e35f2) format("truetype");font-weight:600}
+@font-face{font-family:"Fustat";src:url(/_blob/ea397eaa880f39ab729192fb3c7da838) format("truetype");font-weight:700}
+@font-face{font-family:"Zilla Slab";src:url(/_blob/23cbbfd1d846946868ecf3f4b7d96244) format("truetype");font-weight:300;font-style:italic}
+body{margin:0;font-family:"Fustat",system-ui,sans-serif;color:#231f20;background:#f7f7f6}
+a{color:#231f20}a:hover{color:#231f20}
+button,input,select,textarea{font-family:Fustat,system-ui,sans-serif;color:#231f20}
+button{cursor:pointer}
+</style>
+</helmet>
+<div style="width: 1440px; height: 900px; position: relative; display: flex; flex-direction: {{rootDir}}; background: #f7f7f6; font-family: Fustat, system-ui, sans-serif; color: #231f20; overflow: hidden">
+<sc-if value="{{side}}" hint-placeholder-val="{{true}}">
+<aside style="width: 264px; flex-shrink: 0; box-sizing: border-box; background: #ffffff; border-right: 1px solid #ebece8; padding: 28px 18px 22px; display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; align-items: center; gap: 10px; margin-left: 10px">
+<img src="/_blob/60ec94e391e2091fea959bac34195bb6" alt="Solestus" style="height: 22px">
+<span style="font-family: 'Zilla Slab', Georgia, serif; font-style: italic; font-weight: 300; font-size: 22px; line-height: 1">planning</span>
+</div>
+<nav aria-label="Hoofdmenu" style="display: flex; flex-direction: column; gap: 4px">
+<a href="Main.dc.html" aria-current="page" style="height: 46px; border-radius: 14px; padding: 0 14px; display: flex; align-items: center; gap: 12px; text-decoration: none; font-size: 15px; font-weight: 700; background: #ffed00"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"></rect><path d="M8 3v4M16 3v4M4 11h16"></path></svg>Weekplanning</a>
+<a href="Scania.dc.html" style="height: 46px; border-radius: 14px; padding: 0 14px; display: flex; align-items: center; gap: 12px; text-decoration: none; font-size: 15px; font-weight: 600"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h12v10H2z"></path><path d="M14 10h4l3 3v3h-7"></path><circle cx="6.5" cy="18" r="2"></circle><circle cx="17" cy="18" r="2"></circle></svg>Scania-ritten</a>
+<a href="Overzicht.dc.html" style="height: 46px; border-radius: 14px; padding: 0 14px; display: flex; align-items: center; gap: 12px; text-decoration: none; font-size: 15px; font-weight: 600"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20V11M12 20V5M18 20v-6M3 20h18"></path></svg>Overzicht</a>
+<a href="Stamgegevens.dc.html" style="height: 46px; border-radius: 14px; padding: 0 14px; display: flex; align-items: center; gap: 12px; text-decoration: none; font-size: 15px; font-weight: 600"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c1-3.5 3.6-5.5 6.5-5.5s5.5 2 6.5 5.5"></path><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c1.8.7 3 2.5 3.5 5.2"></path></svg>Stamgegevens</a>
+</nav>
+<div style="flex-grow: 1"></div>
+<button type="button" onClick="{{openLog}}" style="height: 46px; border: 0; border-radius: 14px; padding: 0 14px; display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 600; background: #f7f7f6; text-align: left"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l3 2"></path></svg><span style="flex-grow: 1">Wijzigingen</span><span style="min-width: 24px; height: 24px; padding: 0 6px; box-sizing: border-box; border-radius: 12px; background: #231f20; color: #ffffff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">12</span></button>
+<div style="display: flex; align-items: center; gap: 12px; padding: 12px 10px 0; border-top: 1px solid #ebece8">
+<span style="width: 40px; height: 40px; border-radius: 12px; background: #ffed00; display: flex; align-items: center; justify-content: center; font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 15px">MA</span>
+<span style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 14px; font-weight: 700">Max</span><span style="font-size: 12px">Planner · Solestus</span></span>
+</div>
+</aside>
+</sc-if>
+<sc-if value="{{top}}" hint-placeholder-val="{{false}}">
+<header style="position: relative; z-index: {{hdrZ}}; height: 72px; flex-shrink: 0; box-sizing: border-box; background: #ffffff; border-bottom: 1px solid #ebece8; padding: 0 40px; display: flex; align-items: center; gap: 36px">
+<div style="display: flex; align-items: center; gap: 10px">
+<img src="/_blob/60ec94e391e2091fea959bac34195bb6" alt="Solestus" style="height: 20px">
+<span style="font-family: 'Zilla Slab', Georgia, serif; font-style: italic; font-weight: 300; font-size: 21px; line-height: 1">planning</span>
+</div>
+<nav aria-label="Hoofdmenu" style="display: flex; gap: 4px">
+<a href="Main.dc.html" aria-current="page" style="height: 42px; border-radius: 12px; padding: 0 16px; display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 15px; font-weight: 700; background: #ffed00"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"></rect><path d="M8 3v4M16 3v4M4 11h16"></path></svg>Weekplanning</a>
+<a href="Scania.dc.html" style="height: 42px; border-radius: 12px; padding: 0 16px; display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 15px; font-weight: 600"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h12v10H2z"></path><path d="M14 10h4l3 3v3h-7"></path><circle cx="6.5" cy="18" r="2"></circle><circle cx="17" cy="18" r="2"></circle></svg>Scania-ritten</a>
+<a href="Overzicht.dc.html" style="height: 42px; border-radius: 12px; padding: 0 16px; display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 15px; font-weight: 600"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20V11M12 20V5M18 20v-6M3 20h18"></path></svg>Overzicht</a>
+<a href="Stamgegevens.dc.html" style="height: 42px; border-radius: 12px; padding: 0 16px; display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 15px; font-weight: 600"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c1-3.5 3.6-5.5 6.5-5.5s5.5 2 6.5 5.5"></path><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c1.8.7 3 2.5 3.5 5.2"></path></svg>Stamgegevens</a>
+</nav>
+<div style="flex-grow: 1"></div>
+<button type="button" onClick="{{openLog}}" style="height: 42px; border: 0; border-radius: 12px; padding: 0 14px; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; background: #f7f7f6"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l3 2"></path></svg>Wijzigingen<span style="min-width: 22px; height: 22px; padding: 0 6px; box-sizing: border-box; border-radius: 11px; background: #231f20; color: #ffffff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">12</span></button>
+<div style="position: relative">
+<button type="button" onClick="{{toggleProfile}}" aria-expanded="{{profOpen}}" aria-haspopup="menu" style="height: 52px; border: 0; border-radius: 14px; padding: 0 10px 0 6px; background: {{profBg}}; display: flex; align-items: center; gap: 10px; text-align: left">
+<span style="width: 40px; height: 40px; border-radius: 12px; background: #ffed00; display: flex; align-items: center; justify-content: center; font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 15px">MA</span>
+<span style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 14px; font-weight: 700">Max</span><span style="font-size: 12px">Planner · Solestus</span></span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform: {{profChev}}"><path d="M6 9l6 6 6-6"></path></svg>
+</button>
+<sc-if value="{{profOpen}}" hint-placeholder-val="{{false}}">
+<div role="menu" aria-label="Profiel" style="position: absolute; top: 60px; right: 0; width: 280px; box-sizing: border-box; background: #ffffff; border-radius: 18px; box-shadow: 0 12px 40px rgba(35, 31, 32, 0.18); padding: 8px; display: flex; flex-direction: column">
+<div style="padding: 12px 12px 14px; border-bottom: 1px solid #ebece8; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 700">Max</span><span style="font-size: 13px">[naam]@solestus.com</span><span style="font-size: 13px">Planner · Solestus</span></div>
+<a href="Uitgelogd.dc.html" role="menuitem" style="margin-top: 6px; height: 46px; border-radius: 12px; padding: 0 12px; display: flex; align-items: center; gap: 12px; text-decoration: none; font-size: 15px; font-weight: 700; background: #f7f7f6"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"></path><path d="M10 8l-4 4 4 4M6 12h10"></path></svg>Uitloggen</a>
+</div>
+</sc-if>
+</div>
+</header>
+</sc-if>
+<main style="flex-grow: 1; min-width: 0; min-height: 0; box-sizing: border-box; padding: {{mainPad}}; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; gap: 14px">
+<h1 style="margin: 0; font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 36px; line-height: 1.1">Weekplanning</h1>
+<sc-if value="{{readOnly}}" hint-placeholder-val="{{false}}"><span style="height: 30px; padding: 0 12px; border-radius: 999px; background: #231f20; color: #ffffff; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>Alleen lezen</span></sc-if>
+</div>
+<span style="font-size: 14px">{{meta}}</span>
+</div>
+<div style="display: flex; align-items: center; gap: 10px">
+<div style="display: flex; align-items: center; gap: 2px; background: #ffffff; border-radius: 14px; padding: 4px">
+<button type="button" aria-label="Vorige week" style="width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg></button>
+<span style="min-width: 150px; display: flex; flex-direction: column; align-items: center; line-height: 1.2"><span style="font-size: 15px; font-weight: 700">Week 40</span><span style="font-size: 12px">28 sep – 4 okt 2026</span></span>
+<button type="button" aria-label="Volgende week" style="width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></button>
+</div>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 10px">
+<div role="group" aria-label="Weergave" style="display: flex; gap: 2px; background: #ffffff; border-radius: 14px; padding: 4px">
+<button type="button" onClick="{{setWeek}}" aria-pressed="{{weekView}}" style="height: 36px; padding: 0 16px; border: 0; border-radius: 10px; background: {{segWeekBg}}; color: {{segWeekFg}}; font-size: 14px; font-weight: 700">Week</button>
+<button type="button" onClick="{{setDag}}" aria-pressed="{{dayView}}" style="height: 36px; padding: 0 16px; border: 0; border-radius: 10px; background: {{segDagBg}}; color: {{segDagFg}}; font-size: 14px; font-weight: 700">Dag</button>
+</div>
+<label style="height: 44px; width: 300px; box-sizing: border-box; border-radius: 12px; background: #ffffff; display: flex; align-items: center; gap: 8px; padding: 0 14px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg><input type="search" aria-label="Zoeken" placeholder="Zoek medewerker of opdrachtgever" style="flex-grow: 1; min-width: 0; border: 0; outline: 0; background: transparent; font-size: 14px"></label>
+<button type="button" onClick="{{toggleFilter}}" aria-expanded="{{popFilter}}" aria-haspopup="dialog" style="height: 44px; padding: 0 14px; border: 0; border-radius: 12px; background: {{filterBg}}; box-shadow: {{filterRing}}; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>Filters</button>
+<button type="button" onClick="{{toggleLegend}}" aria-haspopup="dialog" aria-label="Legenda" title="Legenda" style="width: 44px; height: 44px; border: 0; border-radius: 12px; background: #ffffff; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9.5 9.5a2.5 2.5 0 1 1 3.3 2.4c-.5.2-.8.7-.8 1.2v.4"></path><path d="M12 17h.01"></path></svg></button>
+<div style="flex-grow: 1"></div>
+<sc-if value="{{canEdit}}" hint-placeholder-val="{{true}}"><button type="button" title="Vult lege vakken met de vaste inzet van medewerkers" style="height: 44px; padding: 0 14px; border: 0; border-radius: 12px; background: #ffffff; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 2l4 4-4 4"></path><path d="M3 11V9a3 3 0 0 1 3-3h15"></path><path d="M7 22l-4-4 4-4"></path><path d="M21 13v2a3 3 0 0 1-3 3H3"></path></svg>Vaste inzet</button></sc-if>
+<sc-if value="{{canEdit}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{toggleCopy}}" aria-expanded="{{popCopy}}" style="height: 44px; padding: 0 14px; border: 0; border-radius: 12px; background: {{copyBg}}; box-shadow: {{copyRing}}; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path></svg>Vorige week kopiëren</button></sc-if>
+<button type="button" onClick="{{togglePdf}}" aria-expanded="{{popPdf}}" aria-haspopup="menu" style="height: 44px; padding: 0 14px 0 16px; border: 0; border-radius: 12px; background: #231f20; color: #ffffff; box-shadow: {{pdfRing}}; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>Exporteren<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button></div>
+<sc-if value="{{isEmpty}}" hint-placeholder-val="{{false}}">
+<section style="background: #ffed00; border-radius: 24px; padding: 20px 24px; display: flex; align-items: center; gap: 20px">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+<span style="font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 24px; line-height: 1.15">Week 40 is nog leeg</span>
+<span style="font-size: 14px">Neem week 39 over of vul de vaste inzet in. Je kunt ook direct op een vak klikken.</span>
+</div>
+<button type="button" onClick="{{toggleCopy}}" style="height: 48px; padding: 0 20px; border: 0; border-radius: 14px; background: #231f20; color: #ffffff; font-size: 14px; font-weight: 700">Week 39 kopiëren</button>
+<button type="button" style="height: 48px; padding: 0 18px; border: 0; border-radius: 14px; background: #ffffff; font-size: 14px; font-weight: 700">Vaste inzet invullen</button>
+</section>
+</sc-if>
+<sc-if value="{{weekView}}" hint-placeholder-val="{{true}}">
+<section aria-label="Planning week 40" style="flex-grow: 1; min-height: 0; background: #ffffff; border-radius: 24px; padding: 10px 8px 6px; display: flex; flex-direction: column; overflow-y: auto">
+<div style="display: grid; grid-template-columns: 212px repeat(5, minmax(0, 1fr)) repeat(2, minmax(0, 0.7fr)) 136px; align-items: center">
+<span style="padding: 0 16px; font-size: 13px; font-weight: 700">Medewerker</span>
+<sc-for list="{{heads}}" as="h" hint-placeholder-count="7">
+<span style="height: 44px; margin: 0 3px; border-radius: 14px; background: {{h.bg}}; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1"><span style="font-size: 12px; font-weight: 700; text-transform: uppercase">{{h.d}}</span><span style="font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 19px">{{h.num}}</span></span>
+</sc-for>
+<span style="padding: 0 12px; font-size: 13px; font-weight: 700">Opmerking</span>
+</div>
+<div style="display: grid; grid-template-columns: 212px repeat(5, minmax(0, 1fr)) repeat(2, minmax(0, 0.7fr)) 136px; align-items: center; min-height: 34px; margin-top: 6px; border-bottom: 1px solid #ebece8">
+<span style="padding: 0 16px; font-size: 12px; font-weight: 600">Bezetting</span>
+<sc-for list="{{sums}}" as="s" hint-placeholder-count="7">
+<span style="padding: 0 8px; display: flex; align-items: center; gap: 6px; font-size: 12px; white-space: nowrap"><span><strong>{{s.inz}}</strong> in</span><sc-if value="{{s.hasOpen}}" hint-placeholder-val="{{false}}"><span style="display: flex; align-items: center; gap: 4px"><span style="width: 8px; height: 8px; border-radius: 4px; background: #ffed00; box-shadow: inset 0 0 0 1.5px #231f20"></span><strong>{{s.open}}</strong> open</span></sc-if></span>
+</sc-for>
+<span></span>
+</div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="12">
+<sc-if value="{{r.grp}}" hint-placeholder-val="{{false}}">
+<div style="min-height: 34px; padding: 0 16px; display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase"><span style="width: 9px; height: 9px; border-radius: 5px; background: #ffed00; box-shadow: inset 0 0 0 1.5px #231f20"></span>{{r.label}}<span style="letter-spacing: 0; font-weight: 600">{{r.n}}</span></div>
+</sc-if>
+<sc-if value="{{r.emp}}" hint-placeholder-val="{{true}}">
+<div style="display: grid; grid-template-columns: 212px repeat(5, minmax(0, 1fr)) repeat(2, minmax(0, 0.7fr)) 136px; align-items: stretch; min-height: 48px; border-top: 1px solid #ebece8">
+<sc-if value="{{r.skel}}" hint-placeholder-val="{{false}}"><span style="padding: 0 16px; display: flex; flex-direction: column; justify-content: center; gap: 6px"><span style="width: {{r.skelW}}; height: 12px; border-radius: 6px; background: #ebece8"></span><span style="width: 48px; height: 10px; border-radius: 5px; background: #f2f2ef"></span></span></sc-if>
+<sc-if value="{{r.real}}" hint-placeholder-val="{{true}}">
+<div style="padding: 0 10px; display: flex; flex-direction: column; justify-content: center; gap: 3px; min-width: 0">
+<button type="button" onClick="{{r.pickName}}" title="Weekbericht en details" style="align-self: flex-start; max-width: 100%; border: 0; background: transparent; padding: 0 6px; font-size: 14px; font-weight: 700; line-height: 17px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.name}}</button>
+<span style="display: flex; gap: 4px; padding: 0 6px">
+<sc-for list="{{r.tags}}" as="t" hint-placeholder-count="2"><span style="font-size: 10.5px; font-weight: 700; line-height: 15px; padding: 0 6px; border-radius: 6px; box-shadow: inset 0 0 0 1.4px {{t.ring}}; background: {{t.bg}}">{{t.t}}</span></sc-for>
+</span>
+</div>
+</sc-if>
+<sc-for list="{{r.cells}}" as="c" hint-placeholder-count="7">
+<button type="button" onClick="{{c.pick}}" aria-label="{{c.aria}}" style="min-height: 48px; padding: 3px 3px; border: 0; background: {{c.colBg}}; text-align: left; min-width: 0; cursor: {{c.cursor}}">
+<span style="position: relative; height: 100%; min-height: 42px; box-sizing: border-box; border-radius: 10px; padding: 0 9px; background: {{c.bg}}; color: {{c.fg}}; border: {{c.border}}; box-shadow: {{c.ring}}; display: flex; flex-direction: column; justify-content: center; overflow: hidden">
+<span style="display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 700; line-height: 16px; font-style: {{c.fs}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><sc-if value="{{c.isOpen}}" hint-placeholder-val="{{false}}"><span style="width: 8px; height: 8px; flex-shrink: 0; border-radius: 4px; background: #ffed00; box-shadow: inset 0 0 0 1.5px #231f20"></span></sc-if>{{c.label}}</span>
+<sc-if value="{{c.hasSub}}" hint-placeholder-val="{{false}}"><span style="font-size: 11.5px; line-height: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.sub}}</span></sc-if>
+<sc-if value="{{c.conf}}" hint-placeholder-val="{{false}}"><span title="Ingepland tijdens afwezigheid" style="position: absolute; right: 4px; top: 4px; width: 16px; height: 16px; border-radius: 8px; background: #8A2916; color: #ffffff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center">!</span></sc-if>
+</span>
+</button>
+</sc-for>
+<button type="button" onClick="{{r.pickNote}}" aria-label="{{r.noteAria}}" style="border: 0; background: transparent; padding: 6px 12px; font-size: 12px; line-height: 16px; display: flex; align-items: center; text-align: left; overflow: hidden; cursor: {{r.cursor}}">{{r.note}}</button>
+</div>
+</sc-if>
+</sc-for>
+</section>
+</sc-if>
+<sc-if value="{{dayView}}" hint-placeholder-val="{{false}}">
+<section aria-label="Dagplanning" style="flex-grow: 1; min-height: 0; background: #ffffff; border-radius: 24px; padding: 14px 16px 10px; display: flex; flex-direction: column; overflow-y: auto">
+<div role="tablist" aria-label="Dag" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{dayChips}}" as="k" hint-placeholder-count="7">
+<button type="button" role="tab" onClick="{{k.pick}}" aria-selected="{{k.on}}" style="height: 60px; border: 0; border-radius: 16px; background: {{k.bg}}; color: {{k.fg}}; box-shadow: {{k.ring}}; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1"><span style="font-size: 12px; font-weight: 700; text-transform: uppercase">{{k.d}}</span><span style="font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 22px">{{k.num}}</span></button>
+</sc-for>
+</div>
+<div style="display: flex; align-items: baseline; justify-content: space-between; padding: 18px 8px 8px">
+<h2 style="margin: 0; font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 24px">{{dayTitle}}</h2>
+<span style="font-size: 14px">{{daySum}}</span>
+</div>
+<div style="display: grid; grid-template-columns: 240px 360px minmax(0, 1fr); gap: 12px; height: 32px; align-items: center; padding: 0 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase"><span>Medewerker</span><span>Inzet</span><span>Opmerking week</span></div>
+<sc-for list="{{dayRows}}" as="r" hint-placeholder-count="12">
+<sc-if value="{{r.grp}}" hint-placeholder-val="{{false}}">
+<div style="min-height: 34px; padding: 0 8px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #ebece8; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase"><span style="width: 9px; height: 9px; border-radius: 5px; background: #ffed00; box-shadow: inset 0 0 0 1.5px #231f20"></span>{{r.label}}</div>
+</sc-if>
+<sc-if value="{{r.emp}}" hint-placeholder-val="{{true}}">
+<div style="display: grid; grid-template-columns: 240px 360px minmax(0, 1fr); gap: 12px; min-height: 58px; align-items: center; padding: 0 8px; border-top: 1px solid #ebece8">
+<span style="display: flex; flex-direction: column; gap: 3px"><button type="button" onClick="{{r.pickName}}" style="align-self: flex-start; border: 0; background: transparent; padding: 0; font-size: 15px; font-weight: 700; text-align: left">{{r.name}}</button><span style="display: flex; gap: 4px"><sc-for list="{{r.tags}}" as="t" hint-placeholder-count="2"><span style="font-size: 10.5px; font-weight: 700; line-height: 15px; padding: 0 6px; border-radius: 6px; box-shadow: inset 0 0 0 1.4px {{t.ring}}; background: {{t.bg}}">{{t.t}}</span></sc-for></span></span>
+<button type="button" onClick="{{r.cell.pick}}" aria-label="{{r.cell.aria}}" style="height: 48px; border: {{r.cell.border}}; border-radius: 12px; padding: 0 14px; background: {{r.cell.bg}}; color: {{r.cell.fg}}; box-shadow: {{r.cell.ring}}; display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left; position: relative"><span style="display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; font-style: {{r.cell.fs}}"><sc-if value="{{r.cell.isOpen}}" hint-placeholder-val="{{false}}"><span style="width: 8px; height: 8px; border-radius: 4px; background: #ffed00; box-shadow: inset 0 0 0 1.5px #231f20"></span></sc-if>{{r.cell.label}}</span><span style="font-size: 13px">{{r.cell.sub}}</span><sc-if value="{{r.cell.conf}}" hint-placeholder-val="{{false}}"><span style="position: absolute; right: -6px; top: -6px; width: 18px; height: 18px; border-radius: 9px; background: #8A2916; color: #ffffff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center">!</span></sc-if></button>
+<span style="font-size: 13px">{{r.note}}</span>
+</div>
+</sc-if>
+</sc-for>
+</section>
+</sc-if>
+</main>
+<sc-if value="{{anyPop}}" hint-placeholder-val="{{false}}">
+<button type="button" onClick="{{closePop}}" aria-label="Menu sluiten" style="position: absolute; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; background: transparent; cursor: default"></button>
+</sc-if>
+<sc-if value="{{popCopy}}" hint-placeholder-val="{{false}}">
+<div role="dialog" aria-label="Vorige week kopiëren" style="position: absolute; top: {{popTop}}; right: {{copyRight}}; width: 380px; box-sizing: border-box; background: #ffffff; border-radius: 20px; box-shadow: 0 12px 40px rgba(35, 31, 32, 0.18); padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<h3 style="margin: 0; font-size: 17px; font-weight: 700">Week 39 kopiëren naar week 40</h3>
+<p style="margin: 0; font-size: 14px; line-height: 20px">{{copyText}}</p>
+<label style="display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 20px"><input type="checkbox" defaultChecked="{{true}}" style="width: 18px; height: 18px; margin: 1px 0 0; accent-color: #231f20; flex-shrink: 0">Afwezigheid niet meenemen (vakantie, ziek, vrij, einde)</label>
+<label style="display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 20px"><input type="checkbox" style="width: 18px; height: 18px; margin: 1px 0 0; accent-color: #231f20; flex-shrink: 0">Opmerkingen ook kopiëren</label>
+<div style="display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px">
+<button type="button" onClick="{{closePop}}" style="height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: transparent; font-size: 14px; font-weight: 700">Annuleren</button>
+<button type="button" onClick="{{closePop}}" style="height: 44px; padding: 0 18px; border: 0; border-radius: 12px; background: #231f20; color: #ffffff; font-size: 14px; font-weight: 700">{{copyGo}}</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{popFilter}}" hint-placeholder-val="{{false}}">
+<div role="dialog" aria-label="Filters" style="position: absolute; top: {{filterTop}}; left: {{filterLeft}}; width: 340px; box-sizing: border-box; background: #ffffff; border-radius: 20px; box-shadow: 0 12px 40px rgba(35, 31, 32, 0.18); padding: 18px; display: flex; flex-direction: column; gap: 12px">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 700">Groep<select style="height: 44px; border: 0; border-radius: 12px; background: #f7f7f6; padding: 0 10px; font-size: 14px; font-weight: 600"><option>Alle groepen</option><option>Chauffeurs NL</option><option>Chauffeurs internationaal</option><option>Kantoor</option></select></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 700">Opdrachtgever<select style="height: 44px; border: 0; border-radius: 12px; background: #f7f7f6; padding: 0 10px; font-size: 14px; font-weight: 600"><option>Alle opdrachtgevers</option><option>Manpower / Scania</option><option>Opdrachtgever B</option><option>Opdrachtgever C</option></select></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 700">BV<select style="height: 44px; border: 0; border-radius: 12px; background: #f7f7f6; padding: 0 10px; font-size: 14px; font-weight: 600"><option>Alle BV's</option><option>Solestus Personeelsdiensten B.V.</option><option>Solestus Nederland B.V.</option><option>Solestus Payroll Solutions B.V.</option><option>Solestus Shared Services B.V.</option></select></label>
+<div style="display: flex; justify-content: space-between; align-items: center; padding-top: 4px">
+<button type="button" onClick="{{closePop}}" style="height: 40px; padding: 0 4px; border: 0; background: transparent; font-size: 14px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px">Wissen</button>
+<button type="button" onClick="{{closePop}}" style="height: 40px; padding: 0 18px; border: 0; border-radius: 12px; background: #231f20; color: #ffffff; font-size: 14px; font-weight: 700">Klaar</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{popPdf}}" hint-placeholder-val="{{false}}">
+<div role="menu" aria-label="Exporteren" style="position: absolute; top: {{popTop}}; right: {{pdfRight}}; width: 320px; box-sizing: border-box; background: #ffffff; border-radius: 20px; box-shadow: 0 12px 40px rgba(35, 31, 32, 0.18); padding: 8px; display: flex; flex-direction: column; gap: 2px">
+<span style="padding: 10px 12px 8px; font-size: 13px; line-height: 18px">Week 40, met de filters die nu aan staan.</span>
+<button type="button" role="menuitem" onClick="{{closePop}}" style="height: 60px; border: 0; border-radius: 12px; background: transparent; padding: 0 12px; display: flex; align-items: center; gap: 14px; text-align: left"><span style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 10px; background: #f7f7f6; display: flex; align-items: center; justify-content: center"><span style="width: 26px; height: 18px; border-radius: 3px; box-shadow: inset 0 0 0 2px #231f20; background: #ffffff"></span></span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 14px; font-weight: 700">PDF, A4 liggend</span><span style="font-size: 12px">hele week op één pagina</span></span></button>
+<button type="button" role="menuitem" onClick="{{closePop}}" style="height: 60px; border: 0; border-radius: 12px; background: transparent; padding: 0 12px; display: flex; align-items: center; gap: 14px; text-align: left"><span style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 10px; background: #f7f7f6; display: flex; align-items: center; justify-content: center"><span style="width: 16px; height: 22px; border-radius: 3px; box-shadow: inset 0 0 0 2px #231f20; background: #ffffff"></span></span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 14px; font-weight: 700">PDF, A4 staand</span><span style="font-size: 12px">compact, met opmerkingen eronder</span></span></button>
+<button type="button" role="menuitem" onClick="{{closePop}}" style="height: 60px; border: 0; border-radius: 12px; background: transparent; padding: 0 12px; display: flex; align-items: center; gap: 14px; text-align: left"><span style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 10px; background: #f7f7f6; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M4 10h16M4 15h16M10 4v16"></path></svg></span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 14px; font-weight: 700">Excel</span><span style="font-size: 12px">om verder te rekenen of te delen</span></span></button>
+</div>
+</sc-if>
+<sc-if value="{{selOn}}" hint-placeholder-val="{{false}}">
+<div role="toolbar" aria-label="Selectie" style="position: absolute; bottom: 28px; left: {{floatLeft}}; transform: translateX(-50%); background: #ffffff; border-radius: 18px; box-shadow: 0 12px 40px rgba(35, 31, 32, 0.22), inset 0 0 0 1.5px #231f20; padding: 8px 8px 8px 18px; display: flex; align-items: center; gap: 6px">
+<span style="font-size: 14px; font-weight: 700; margin-right: 8px; white-space: nowrap">{{selCount}} vakken geselecteerd</span>
+<button type="button" onClick="{{editSel}}" style="height: 40px; padding: 0 16px; border: 0; border-radius: 12px; background: #231f20; color: #ffffff; font-size: 14px; font-weight: 700">Bewerken</button>
+<button type="button" style="height: 40px; padding: 0 14px; border: 0; border-radius: 12px; background: #f7f7f6; font-size: 14px; font-weight: 700">Kopiëren</button>
+<button type="button" style="height: 40px; padding: 0 14px; border: 0; border-radius: 12px; background: #f7f7f6; font-size: 14px; font-weight: 700">Plakken</button>
+<button type="button" style="height: 40px; padding: 0 14px; border: 0; border-radius: 12px; background: #f7f7f6; font-size: 14px; font-weight: 700">Leegmaken</button>
+<button type="button" onClick="{{clearSel}}" aria-label="Selectie opheffen" style="width: 40px; height: 40px; border: 0; border-radius: 12px; background: transparent; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+</sc-if>
+<sc-if value="{{toastOn}}" hint-placeholder-val="{{false}}">
+<div role="alert" style="position: absolute; bottom: 28px; left: {{floatLeft}}; transform: translateX(-50%); background: #231f20; color: #ffffff; border-radius: 16px; box-shadow: 0 12px 40px rgba(35, 31, 32, 0.25); padding: 10px 10px 10px 18px; display: flex; align-items: center; gap: 12px; white-space: nowrap">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffed00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2z"></path><path d="M12 10v5M12 18v.5"></path></svg>
+<span style="font-size: 14px; font-weight: 600">Opslaan lukte niet. Je wijziging bij Ricardo Smit (wo) staat nog niet in de planning.</span>
+<button type="button" onClick="{{dismissToast}}" style="height: 38px; padding: 0 16px; border: 0; border-radius: 10px; background: #ffed00; color: #231f20; font-size: 14px; font-weight: 700">Opnieuw proberen</button>
+</div>
+</sc-if>
+<sc-if value="{{legendOn}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; inset: 0; background: rgba(35, 31, 32, 0.4); display: flex; align-items: center; justify-content: center">
+<button type="button" onClick="{{toggleLegend}}" aria-label="Legenda sluiten" style="position: absolute; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; background: transparent; cursor: default"></button>
+<section role="dialog" aria-modal="true" aria-labelledby="lg-t" style="position: relative; width: 640px; box-sizing: border-box; background: #ffffff; border-radius: 24px; box-shadow: 0 12px 40px rgba(35, 31, 32, 0.25); padding: 28px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; justify-content: space-between; align-items: center">
+<h2 id="lg-t" style="margin: 0; font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 26px">Legenda</h2>
+<button type="button" onClick="{{toggleLegend}}" aria-label="Sluiten" style="width: 44px; height: 44px; border: 0; border-radius: 12px; background: #f7f7f6; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<h3 style="margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase">Statussen</h3>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<span style="height: 30px; padding: 0 12px; border-radius: 999px; background: #ebece8; display: flex; align-items: center; font-size: 13px; font-weight: 700">Ingezet bij opdrachtgever</span>
+<sc-for list="{{legend}}" as="l" hint-placeholder-count="10"><span style="height: 30px; padding: 0 12px; border-radius: 999px; background: {{l.bg}}; color: {{l.fg}}; display: flex; align-items: center; font-size: 13px; font-weight: 700">{{l.label}}</span></sc-for>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<h3 style="margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase">Tekens in het rooster</h3>
+<div style="display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px 14px; align-items: center; font-size: 14px; line-height: 20px">
+<span style="height: 32px; border-radius: 8px; background: #DCEAFA; color: #1D4C84; display: flex; align-items: center; padding: 0 10px; font-size: 13px; font-weight: 700; font-style: italic">Vakantie</span><span>Cursief: afwezigheid uit een periode</span>
+<span style="position: relative; height: 32px; border-radius: 8px; background: #ebece8; display: flex; align-items: center; padding: 0 10px; font-size: 13px; font-weight: 700">Scania<span style="position: absolute; right: 4px; top: 4px; width: 16px; height: 16px; border-radius: 8px; background: #8A2916; color: #ffffff; font-size: 11px; display: flex; align-items: center; justify-content: center">!</span></span><span>Ingepland terwijl de medewerker afwezig is</span>
+<span style="height: 32px; box-sizing: border-box; border-radius: 8px; border: 1.5px dashed #b0b1a1; display: flex; align-items: center; gap: 6px; padding: 0 10px; font-size: 13px; font-weight: 700"><span style="width: 8px; height: 8px; border-radius: 4px; background: #ffed00; box-shadow: inset 0 0 0 1.5px #231f20"></span>Open</span><span>Werkdag zonder planning</span>
+<span style="height: 32px; border-radius: 8px; background: #ffed00; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700">di 29</span><span>Vandaag</span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<h3 style="margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase">Sneltoetsen</h3>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; font-size: 14px; line-height: 20px">
+<span><strong>Shift- of Ctrl-klik</strong> meerdere vakken</span>
+<span><strong>Ctrl+C / Ctrl+V</strong> kopiëren en plakken</span>
+<span><strong>Pijltjes</strong> naar een ander vak</span>
+<span><strong>Delete</strong> vak leegmaken</span>
+</div>
+</div>
+</section>
+</div>
+</sc-if>
+<sc-if value="{{panelOn}}" hint-placeholder-val="{{false}}">
+<button type="button" onClick="{{close}}" aria-label="Sluiten" style="position: absolute; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; background: rgba(35, 31, 32, 0.4); cursor: default"></button>
+<aside role="dialog" aria-label="{{edName}}" style="position: absolute; top: 0; right: 0; bottom: 0; width: 460px; background: #ffffff; border-radius: 24px 0 0 24px; box-shadow: 0 12px 40px rgba(35, 31, 32, 0.18); display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 28px 28px 20px; border-bottom: 4px solid #ffed00; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase">{{edEyebrow}}</span>
+<h2 style="margin: 0; font-family: 'PP Neue Machina', Fustat, sans-serif; font-weight: 800; font-size: 28px; line-height: 1.1">{{edName}}</h2>
+<span style="font-family: 'Zilla Slab', Georgia, serif; font-style: italic; font-weight: 300; font-size: 20px">{{edDate}}</span>
+</div>
+<button type="button" onClick="{{close}}" aria-label="Sluiten" style="width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 12px; background: #f7f7f6; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<div style="flex-grow: 1; overflow-y: auto; padding: 22px 28px; display: flex; flex-direction: column; gap: 22px">
+<sc-if value="{{pVak}}" hint-placeholder-val="{{true}}">
+<sc-if value="{{edAbs}}" hint-placeholder-val="{{false}}"><p style="margin: 0; background: #ebece8; border-radius: 14px; padding: 12px 14px; font-size: 14px; line-height: 20px">{{edAbsText}}</p></sc-if>
+<fieldset style="border: 0; margin: 0; padding: 0; min-width: 0">
+<legend style="padding: 0; margin-bottom: 10px; font-size: 13px; font-weight: 700">Status</legend>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{statuses}}" as="s" hint-placeholder-count="11">
+<button type="button" onClick="{{s.pick}}" aria-pressed="{{s.on}}" style="height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: {{s.bg}}; color: {{s.fg}}; box-shadow: {{s.ring}}; font-size: 13px; font-weight: 700">{{s.label}}</button>
+</sc-for>
+</div>
+</fieldset>
+<sc-if value="{{isWerk}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="ed-cq" style="font-size: 13px; font-weight: 700">Opdrachtgever</label>
+<input id="ed-cq" type="search" placeholder="Zoek opdrachtgever uit Easyflex2go" style="height: 44px; box-sizing: border-box; border: 0; border-radius: 12px; background: #f7f7f6; padding: 0 14px; font-size: 14px">
+<div style="display: flex; flex-direction: column; gap: 2px; background: #f7f7f6; border-radius: 14px; padding: 4px">
+<sc-for list="{{clients}}" as="k" hint-placeholder-count="3">
+<button type="button" onClick="{{k.pick}}" aria-pressed="{{k.on}}" style="height: 42px; border: 0; border-radius: 10px; background: {{k.bg}}; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: {{k.fw}}"><span>{{k.name}}</span><span style="font-size: 12px; font-weight: 600">{{k.place}}</span></button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="ed-note" style="font-size: 13px; font-weight: 700">Notitie</label>
+<input id="ed-note" type="text" value="{{edNote}}" onChange="{{setNote}}" placeholder="bijv. start 06:00, na 13:00 uur, buitenland" style="height: 44px; box-sizing: border-box; border: 0; border-radius: 12px; background: #f7f7f6; padding: 0 14px; font-size: 14px">
+</div>
+<fieldset style="border: 0; margin: 0; padding: 0; min-width: 0">
+<legend style="padding: 0; margin-bottom: 10px; font-size: 13px; font-weight: 700">Toepassen op</legend>
+<div style="display: flex; align-items: center; gap: 6px">
+<sc-for list="{{dayPicks}}" as="p" hint-placeholder-count="7">
+<button type="button" onClick="{{p.pick}}" aria-pressed="{{p.on}}" style="width: 44px; height: 44px; border: 0; border-radius: 12px; background: {{p.bg}}; box-shadow: {{p.ring}}; font-size: 13px; font-weight: 700">{{p.d}}</button>
+</sc-for>
+<button type="button" onClick="{{maVr}}" style="height: 44px; padding: 0 8px; border: 0; background: transparent; font-size: 13px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px">ma–vr</button>
+</div>
+</fieldset>
+<button type="button" onClick="{{toAbs}}" style="align-self: flex-start; border: 0; background: transparent; padding: 0; font-size: 14px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px">Afwezigheid voor een langere periode invoeren</button>
+</sc-if>
+<sc-if value="{{pOpm}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="ed-wnote" style="font-size: 13px; font-weight: 700">Opmerking</label>
+<textarea id="ed-wnote" defaultValue="{{opmText}}" placeholder="bijv. even weken LZV, vakantie t/m za 3-10" style="min-height: 160px; box-sizing: border-box; border: 0; border-radius: 14px; background: #f7f7f6; padding: 12px 14px; font-size: 15px; line-height: 22px; resize: vertical"></textarea>
+</div>
+<p style="margin: 0; font-size: 14px; line-height: 20px">De opmerking hoort bij deze week en staat in de laatste kolom van de planning. Met Vorige week kopiëren kun je hem meenemen.</p>
+</sc-if>
+<sc-if value="{{pPers}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; gap: 8px">
+<button type="button" onClick="{{toAbs}}" style="height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: #f7f7f6; font-size: 14px; font-weight: 700">Afwezigheid invoeren</button>
+<a href="MedewerkerBewerken.dc.html" style="height: 44px; padding: 0 16px; border-radius: 12px; background: #f7f7f6; display: flex; align-items: center; text-decoration: none; font-size: 14px; font-weight: 700">Stamgegevens</a>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; font-weight: 700">Week 40</span>
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px">
+<sc-for list="{{pStrip}}" as="s" hint-placeholder-count="7"><span title="{{s.title}}" style="height: 52px; border-radius: 10px; background: {{s.bg}}; color: {{s.fg}}; border: {{s.border}}; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; line-height: 13px; text-align: center; overflow: hidden; padding: 0 2px"><strong style="text-transform: uppercase">{{s.d}}</strong><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%">{{s.short}}</span></span></sc-for>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<label for="p-msg" style="font-size: 13px; font-weight: 700">Weekbericht</label>
+<div role="group" aria-label="Taal" style="display: flex; gap: 2px; background: #f7f7f6; border-radius: 12px; padding: 3px">
+<button type="button" onClick="{{setNl}}" aria-pressed="{{langNl}}" style="height: 32px; padding: 0 12px; border: 0; border-radius: 9px; background: {{nlBg}}; color: {{nlFg}}; font-size: 13px; font-weight: 700">Nederlands</button>
+<button type="button" onClick="{{setEn}}" aria-pressed="{{langEn}}" style="height: 32px; padding: 0 12px; border: 0; border-radius: 9px; background: {{enBg}}; color: {{enFg}}; font-size: 13px; font-weight: 700">English</button>
+</div>
+</div>
+<textarea id="p-msg" value="{{pMsg}}" onChange="{{setMsg}}" style="height: 330px; box-sizing: border-box; border: 0; border-radius: 14px; background: #f7f7f6; padding: 14px; font-size: 14px; line-height: 21px; resize: vertical"></textarea>
+<span style="font-size: 13px; line-height: 19px">Pas de tekst gerust aan. Plak hem daarna in WhatsApp of een sms. Telefoon: 06-[NUMMER]</span>
+</div>
+</sc-if>
+<sc-if value="{{pAbs}}" hint-placeholder-val="{{false}}">
+<fieldset style="border: 0; margin: 0; padding: 0; min-width: 0">
+<legend style="padding: 0; margin-bottom: 10px; font-size: 13px; font-weight: 700">Soort</legend>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{absTypes}}" as="s" hint-placeholder-count="5">
+<button type="button" onClick="{{s.pick}}" aria-pressed="{{s.on}}" style="height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: {{s.bg}}; color: {{s.fg}}; box-shadow: {{s.ring}}; font-size: 13px; font-weight: 700">{{s.label}}</button>
+</sc-for>
+</div>
+</fieldset>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 8px"><label for="ab-from" style="font-size: 13px; font-weight: 700">Van</label><input id="ab-from" type="date" defaultValue="{{absFrom}}" style="height: 44px; box-sizing: border-box; border: 0; border-radius: 12px; background: #f7f7f6; padding: 0 12px; font-size: 14px"></div>
+<div style="display: flex; flex-direction: column; gap: 8px"><label for="ab-to" style="font-size: 13px; font-weight: 700">Tot en met</label><input id="ab-to" type="date" defaultValue="{{absTo}}" style="height: 44px; box-sizing: border-box; border: 0; border-radius: 12px; background: #f7f7f6; padding: 0 12px; font-size: 14px"></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px"><label for="ab-note" style="font-size: 13px; font-weight: 700">Notitie</label><input id="ab-note" type="text" placeholder="bijv. zomervakantie, bruiloft" style="height: 44px; box-sizing: border-box; border: 0; border-radius: 12px; background: #f7f7f6; padding: 0 14px; font-size: 14px"></div>
+<p style="margin: 0; background: #ebece8; border-radius: 14px; padding: 12px 14px; font-size: 14px; line-height: 20px">De periode vult de planning automatisch, ook in weken die nog komen. Staat er op een dag al iets anders ingepland, dan blijft dat staan en krijgt het vak een uitroepteken.</p>
+<sc-if value="{{absHasOverride}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{toVak}}" style="align-self: flex-start; border: 0; background: transparent; padding: 0; font-size: 14px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px">Alleen donderdag 1 oktober anders plannen</button></sc-if>
+</sc-if>
+<sc-if value="{{pLog}}" hint-placeholder-val="{{false}}">
+<ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column">
+<sc-for list="{{log}}" as="x" hint-placeholder-count="12">
+<li style="padding: 12px 0; border-top: {{x.line}}; display: flex; flex-direction: column; gap: 3px">
+<span style="display: flex; gap: 8px; font-size: 12px"><span>{{x.when}}</span><strong>{{x.who}}</strong></span>
+<span style="font-size: 14px; line-height: 20px">{{x.what}}</span>
+</li>
+</sc-for>
+</ol>
+</sc-if>
+</div>
+<div style="padding: 18px 28px; border-top: 1px solid #ebece8; display: flex; align-items: center; gap: 8px">
+<sc-if value="{{footSave}}" hint-placeholder-val="{{true}}">
+<button type="button" onClick="{{close}}" style="height: 48px; padding: 0 24px; border: 0; border-radius: 14px; background: #231f20; color: #ffffff; font-size: 15px; font-weight: 700">Opslaan</button>
+<button type="button" onClick="{{close}}" style="height: 48px; padding: 0 16px; border: 0; border-radius: 14px; background: transparent; font-size: 15px; font-weight: 700">Annuleren</button>
+</sc-if>
+<sc-if value="{{pPers}}" hint-placeholder-val="{{false}}">
+<button type="button" style="height: 48px; padding: 0 22px; border: 0; border-radius: 14px; background: #231f20; color: #ffffff; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path></svg>Bericht kopiëren</button>
+<button type="button" onClick="{{close}}" style="height: 48px; padding: 0 16px; border: 0; border-radius: 14px; background: transparent; font-size: 15px; font-weight: 700">Sluiten</button>
+</sc-if>
+<sc-if value="{{pLog}}" hint-placeholder-val="{{false}}">
+<button type="button" onClick="{{close}}" style="height: 48px; padding: 0 22px; border: 0; border-radius: 14px; background: #f7f7f6; font-size: 15px; font-weight: 700">Sluiten</button>
+</sc-if>
+<span style="flex-grow: 1"></span>
+<sc-if value="{{footDanger}}" hint-placeholder-val="{{true}}">
+<button type="button" onClick="{{close}}" style="height: 48px; padding: 0 4px; border: 0; background: transparent; font-size: 14px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px">{{dangerLabel}}</button>
+</sc-if>
+</div>
+</aside>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"nav":{"editor":"enum","options":["boven","zijbalk"],"default":"boven"},"paneel":{"editor":"enum","options":["geen","vak","opmerking","medewerker","afwezigheid","wijzigingen"],"default":"geen"},"popover":{"editor":"enum","options":["geen","kopieren","pdf","filter"],"default":"geen"},"weergave":{"editor":"enum","options":["week","dag"],"default":"week"},"selectie":{"editor":"boolean","default":false},"legenda":{"editor":"boolean","default":false},"staat":{"editor":"enum","options":["normaal","laden","leeg","alleen-lezen","opslaan-mislukt"],"default":"normaal"},"profielmenu":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":900}}'>
+var DAYS = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'];
+var NUMS = [28, 29, 30, 1, 2, 3, 4];
+var LONG = ['Maandag 28 september', 'Dinsdag 29 september', 'Woensdag 30 september', 'Donderdag 1 oktober', 'Vrijdag 2 oktober', 'Zaterdag 3 oktober', 'Zondag 4 oktober'];
+var NLD = ['ma 28 sep', 'di 29 sep', 'wo 30 sep', 'do 1 okt', 'vr 2 okt', 'za 3 okt', 'zo 4 okt'];
+var END = ['Mon 28 Sep', 'Tue 29 Sep', 'Wed 30 Sep', 'Thu 1 Oct', 'Fri 2 Oct', 'Sat 3 Oct', 'Sun 4 Oct'];
+var TODAY = 1;
+var ST = {
+  werk: ['Ingezet', '#ebece8', '#231f20', 'in', ''],
+  kantoor: ['Kantoor', '#E6E8F4', '#363C72', 'in', 'Office'],
+  thuiswerk: ['Thuiswerk', '#E3EEF1', '#1F5566', 'in', 'Working from home'],
+  opleiding: ['Opleiding', '#EEE4F5', '#5A3979', 'in', 'Training'],
+  niet_ingezet: ['Niet ingezet', '#FBE9C2', '#734D00', 'vrij', 'Not scheduled'],
+  nbb: ['nbb', '#EAEBE7', '#57616A', 'weg', 'Not available'],
+  thuis: ['Thuis (rust)', '#E4EDE0', '#3B5A2C', 'weg', 'At home (rest)'],
+  vakantie: ['Vakantie', '#DCEAFA', '#1D4C84', 'weg', 'Holiday'],
+  vrij: ['Vrij / verlof', '#E9E5F6', '#4A3F7E', 'weg', 'Day off'],
+  ziek: ['Ziek', '#F8DCD5', '#8A2916', 'weg', 'Sick'],
+  einde: ['Einde oefening', '#D33A2C', '#FFFFFF', 'einde', 'Assignment ended']
+};
+var ABS_TYPES = ['vakantie', 'vrij', 'ziek', 'nbb', 'einde'];
+var CL = {
+  sc: { name: 'Manpower / Scania', short: 'Scania', place: 'Zwolle' },
+  b: { name: 'Opdrachtgever B', short: 'Opdrachtgever B', place: '[PLAATS]' },
+  c: { name: 'Opdrachtgever C', short: 'Opdrachtgever C', place: '[PLAATS]' }
+};
+var GROUPS = [['nl', 'Chauffeurs NL'], ['int', 'Chauffeurs internationaal'], ['kantoor', 'Kantoor']];
+var EMP = [
+  { id: 'jan', name: 'Jan de Vries', g: 'nl', bv: 'Solestus Nederland B.V.', nat: 'NL', tags: ['SNL', 'CE', 'Code 95'], note: '', c: [['werk', 'b', '06:00'], ['werk', 'b', '06:00'], ['werk', 'b', '06:00'], ['werk', 'b', '06:00'], ['werk', 'b', '06:00'], null, null] },
+  { id: 'peter', name: 'Peter Bakker', g: 'nl', bv: 'Solestus Personeelsdiensten B.V.', nat: 'NL', tags: ['SPD', 'ADR'], note: 'Wil zaterdag extra', c: [['werk', 'c'], ['werk', 'c'], ['opleiding', null, 'Code 95 Rijssen'], ['werk', 'c'], ['werk', 'c'], null, null] },
+  { id: 'kees', name: 'Kees Mulder', g: 'nl', bv: 'Solestus Nederland B.V.', nat: 'NL', tags: ['SNL', 'CE'], note: 'Vakantie t/m 5 okt', abs: { type: 'vakantie', from: '2026-09-28', to: '2026-10-05', label: '28 sep – 5 okt', text: 'Kees heeft vakantie van 28 sep t/m 5 okt. Wat je hier invult, geldt alleen voor deze dag.', override: true }, trips: [['- do 21.00 (nacht): Zwolle – Rade (swap) – Zwolle, terug vr 08.00'], ['- Thu 21.00 (night): Zwolle – Rade (swap) – Zwolle, back Fri 08.00']], c: [['vakantie', null, '', 'p'], ['vakantie', null, '', 'p'], ['vakantie', null, '', 'p'], ['werk', 'sc', 'Rade · nacht', 'c'], ['vakantie', null, '', 'p'], ['vakantie', null, '', 'p'], ['vakantie', null, '', 'p']] },
+  { id: 'ricardo', name: 'Ricardo Smit', g: 'nl', bv: 'Solestus Personeelsdiensten B.V.', nat: 'NL', tags: ['SPD', 'CE'], note: '', abs: { type: 'ziek', from: '2026-09-28', to: '2026-09-29', label: '28 – 29 sep', text: 'Ricardo is ziek gemeld op 28 en 29 sep.', override: false }, c: [['ziek', null, '', 'p'], ['ziek', null, '', 'p'], null, ['niet_ingezet'], ['werk', 'b'], null, null] },
+  { id: 'andrius', name: 'Andrius Kazlauskas', g: 'int', bv: 'Solestus Nederland B.V.', nat: 'LT', tags: ['SNL', 'LT', 'ADR'], note: 'Rust na Rade-rit', trips: [['- ma 09.00 (dag): Zwolle > Ishøj ma 20.00 | Ishøj di 09.00 > Zwolle di 20.00', '- di 21.00 (nacht): Zwolle – Rade (swap) – Zwolle, terug wo 08.00'], ['- Mon 09.00 (day): Zwolle > Ishøj Mon 20.00 | Ishøj Tue 09.00 > Zwolle Tue 20.00', '- Tue 21.00 (night): Zwolle – Rade (swap) – Zwolle, back Wed 08.00']], c: [['werk', 'sc', 'Ishøj · dag'], ['werk', 'sc', 'Rade · nacht'], ['thuis'], ['thuis'], ['werk', 'c', 'buitenland'], null, null] },
+  { id: 'marius', name: 'Marius Popescu', g: 'int', bv: 'Solestus Personeelsdiensten B.V.', nat: 'RO', tags: ['SPD', 'RO'], note: '', c: [['werk', 'c', 'buitenland'], ['werk', 'c', 'buitenland'], ['werk', 'c', 'buitenland'], ['werk', 'c', 'buitenland'], ['werk', 'c', 'buitenland'], ['nbb'], ['nbb']] },
+  { id: 'tomasz', name: 'Tomasz Nowak', g: 'int', bv: 'Solestus Nederland B.V.', nat: 'PL', tags: ['SNL', 'PL'], note: '', trips: [['- ma 21.00 (nacht): Zwolle – Rade (swap) – Zwolle, terug di 08.00', '- za 09.00 (dag): Zwolle – Rade (swap) – Zwolle, terug za 20.00'], ['- Mon 21.00 (night): Zwolle – Rade (swap) – Zwolle, back Tue 08.00', '- Sat 09.00 (day): Zwolle – Rade (swap) – Zwolle, back Sat 20.00']], c: [['werk', 'sc', 'Rade · nacht'], ['thuis'], ['niet_ingezet'], ['vrij'], null, ['werk', 'sc', 'Rade · dag'], null] },
+  { id: 'sanne', name: 'Sanne Jansen', g: 'kantoor', bv: 'Solestus Shared Services B.V.', nat: 'NL', tags: ['SSS'], note: '', c: [['kantoor'], ['kantoor'], ['kantoor'], ['kantoor'], ['thuiswerk'], null, null] },
+  { id: 'lotte', name: 'Lotte Visser', g: 'kantoor', bv: 'Solestus Shared Services B.V.', nat: 'NL', tags: ['SSS'], note: '', c: [['kantoor'], ['thuiswerk'], ['kantoor'], ['opleiding', null, 'VCA'], ['vrij'], null, null] }
+];
+var LOG = [
+  ['ma 28 sep 16:40', 'Max', 'Kees Mulder: vakantie 28 sep – 5 okt ingevoerd'],
+  ['ma 28 sep 16:32', 'Max', 'Scania-rit do 1 okt, nacht: Kees Mulder'],
+  ['ma 28 sep 15:58', 'Max', 'Andrius Kazlauskas di: Manpower / Scania (Rade · nacht)'],
+  ['ma 28 sep 14:21', 'Sanne Jansen', 'Ricardo Smit: ziek 28 – 29 sep ingevoerd'],
+  ['ma 28 sep 11:05', 'Sanne Jansen', 'Peter Bakker wo: opleiding (Code 95 Rijssen)'],
+  ['ma 28 sep 10:47', 'Max', 'Tomasz Nowak za: Manpower / Scania (Rade · dag)'],
+  ['ma 28 sep 09:30', 'Max', 'Vaste inzet ingevuld: 14 vakken'],
+  ['vr 25 sep 17:12', 'Max', 'Week 39 gekopieerd naar deze week'],
+  ['vr 25 sep 16:55', 'Sanne Jansen', 'Marius Popescu za–zo: nbb'],
+  ['vr 25 sep 16:40', 'Max', 'Scania-ritten van week 39 gekopieerd'],
+  ['vr 25 sep 16:02', 'Sanne Jansen', 'Lotte Visser vr: vrij / verlof'],
+  ['vr 25 sep 15:47', 'Max', 'Peter Bakker: opmerking "Wil zaterdag extra"']
+];
+var PANEL_EMP = { vak: 'ricardo', opmerking: 'peter', medewerker: 'andrius', afwezigheid: 'kees' };
+var SEL_DEFAULT = ['ricardo:2', 'ricardo:3', 'ricardo:4'];
+function empById(id) { for (var i = 0; i < EMP.length; i++) { if (EMP[i].id === id) return EMP[i]; } return EMP[0]; }
+function grpLabel(g) { for (var i = 0; i < GROUPS.length; i++) { if (GROUPS[i][0] === g) return GROUPS[i][1]; } return ''; }
+function tagList(e) { return e.tags.map(function (t) { var s = /ADR/.test(t); return { t: t, ring: s ? '#231f20' : '#b0b1a1', bg: s ? '#ffed00' : 'transparent' }; }); }
+function message(e, lang) {
+  var en = lang === 'en', first = e.name.split(' ')[0];
+  var L = [en ? 'Hi ' + first + ',' : 'Hoi ' + first + ',', '', en ? 'Your schedule for week 40 (28 Sep – 4 Oct):' : 'Je planning voor week 40 (28 sep – 4 okt):'];
+  e.c.forEach(function (c, i) {
+    var lab = en ? END[i] : NLD[i];
+    if (!c) { if (i < 5) L.push(lab + ': ' + (en ? 'to be confirmed' : 'volgt nog')); return; }
+    var what = c[0] === 'werk' ? CL[c[1]].name : (en ? ST[c[0]][4] : ST[c[0]][0]);
+    L.push(lab + ': ' + what + (c[2] ? ' (' + c[2] + ')' : ''));
+  });
+  if (e.trips) { L.push('', en ? 'Scania trips:' : 'Scania-ritten:'); (en ? e.trips[1] : e.trips[0]).forEach(function (t) { L.push(t); }); }
+  L.push('', en ? 'Questions? Call us on +31 570 781 010.' : 'Vragen? Bel ons op 0570-781010.', en ? 'Kind regards, Solestus' : 'Groet, Solestus');
+  return L.join('\n');
+}
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { panel: null, pop: null, view: null, legend: null, sel: null, toast: null, e: null, d: 2, status: 'werk', client: 'b', note: 'start 06:00', days: [2], day: TODAY, lang: null, msg: null, absType: null };
+  }
+  p(k, def) { var v = this.props[k]; return v === undefined || v === null ? def : v; }
+  openPanel(panel, extra) { var s = { panel: panel, pop: null, msg: null, lang: null, absType: null }; for (var k in extra) s[k] = extra[k]; this.setState(s); }
+  pickCell(e, c, i) {
+    this.openPanel('vak', { e: e.id, d: i, status: c ? c[0] : (e.g === 'kantoor' ? 'kantoor' : 'werk'), client: c && c[1] ? c[1] : null, note: c && c[2] ? c[2] : '', days: [i], sel: [] });
+  }
+  renderVals() {
+    var self = this, st = this.state;
+    var staat = this.p('staat', 'normaal');
+    var loading = staat === 'laden', empty = staat === 'leeg', ro = staat === 'alleen-lezen';
+    var canEdit = !ro && !loading;
+    var top = this.p('nav', 'boven') !== 'zijbalk';
+    var panel = st.panel !== null ? st.panel : this.p('paneel', 'geen');
+    if (panel === 'geen') panel = '';
+    var pop = st.pop !== null ? st.pop : this.p('popover', 'geen');
+    if (pop === 'geen') pop = '';
+    var view = st.view !== null ? st.view : this.p('weergave', 'week');
+    var legendOn = st.legend !== null ? st.legend : !!this.props.legenda;
+    var sel = st.sel !== null ? st.sel : (this.props.selectie ? SEL_DEFAULT : []);
+    var toastOn = st.toast !== null ? st.toast : staat === 'opslaan-mislukt';
+    var eid = st.e || PANEL_EMP[panel] || 'ricardo';
+    var emp = empById(eid);
+    var dSel = st.e ? st.d : (panel === 'afwezigheid' ? 3 : 2);
+    var cellsOf = function (e) { return empty ? [null, null, null, null, null, null, null] : e.c; };
+
+    function cellVals(e, c, i) {
+      var we = i >= 5, isSel = sel.indexOf(e.id + ':' + i) >= 0;
+      var editing = panel === 'vak' && eid === e.id && dSel === i;
+      var v = { colBg: isSel ? '#fff7a8' : (we ? '#fbfbfa' : 'transparent'), ring: (isSel || editing) ? 'inset 0 0 0 2px #231f20' : 'none', conf: false, fs: 'normal', sub: '', hasSub: false, isOpen: false, border: '0', cursor: canEdit ? 'pointer' : 'default', pick: function () { if (canEdit) self.pickCell(e, c, i); } };
+      if (loading) { v.label = ''; v.bg = '#f2f2ef'; v.fg = '#231f20'; v.aria = 'Laden'; return v; }
+      if (!c) {
+        var isOpen = !we && e.g !== 'kantoor';
+        v.isOpen = isOpen; v.label = isOpen ? 'Open' : ''; v.bg = 'transparent'; v.fg = '#231f20';
+        v.border = isOpen ? '1.5px dashed #b0b1a1' : '0';
+      } else {
+        var s = ST[c[0]];
+        v.label = c[0] === 'werk' ? CL[c[1]].short : s[0];
+        v.sub = c[2] || ''; v.hasSub = !!c[2]; v.bg = s[1]; v.fg = s[2];
+        v.fs = c[3] === 'p' ? 'italic' : 'normal'; v.conf = c[3] === 'c';
+      }
+      v.aria = e.name + ', ' + LONG[i] + ': ' + (v.label || 'leeg') + (v.sub ? ', ' + v.sub : '');
+      return v;
+    }
+
+    var rows = [], dayRows = [], widths = ['132px', '108px', '148px', '118px'];
+    GROUPS.forEach(function (g) {
+      var list = EMP.filter(function (e) { return e.g === g[0]; });
+      rows.push({ grp: true, emp: false, label: g[1], n: loading ? '' : list.length });
+      dayRows.push({ grp: true, emp: false, label: g[1] });
+      list.forEach(function (e, k) {
+        var cs = cellsOf(e);
+        rows.push({
+          grp: false, emp: true, skel: loading, real: !loading, skelW: widths[k % 4], name: e.name, tags: tagList(e),
+          note: loading || empty ? '' : e.note, cursor: canEdit ? 'pointer' : 'default',
+          noteAria: 'Opmerking week 40 voor ' + e.name,
+          pickName: function () { self.openPanel('medewerker', { e: e.id }); },
+          pickNote: function () { if (canEdit) self.openPanel('opmerking', { e: e.id }); },
+          cells: cs.map(function (c, i) { return cellVals(e, c, i); })
+        });
+        dayRows.push({ grp: false, emp: true, name: e.name, tags: tagList(e), note: empty ? '' : e.note, pickName: function () { self.openPanel('medewerker', { e: e.id }); }, cell: cellVals(e, cs[st.day], st.day) });
+      });
+    });
+    function daySummary(i) {
+      var inz = 0, vr = 0, opn = 0;
+      EMP.forEach(function (e) { var c = cellsOf(e)[i]; if (!c) { if (i < 5 && e.g !== 'kantoor') opn++; return; } var k = ST[c[0]][3]; if (k === 'in') inz++; else if (k === 'vrij') vr++; });
+      return { inz: inz, vrij: vr, open: opn };
+    }
+    var sums = DAYS.map(function (d, i) { var s = daySummary(i); return { inz: loading ? '–' : s.inz, open: s.open, hasOpen: !loading && s.open > 0 }; });
+    var ds = daySummary(st.day);
+    var filled = 0; EMP.forEach(function (e) { e.c.forEach(function (c) { if (c) filled++; }); });
+
+    var meta = loading ? 'Planning laden…' : (empty ? 'Nog niets gepland deze week' : (ro ? 'Je kunt deze planning bekijken, maar niet wijzigen · laatst gewijzigd door Max, ma 28 sep 16:40' : 'Laatst gewijzigd door Max · ma 28 sep 16:40'));
+
+    var ed = { edEyebrow: '', edName: '', edDate: '' };
+    if (panel === 'vak') { ed.edEyebrow = sel.length > 1 ? 'Week 40 · selectie' : 'Week 40 · ' + grpLabel(emp.g); ed.edName = sel.length > 1 ? sel.length + ' vakken' : emp.name; ed.edDate = sel.length > 1 ? emp.name : LONG[dSel].toLowerCase(); }
+    if (panel === 'opmerking') { ed.edEyebrow = 'Week 40'; ed.edName = emp.name; ed.edDate = 'opmerking bij deze week'; }
+    if (panel === 'medewerker') { ed.edEyebrow = grpLabel(emp.g) + ' · ' + emp.bv; ed.edName = emp.name; ed.edDate = 'week 40'; }
+    if (panel === 'afwezigheid') { ed.edEyebrow = 'Afwezigheid'; ed.edName = emp.name; ed.edDate = emp.abs ? emp.abs.label : 'voor één of meer dagen'; }
+    if (panel === 'wijzigingen') { ed.edEyebrow = 'Week 40'; ed.edName = 'Wijzigingen'; ed.edDate = LOG.length + ' wijzigingen, nieuwste bovenaan'; }
+    var cell = emp.c[dSel];
+    var edAbs = panel === 'vak' && sel.length <= 1 && !!(cell && cell[3] && emp.abs);
+    var lang = st.lang || (emp.nat !== 'NL' ? 'en' : 'nl');
+    var absType = st.absType || (emp.abs ? emp.abs.type : 'vakantie');
+    var floatLeft = top ? '720px' : '852px';
+
+    var out = {
+      rootDir: top ? 'column' : 'row', side: !top, top: top, mainPad: top ? '24px 40px 24px' : '28px 32px 24px',
+      readOnly: ro, canEdit: canEdit, isEmpty: empty, meta: meta,
+      weekView: view === 'week', dayView: view === 'dag',
+      segWeekBg: view === 'week' ? '#231f20' : 'transparent', segWeekFg: view === 'week' ? '#ffffff' : '#231f20',
+      segDagBg: view === 'dag' ? '#231f20' : 'transparent', segDagFg: view === 'dag' ? '#ffffff' : '#231f20',
+      setWeek: function () { self.setState({ view: 'week' }); }, setDag: function () { self.setState({ view: 'dag' }); },
+      legendOn: legendOn, legendLabel: legendOn ? 'Legenda verbergen' : 'Legenda tonen',
+      toggleLegend: function () { self.setState({ legend: !legendOn }); },
+      legend: Object.keys(ST).filter(function (k) { return k !== 'werk'; }).map(function (k) { return { label: ST[k][0], bg: ST[k][1], fg: ST[k][2] }; }),
+      heads: DAYS.map(function (d, i) { return { d: d, num: NUMS[i], bg: i === TODAY ? '#ffed00' : 'transparent' }; }),
+      sums: sums, rows: rows, dayRows: dayRows,
+      dayChips: DAYS.map(function (d, i) { var on = i === st.day; return { d: d, num: NUMS[i], on: on, bg: on ? '#231f20' : (i === TODAY ? '#ffed00' : '#f7f7f6'), fg: on ? '#ffffff' : '#231f20', ring: on && i === TODAY ? 'inset 0 -5px 0 #ffed00' : 'none', pick: function () { self.setState({ day: i }); } }; }),
+      dayTitle: LONG[st.day], daySum: ds.inz + ' ingezet · ' + ds.vrij + ' niet ingezet' + (ds.open ? ' · ' + ds.open + ' open' : ''),
+      popCopy: pop === 'kopieren', popPdf: pop === 'pdf', anyPop: !!pop,
+      toggleCopy: function () { self.setState({ pop: pop === 'kopieren' ? '' : 'kopieren' }); },
+      togglePdf: function () { self.setState({ pop: pop === 'pdf' ? '' : 'pdf' }); },
+      closePop: function () { self.setState({ pop: '' }); },
+      copyBg: pop === 'kopieren' ? '#ffed00' : '#ffffff', copyRing: pop === 'kopieren' ? 'inset 0 0 0 2px #231f20' : 'none', pdfRing: pop === 'pdf' ? 'inset 0 0 0 2px #231f20' : 'none',
+      popTop: top ? '228px' : '160px', copyRight: top ? '350px' : '342px', pdfRight: top ? '40px' : '32px',
+      copyText: empty ? 'Week 40 is nog leeg. Alles uit week 39 komt erin; afwezigheid uit periodes blijft gewoon staan.' : 'Let op: week 40 heeft al ' + filled + ' ingevulde vakken. Die worden overschreven.',
+      copyGo: empty ? 'Kopiëren' : 'Overschrijven',
+      selOn: sel.length > 1 && !panel, selCount: sel.length, floatLeft: floatLeft,
+      editSel: function () { self.setState({ panel: 'vak', e: 'ricardo', d: 2 }); },
+      clearSel: function () { self.setState({ sel: [] }); },
+      toastOn: toastOn, dismissToast: function () { self.setState({ toast: false }); },
+      panelOn: !!panel, pVak: panel === 'vak', pOpm: panel === 'opmerking', pPers: panel === 'medewerker', pAbs: panel === 'afwezigheid', pLog: panel === 'wijzigingen',
+      footSave: panel === 'vak' || panel === 'opmerking' || panel === 'afwezigheid',
+      footDanger: panel === 'vak' || (panel === 'afwezigheid' && !!emp.abs),
+      dangerLabel: panel === 'vak' ? 'Leegmaken' : 'Verwijderen',
+      close: function () { self.setState({ panel: '', sel: [] }); },
+      openLog: function () { self.openPanel('wijzigingen', {}); },
+      toAbs: function () { self.openPanel('afwezigheid', { e: eid }); },
+      toVak: function () { self.pickCell(emp, emp.c[3], 3); },
+      edAbs: edAbs, edAbsText: edAbs ? emp.abs.text : '',
+      edNote: st.note, setNote: function (ev) { self.setState({ note: ev.target.value }); },
+      isWerk: st.status === 'werk',
+      statuses: Object.keys(ST).map(function (k) { var s = ST[k], on = st.status === k; return { label: s[0], bg: s[1], fg: s[2], on: on, ring: on ? '0 0 0 2px #ffffff, 0 0 0 4px #231f20' : 'none', pick: function () { self.setState({ status: k }); } }; }),
+      clients: Object.keys(CL).map(function (k) { var on = st.client === k; return { name: CL[k].name, place: CL[k].place, on: on, bg: on ? '#ffed00' : 'transparent', fw: on ? '700' : '600', pick: function () { self.setState({ client: k }); } }; }),
+      dayPicks: DAYS.map(function (d, i) { var on = st.days.indexOf(i) >= 0; return { d: d, on: on, bg: on ? '#ffed00' : '#f7f7f6', ring: on ? 'inset 0 0 0 2px #231f20' : 'none', pick: function () { var dd = st.days.slice(), at = dd.indexOf(i); if (at >= 0) dd.splice(at, 1); else dd.push(i); self.setState({ days: dd }); } }; }),
+      maVr: function () { self.setState({ days: [0, 1, 2, 3, 4] }); },
+      opmText: emp.note,
+      pStrip: emp.c.map(function (c, i) { return { d: DAYS[i], short: c ? (c[0] === 'werk' ? CL[c[1]].short : ST[c[0]][0]) : (i < 5 ? 'open' : '–'), title: c ? (c[0] === 'werk' ? CL[c[1]].name : ST[c[0]][0]) : 'leeg', bg: c ? ST[c[0]][1] : 'transparent', fg: c ? ST[c[0]][2] : '#231f20', border: c ? '0' : '1.5px dashed #b0b1a1' }; }),
+      langNl: lang === 'nl', langEn: lang === 'en',
+      nlBg: lang === 'nl' ? '#231f20' : 'transparent', nlFg: lang === 'nl' ? '#ffffff' : '#231f20',
+      enBg: lang === 'en' ? '#231f20' : 'transparent', enFg: lang === 'en' ? '#ffffff' : '#231f20',
+      setNl: function () { self.setState({ lang: 'nl', msg: null }); }, setEn: function () { self.setState({ lang: 'en', msg: null }); },
+      pMsg: st.msg !== null ? st.msg : message(emp, lang), setMsg: function (ev) { self.setState({ msg: ev.target.value }); },
+      absTypes: ABS_TYPES.map(function (k) { var s = ST[k], on = absType === k; return { label: s[0], bg: s[1], fg: s[2], on: on, ring: on ? '0 0 0 2px #ffffff, 0 0 0 4px #231f20' : 'none', pick: function () { self.setState({ absType: k }); } }; }),
+      absFrom: emp.abs ? emp.abs.from : '2026-09-28', absTo: emp.abs ? emp.abs.to : '2026-10-02',
+      absHasOverride: !!(emp.abs && emp.abs.override),
+      log: LOG.map(function (x, i) { return { when: x[0], who: x[1], what: x[2], line: i === 0 ? '0' : '1px solid #ebece8' }; })
+    };
+    for (var k in ed) out[k] = ed[k];
+    var prof = st.prof !== undefined && st.prof !== null ? st.prof : !!this.props.profielmenu;
+    out.profOpen = prof; out.profBg = prof ? '#f7f7f6' : 'transparent'; out.profChev = prof ? 'rotate(180deg)' : 'none';
+    out.hdrZ = prof ? '30' : 'auto';
+    out.toggleProfile = function () { self.setState({ prof: !prof }); };
+    out.popFilter = pop === 'filter';
+    out.toggleFilter = function () { self.setState({ pop: pop === 'filter' ? '' : 'filter' }); };
+    out.filterBg = pop === 'filter' ? '#ffed00' : '#ffffff';
+    out.filterRing = pop === 'filter' ? 'inset 0 0 0 2px #231f20' : 'none';
+    out.filterTop = top ? '228px' : '160px';
+    out.filterLeft = top ? '498px' : '754px';
+    return out;
+  }
+}
+</script>
+</body>
+</html>

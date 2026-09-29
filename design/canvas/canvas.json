@@ -1,0 +1,392 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "FunctieOverzicht.dc.html": {
+      "h": 1180,
+      "w": 1760,
+      "x": 0,
+      "y": -2880,
+      "title": "Functie-overzicht"
+    },
+    "Gebruikersflow.dc.html": {
+      "h": 900,
+      "w": 1760,
+      "x": 1840,
+      "y": -2880,
+      "title": "Gebruikersflow"
+    },
+    "PdfLiggend.dc.html": {
+      "h": 794,
+      "w": 1123,
+      "x": 0,
+      "y": 8900,
+      "title": "PDF · weekplanning A4 liggend"
+    },
+    "PdfStaand.dc.html": {
+      "h": 1123,
+      "w": 794,
+      "x": 1203,
+      "y": 8900,
+      "title": "PDF · weekplanning A4 staand"
+    },
+    "PdfScania.dc.html": {
+      "h": 794,
+      "w": 1123,
+      "x": 2077,
+      "y": 8900,
+      "title": "PDF · Scania-ritten A4 liggend"
+    },
+    "ProfielMenu.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Profielmenu met uitloggen",
+      "w": 1440,
+      "x": 4560,
+      "y": 2640
+    },
+    "Afwezigheid.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Afwezigheid voor een periode",
+      "w": 1440,
+      "x": 3040,
+      "y": 1320
+    },
+    "CelBewerken.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Weekplanning · vak bewerken",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "Dagweergave.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Weekplanning · dagweergave",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "Inloggen.dc.html": {
+      "h": 900,
+      "title": "Inloggen",
+      "w": 1440,
+      "x": 0,
+      "y": -1320
+    },
+    "InloggenMislukt.dc.html": {
+      "h": 900,
+      "title": "Inloggen mislukt",
+      "w": 1440,
+      "x": 1520,
+      "y": -1320
+    },
+    "Legenda.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Legenda",
+      "w": 1440,
+      "x": 3040,
+      "y": 2640
+    },
+    "Main.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Weekplanning",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "MedewerkerBewerken.dc.html": {
+      "h": 1280,
+      "is_interactive": true,
+      "title": "Medewerker bewerken",
+      "w": 1440,
+      "x": 1520,
+      "y": 6660
+    },
+    "MedewerkerWeek.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Medewerker en weekbericht",
+      "w": 1440,
+      "x": 1520,
+      "y": 1320
+    },
+    "Navigatiebalk.dc.html": {
+      "h": 72,
+      "title": "Navigatiebalk (onderdeel)",
+      "w": 1440,
+      "x": 0,
+      "y": 8280
+    },
+    "OpdrachtgeverBewerken.dc.html": {
+      "h": 1280,
+      "is_interactive": true,
+      "title": "Opdrachtgever bewerken",
+      "w": 1440,
+      "x": 3040,
+      "y": 6660
+    },
+    "Opmerking.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Opmerking bij de week",
+      "w": 1440,
+      "x": 0,
+      "y": 1320
+    },
+    "Overzicht.dc.html": {
+      "h": 960,
+      "title": "Overzicht",
+      "w": 1440,
+      "x": 3040,
+      "y": 5280
+    },
+    "PdfExport.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Exporteren (PDF en Excel)",
+      "w": 1440,
+      "x": 1520,
+      "y": 2640
+    },
+    "RitBewerken.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Scania · rit bewerken",
+      "w": 1440,
+      "x": 1520,
+      "y": 5280
+    },
+    "Scania.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Scania-ritten",
+      "w": 1440,
+      "x": 0,
+      "y": 5280
+    },
+    "Selectie.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Weekplanning · meerdere vakken",
+      "w": 1440,
+      "x": 4560,
+      "y": 0
+    },
+    "SessieVerlopen.dc.html": {
+      "h": 900,
+      "title": "Sessie verlopen",
+      "w": 1440,
+      "x": 4560,
+      "y": -1320
+    },
+    "StaatAlleenLezen.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Alleen lezen",
+      "w": 1440,
+      "x": 3040,
+      "y": 3960
+    },
+    "StaatLaden.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Laden",
+      "w": 1440,
+      "x": 0,
+      "y": 3960
+    },
+    "StaatLeeg.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Lege week",
+      "w": 1440,
+      "x": 1520,
+      "y": 3960
+    },
+    "StaatOpslaanMislukt.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Opslaan mislukt",
+      "w": 1440,
+      "x": 4560,
+      "y": 3960
+    },
+    "Stamgegevens.dc.html": {
+      "h": 1280,
+      "is_interactive": true,
+      "title": "Stamgegevens",
+      "w": 1440,
+      "x": 0,
+      "y": 6660
+    },
+    "Uitgelogd.dc.html": {
+      "h": 900,
+      "title": "Uitgelogd",
+      "w": 1440,
+      "x": 3040,
+      "y": -1320
+    },
+    "WeekKopieren.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Vorige week kopiëren",
+      "w": 1440,
+      "x": 0,
+      "y": 2640
+    },
+    "Wijzigingen.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Wijzigingen",
+      "w": 1440,
+      "x": 4560,
+      "y": 1320
+    },
+    "KoppelingMislukt.dc.html": {
+      "h": 1280,
+      "w": 1440,
+      "x": 4560,
+      "y": 6660,
+      "title": "Stamgegevens · koppeling Easyflex2go mislukt",
+      "is_interactive": true
+    },
+    "PdfOverzicht.dc.html": {
+      "h": 794,
+      "w": 1123,
+      "x": 3280,
+      "y": 8900,
+      "title": "PDF · overzicht A4 liggend"
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-09-29T10:00:00Z",
+    "v": 1
+  },
+  "designSystems": [
+    {
+      "artifact": "https://claude.ai/code/artifact/dbdc72a2-af06-4dd9-823c-a7901d0329b4",
+      "copiedAt": "2026-09-29T10:00:00Z",
+      "namespace": "solestus",
+      "title": "Solestus",
+      "version": null
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "rijov": {
+      "kind": "title1",
+      "maxW": 3600,
+      "text": "Overzicht van de app",
+      "x": 0,
+      "y": -3140
+    },
+    "rij8": {
+      "kind": "title1",
+      "maxW": 4400,
+      "text": "PDF-export",
+      "x": 0,
+      "y": 8640
+    },
+    "rij0": {
+      "kind": "title1",
+      "maxW": 6000,
+      "text": "Inloggen",
+      "w": 240,
+      "x": 0,
+      "y": -1580
+    },
+    "rij2": {
+      "kind": "title1",
+      "maxW": 6000,
+      "text": "Weekplanning · panelen",
+      "w": 240,
+      "x": 0,
+      "y": 1060
+    },
+    "rij3": {
+      "kind": "title1",
+      "maxW": 6000,
+      "text": "Weekplanning · menu's en legenda",
+      "w": 240,
+      "x": 0,
+      "y": 2380
+    },
+    "rij4": {
+      "kind": "title1",
+      "maxW": 6000,
+      "text": "Staten",
+      "w": 240,
+      "x": 0,
+      "y": 3700
+    },
+    "rij5": {
+      "kind": "title1",
+      "maxW": 4480,
+      "text": "Scania-ritten en overzicht",
+      "w": 240,
+      "x": 0,
+      "y": 5020
+    },
+    "rij6": {
+      "kind": "title1",
+      "maxW": 6000,
+      "text": "Stamgegevens",
+      "w": 240,
+      "x": 0,
+      "y": 6400
+    },
+    "titel": {
+      "kind": "title1",
+      "maxW": 6000,
+      "text": "Weekplanning",
+      "w": 240,
+      "x": 0,
+      "y": -260
+    }
+  },
+  "order": [
+    "FunctieOverzicht.dc.html",
+    "Gebruikersflow.dc.html",
+    "Inloggen.dc.html",
+    "InloggenMislukt.dc.html",
+    "Uitgelogd.dc.html",
+    "SessieVerlopen.dc.html",
+    "Main.dc.html",
+    "CelBewerken.dc.html",
+    "Dagweergave.dc.html",
+    "Selectie.dc.html",
+    "Opmerking.dc.html",
+    "MedewerkerWeek.dc.html",
+    "Afwezigheid.dc.html",
+    "Wijzigingen.dc.html",
+    "WeekKopieren.dc.html",
+    "PdfExport.dc.html",
+    "Legenda.dc.html",
+    "ProfielMenu.dc.html",
+    "StaatLaden.dc.html",
+    "StaatLeeg.dc.html",
+    "StaatAlleenLezen.dc.html",
+    "StaatOpslaanMislukt.dc.html",
+    "Scania.dc.html",
+    "RitBewerken.dc.html",
+    "Overzicht.dc.html",
+    "Stamgegevens.dc.html",
+    "MedewerkerBewerken.dc.html",
+    "OpdrachtgeverBewerken.dc.html",
+    "KoppelingMislukt.dc.html",
+    "Navigatiebalk.dc.html",
+    "PdfLiggend.dc.html",
+    "PdfStaand.dc.html",
+    "PdfScania.dc.html",
+    "PdfOverzicht.dc.html"
+  ],
+  "pages": [],
+  "title": "Solestus Planning"
+}
