@@ -1,8 +1,4 @@
 @font-face { font-family: "PP Neue Machina"; src: url(/fonts/PPNeueMachina-Ultrabold.woff2) format("woff2"); font-weight: 800; font-display: swap; }
-@font-face { font-family: "Fustat"; src: url(/fonts/Fustat-Regular.woff2) format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Fustat"; src: url(/fonts/Fustat-SemiBold.woff2) format("woff2"); font-weight: 600; font-display: swap; }
-@font-face { font-family: "Fustat"; src: url(/fonts/Fustat-Bold.woff2) format("woff2"); font-weight: 700; font-display: swap; }
-@font-face { font-family: "Zilla Slab"; src: url(/fonts/ZillaSlab-LightItalic.woff2) format("woff2"); font-weight: 300; font-style: italic; font-display: swap; }
 
 :root {
   --geel: #ffed00;
