@@ -18,10 +18,7 @@ export default async function InloggenPagina({ searchParams }: { searchParams: P
   return (
     <main className="inlog">
       <section className="inlog-geel">
-        <div className="inlog-merk">
-          <Woordmerk hoogte={34} />
-          <span className="zilla">leert je kennen</span>
-        </div>
+        <Woordmerk payoff hoogte={300} />
         <div style={{ flexGrow: 1 }} />
         <h1 className="machina inlog-slogan">Iedereen op de plek waar hij past.</h1>
       </section>

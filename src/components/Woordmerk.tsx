@@ -1,11 +1,7 @@
-/**
- * Tijdelijk woordmerk in de huisletter. Vervang door het officiële
- * SVG-bestand (solestus-woordmerk-zwart.svg) zodra dat in /public staat.
- */
-export default function Woordmerk({ hoogte = 20 }: { hoogte?: number }) {
-  return (
-    <span className="machina" aria-label="Solestus" style={{ fontSize: hoogte * 1.15, lineHeight: 1, letterSpacing: "0.02em" }}>
-      SOLESTUS
-    </span>
-  );
+/* eslint-disable @next/next/no-img-element */
+/** Officieel Solestus-woordmerk (zwart), uit het Solestus design system. */
+export default function Woordmerk({ hoogte = 20, payoff = false }: { hoogte?: number; payoff?: boolean }) {
+  return payoff
+    ? <img src="/logo/woordmerk-payoff.svg" alt="Solestus leert je kennen" style={{ width: hoogte, height: "auto", display: "block" }} />
+    : <img src="/logo/woordmerk.svg" alt="Solestus" style={{ height: hoogte, width: "auto", display: "block" }} />;
 }
