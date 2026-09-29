@@ -19,7 +19,7 @@ function plusDag(datum: string, n: number) {
 /** Standaardtijden voor een nieuwe rit (Nederlandse tijd). */
 export function standaardDelen(datum: string, dienst: Dienst, route: Route): RitDeel[] {
   const t = (dag: number, u: string) => naarIso(`${plusDag(datum, dag)}T${u}`);
-  const [start, eind, eindDag] = dienst === "dag" ? ["09:00", "20:00", 0] : ["21:00", "08:00", 1];
+  const [start, eind, eindDag] = dienst === "dag" ? ["09:00", "20:00", 0] as const : ["21:00", "08:00", 1] as const;
   if (route === "rade") {
     return [{ volgorde: 1, van: "Zwolle", naar: "Rade (swap) – Zwolle", vertrek: t(0, start), aankomst: t(eindDag, eind) }];
   }
