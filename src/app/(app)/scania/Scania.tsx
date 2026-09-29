@@ -357,6 +357,9 @@ function RitPaneel(props: {
     const { error: e2 } = await supabase.from("rit_delen").insert(delen.map((d, i) => ({ rit_id: id, volgorde: i + 1, van: d.van, naar: d.naar, vertrek: d.vertrek, aankomst: d.aankomst })));
     if (e2) { setBezig(false); props.onFout("De tijden zijn niet opgeslagen."); return; }
 
+    // Andere chauffeur of andere dag: het oude vak in de weekplanning opruimen.
+    if (r && (r.chauffeur_id !== (chauffeur || null) || r.vertrekdatum !== datum)) await vakOpruimen(r.chauffeur_id, r.vertrekdatum);
+
     if (props.ookInPlanning && chauffeur && props.scaniaId) {
       const bestaand = props.vakken.find((v) => v.medewerker_id === chauffeur && v.datum === datum);
       if (!bestaand || (bestaand.status === "werk" && bestaand.opdrachtgever_id === props.scaniaId)) {
@@ -369,11 +372,21 @@ function RitPaneel(props: {
     props.onKlaar(r ? (extra ? "Extra opdracht opgeslagen" : "Rit opgeslagen") : (extra ? "Extra opdracht toegevoegd" : "Rit toegevoegd"));
   }
 
+  /** Scania-vak van een chauffeur op een dag weghalen, als die dag geen andere rit van hem meer staat. */
+  async function vakOpruimen(mwId: string | null, dag: string) {
+    if (!mwId || !props.scaniaId) return;
+    const nogEenRit = props.alleRitten.some((x) => x.id !== r?.id && x.chauffeur_id === mwId && x.vertrekdatum === dag);
+    if (nogEenRit) return;
+    await supabase.from("vakken").delete()
+      .eq("medewerker_id", mwId).eq("datum", dag).eq("status", "werk").eq("opdrachtgever_id", props.scaniaId);
+  }
+
   async function verwijderen() {
     if (!r || !confirm("Deze rit verwijderen?")) return;
     setBezig(true);
     const { error } = await supabase.from("scania_ritten").delete().eq("id", r.id);
     if (error) { setBezig(false); props.onFout("Verwijderen lukte niet."); return; }
+    await vakOpruimen(r.chauffeur_id, r.vertrekdatum);
     const { data: auth } = await supabase.auth.getUser();
     if (auth.user) await supabase.from("wijzigingen").insert({ gebruiker_id: auth.user.id, omschrijving: `Scania-rit ${r.vertrekdatum} (${r.dienst}) verwijderd`, tabel: "scania_ritten" });
     props.onKlaar("Rit verwijderd");
