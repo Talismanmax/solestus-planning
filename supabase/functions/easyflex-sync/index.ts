@@ -7,10 +7,8 @@
 //   EASYFLEX_FROM       – e-mailadres voor de verplichte From-header (optioneel)
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const BASIS = "https://solestus.easyflex2go.nl/api/v1";
 const MIN_INTERVAL_MS = 5 * 60 * 1000;
 
-type Pagina<T> = { data: T[]; pagination: { next_hash: string | null } };
 type FlexWorker = {
   id: number; full_name: string | null; first_name: string | null; insertion: string | null; last_name: string | null;
   easyflex_registration_number: string | null; nationality_iso: string | null; nationality: string | null;
@@ -21,28 +19,22 @@ type Relatie = { id: number; name: string; visiting_address?: { city: string | n
 
 const STATUS = { 1: "Ingeschreven", 2: "Actief", 3: "Passief", 4: "Uitgeschreven" } as Record<number, string>;
 
-async function haalAlles<T>(pad: string, params: Record<string, string>): Promise<T[]> {
+// De aanvragen lopen via de database (functie easyflex_ophalen), zodat ze altijd
+// van hetzelfde IP-adres komen. Dat adres staat op de IP-whitelist van het token.
+// deno-lint-ignore no-explicit-any
+async function haalAlles<T>(db: any, pad: string, extra: string): Promise<T[]> {
   const token = Deno.env.get("EASYFLEX_API_TOKEN")?.trim().replace(/^Bearer\s+/i, "").replace(/^["']|["']$/g, "");
   if (!token) throw new Error("EASYFLEX_API_TOKEN ontbreekt in de Supabase-secrets");
   const from = Deno.env.get("EASYFLEX_FROM") ?? "m.zomer@solestus.com";
-  const alles: T[] = [];
-  let cursor: string | null = null;
-  for (let i = 0; i < 400; i++) {
-    const q = new URLSearchParams({ per_page: "50", ...params });
-    if (cursor) q.set("cursor", cursor);
-    const r = await fetch(`${BASIS}${pad}?${q}`, { headers: { Authorization: `Bearer ${token}`, From: from, Accept: "application/json" } });
-    if (!r.ok) {
-      const tekst = (await r.text()).slice(0, 300);
-      if (r.status === 401) throw new Error(`Easyflex2go accepteert het API-token niet. Vraag een geldig tenant-token aan en zet het in Supabase (EASYFLEX_API_TOKEN).`);
-      if (r.status === 403) throw new Error(`Het API-token mist rechten voor ${pad} (nodig: flex_workers_read en relations_read).`);
-      throw new Error(`Easyflex2go ${pad} gaf ${r.status}: ${tekst}`);
-    }
-    const p = (await r.json()) as Pagina<T>;
-    alles.push(...p.data);
-    cursor = p.pagination?.next_hash ?? null;
-    if (!cursor) break;
+  const { data, error } = await db.rpc("easyflex_ophalen", { pad, token, afzender: from, extra });
+  if (error) {
+    const m = /EASYFLEX_HTTP_(\d+)/.exec(error.message);
+    const status = m ? Number(m[1]) : 0;
+    if (status === 401) throw new Error("Easyflex2go accepteert het API-token niet. Controleer het token en de IP-whitelist (63.186.227.188).");
+    if (status === 403) throw new Error(`Het API-token mist rechten voor ${pad} (nodig: flex_workers_read en relations_read).`);
+    throw new Error(`Easyflex2go ${pad}: ${error.message.slice(0, 300)}`);
   }
-  return alles;
+  return (data ?? []) as T[];
 }
 
 function naamVan(f: FlexWorker) {
@@ -54,27 +46,15 @@ Deno.serve(async (req) => {
   const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
   if (req.method === "OPTIONS") return new Response(null, { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" } });
 
-  // Testmodus: probeert enkele varianten van de aanvraag en geeft alleen statuscodes terug.
+  // Testmodus: één aanvraag via de database, alleen de uitkomst terug.
   const body = await req.json().catch(() => ({}));
   if (body?.test) {
-    const ruw = Deno.env.get("EASYFLEX_API_TOKEN")?.trim() ?? "";
-    const token = ruw.replace(/^Bearer\s+/i, "").replace(/^["']|["']$/g, "");
-    const from = Deno.env.get("EASYFLEX_FROM") ?? "m.zomer@solestus.com";
-    const varianten: [string, string, Record<string, string>][] = [
-      ["bearer+from", "/business-units", { Authorization: `Bearer ${token}`, From: from }],
-      ["bearer, geen from", "/business-units", { Authorization: `Bearer ${token}` }],
-      ["zonder Bearer-voorvoegsel", "/business-units", { Authorization: token, From: from }],
-      ["flex-workers", "/flex-workers?per_page=1", { Authorization: `Bearer ${token}`, From: from }],
-      ["relations", "/relations?per_page=1", { Authorization: `Bearer ${token}`, From: from }],
-    ];
-    const uitkomst = [];
-    for (const [naam, pad, headers] of varianten) {
-      const r = await fetch(`${BASIS}${pad}`, { headers: { ...headers, Accept: "application/json" } });
-      const t = await r.text();
-      uitkomst.push({ naam, status: r.status, antwoord: r.ok ? `ok (${t.length} tekens)` : t.slice(0, 200) });
+    try {
+      const bu = await haalAlles<unknown>(db, "/business-units", "");
+      return json({ gelukt: true, werkmaatschappijen: bu.length });
+    } catch (e) {
+      return json({ gelukt: false, fout: e instanceof Error ? e.message : String(e) });
     }
-    const delen = token.split(".").length;
-    return json({ tokenLengte: token.length, jwtDelen: delen, begintMetCijferPipe: /^\d+\|/.test(token), from, uitkomst });
   }
 
   // Niet vaker dan eens per 5 minuten.
@@ -85,8 +65,8 @@ Deno.serve(async (req) => {
 
   try {
     const [flex, relaties] = await Promise.all([
-      haalAlles<FlexWorker>("/flex-workers", { include: "operating_company,labels" }),
-      haalAlles<Relatie>("/relations", { include: "visiting_address" }),
+      haalAlles<FlexWorker>(db, "/flex-workers", "&include=operating_company,labels"),
+      haalAlles<Relatie>(db, "/relations", "&include=visiting_address"),
     ]);
     const nu = new Date().toISOString();
 
