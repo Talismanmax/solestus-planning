@@ -65,8 +65,10 @@ async function haalAlles<T>(db: any, pad: string, extra: string): Promise<T[]> {
   return (data ?? []) as T[];
 }
 
+// Naam in de planning: "Voornaam tussenvoegsel Achternaam"; zonder achternaam de volledige naam uit Easyflex2go.
 function naamVan(f: FlexWorker) {
-  return (f.full_name?.trim()) || [f.first_name, f.insertion, f.last_name].filter(Boolean).join(" ") || `Flexkracht ${f.id}`;
+  const delen = [f.first_name, f.insertion, f.last_name].map((x) => x?.trim()).filter(Boolean);
+  return (f.last_name?.trim() ? delen.join(" ") : "") || f.full_name?.trim() || delen.join(" ") || `Flexkracht ${f.id}`;
 }
 
 // deno-lint-ignore no-explicit-any
