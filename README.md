@@ -30,6 +30,7 @@ Migraties staan in `supabase/migrations`. Row level security staat aan op alle t
 - [x] Weekplanning: vakken, opmerkingen per week, afwezigheid, legenda, wijzigingslog
 - [x] Stamgegevens: overzicht, kantoormedewerker toevoegen
 - [ ] Scania-ritten
-- [ ] Overzicht
+- [x] Overzicht: kerncijfers, bezetting per opdrachtgever, beschikbaar en afwezig per dag
+- [x] Afwezigheid voor een periode invoeren, wijzigen en verwijderen (vanuit Overzicht)
 - [ ] Export (PDF en Excel)
 - [ ] Koppeling Easyflex2go (tijdelijk via vast IP-adres)

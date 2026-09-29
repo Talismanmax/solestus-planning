@@ -34,7 +34,10 @@ export type Medewerker = {
 };
 export type Opdrachtgever = { id: string; naam: string; korte_naam: string | null; plaats: string | null };
 export type Vak = { id: string; medewerker_id: string; datum: string; status: VakStatus; opdrachtgever_id: string | null; notitie: string | null };
-export type Afwezigheid = { id: string; medewerker_id: string; soort: VakStatus; van: string; tot_en_met: string };
+export type Afwezigheid = { id: string; medewerker_id: string; soort: VakStatus; van: string; tot_en_met: string; notitie?: string | null };
+
+/** Soorten die als afwezigheid voor een periode kunnen worden ingevoerd (zie check in de database). */
+export const AFWEZIG_SOORTEN: VakStatus[] = ["vakantie", "vrij", "ziek", "nbb", "einde"];
 export type WeekOpmerking = { id: string; medewerker_id: string; tekst: string };
 
 // ---- Datums (als yyyy-mm-dd, zonder tijdzone-gedoe) ----
@@ -97,6 +100,18 @@ export function weekBereik(maandag: string) {
   return zelfdeMaand
     ? `${a.getUTCDate()} – ${b.getUTCDate()} ${MAAND[b.getUTCMonth()]} ${b.getUTCFullYear()}`
     : `${a.getUTCDate()} ${MAAND[a.getUTCMonth()]} – ${b.getUTCDate()} ${MAAND[b.getUTCMonth()]} ${b.getUTCFullYear()}`;
+}
+
+/** Aantal kalenderdagen van van t/m tot_en_met. */
+export const aantalDagen = (van: string, tot: string) => Math.round((toDate(tot).getTime() - toDate(van).getTime()) / DAG_MS) + 1;
+
+/** "28 sep – 5 okt", "28 – 29 sep" of "28 sep". Over een jaargrens: "28 dec 2026 – 3 jan 2027". */
+export function periodeKort(van: string, tot: string) {
+  const a = toDate(van), b = toDate(tot);
+  const dm = (d: Date) => `${d.getUTCDate()} ${MAAND[d.getUTCMonth()]}`;
+  if (van === tot) return dm(a);
+  if (a.getUTCFullYear() !== b.getUTCFullYear()) return `${dm(a)} ${a.getUTCFullYear()} – ${dm(b)} ${b.getUTCFullYear()}`;
+  return a.getUTCMonth() === b.getUTCMonth() ? `${a.getUTCDate()} – ${dm(b)}` : `${dm(a)} – ${dm(b)}`;
 }
 
 export function tijdstipNL(ts: string) {

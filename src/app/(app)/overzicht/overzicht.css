@@ -1,0 +1,42 @@
+.cijfers { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
+.cijfer { border: 1px solid var(--lijn); border-radius: 24px; padding: 20px 22px; display: flex; flex-direction: column; gap: 4px; text-decoration: none; }
+.cijfer b { font-family: "PP Neue Machina", Fustat, sans-serif; font-weight: 800; font-size: 40px; line-height: 1; }
+.cijfer span { font-size: 14px; font-weight: 600; }
+.cijfer-geel { background: var(--geel); border-color: var(--geel); }
+.cijfer-geel span { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+
+.blok { border: 1px solid var(--lijn); border-radius: 24px; padding: 20px 24px; display: flex; flex-direction: column; }
+.blok-kop { display: flex; align-items: baseline; gap: 10px; padding-bottom: 10px; }
+.blok-kop h2 { margin: 0; font-size: 17px; font-weight: 700; }
+.blok-kop span { font-size: 13px; }
+
+.bezetting { margin-bottom: 20px; padding-bottom: 10px; }
+.bez-rij { display: grid; grid-template-columns: minmax(0, 1fr) repeat(7, 48px) 64px 200px; gap: 8px; min-height: 58px; align-items: center; border-top: 1px solid var(--lijn); font-size: 14px; }
+.bez-rij > span:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.bez-kop { min-height: 36px; border-top: 0; border-bottom: 1px solid var(--lijn); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.bez-kop + .bez-rij { border-top: 0; }
+.bez-naam { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.bez-naam b { font-weight: 700; }
+.bez-naam small { font-size: 12px; }
+.bez-rij > .bez-totaal { font-weight: 700; }
+.balk { height: 10px; border-radius: 5px; background: var(--lijn); overflow: hidden; }
+.balk i { display: block; height: 10px; border-radius: 5px; background: var(--zwart); }
+
+.drieluik { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.dag-rij { display: grid; grid-template-columns: 36px minmax(0, 1fr) 24px; gap: 8px; min-height: 40px; padding: 6px 0; align-items: center; border-top: 1px solid var(--lijn); font-size: 14px; }
+.dag-rij b:last-child { text-align: right; }
+.periode-kop { display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px; }
+.periode-kop h2 { margin: 0; font-size: 17px; font-weight: 700; }
+.periode { display: flex; flex-direction: column; gap: 6px; padding: 12px 0; border: 0; border-top: 1px solid var(--lijn); background: none; text-align: left; width: 100%; }
+button.periode { cursor: pointer; }
+button.periode:hover { background: var(--geel-licht); }
+.periode > span { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.periode b { font-size: 15px; }
+.soort { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+
+@media (max-width: 1100px) {
+  .cijfers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .drieluik { grid-template-columns: minmax(0, 1fr); }
+  .bez-rij { grid-template-columns: minmax(0, 1fr) repeat(7, 28px) 40px; }
+  .bez-rij > :last-child:not(.bez-totaal) { display: none; }
+}
