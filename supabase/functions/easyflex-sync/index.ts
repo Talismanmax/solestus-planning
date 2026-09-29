@@ -22,7 +22,7 @@ type Relatie = { id: number; name: string; visiting_address?: { city: string | n
 const STATUS = { 1: "Ingeschreven", 2: "Actief", 3: "Passief", 4: "Uitgeschreven" } as Record<number, string>;
 
 async function haalAlles<T>(pad: string, params: Record<string, string>): Promise<T[]> {
-  const token = Deno.env.get("EASYFLEX_API_TOKEN");
+  const token = Deno.env.get("EASYFLEX_API_TOKEN")?.trim().replace(/^Bearer\s+/i, "").replace(/^["']|["']$/g, "");
   if (!token) throw new Error("EASYFLEX_API_TOKEN ontbreekt in de Supabase-secrets");
   const from = Deno.env.get("EASYFLEX_FROM") ?? "m.zomer@solestus.com";
   const alles: T[] = [];
@@ -33,7 +33,9 @@ async function haalAlles<T>(pad: string, params: Record<string, string>): Promis
     const r = await fetch(`${BASIS}${pad}?${q}`, { headers: { Authorization: `Bearer ${token}`, From: from, Accept: "application/json" } });
     if (!r.ok) {
       const tekst = (await r.text()).slice(0, 300);
-      throw new Error(`Easyflex2go ${pad} gaf ${r.status}: ${tekst}`);
+      const ruw = Deno.env.get("EASYFLEX_API_TOKEN") ?? "";
+      const info = r.status === 401 ? ` (token: ${token.length} tekens, spaties/aanhalingstekens: ${/[\s"']/.test(ruw) ? "ja" : "nee"}, From: ${from})` : "";
+      throw new Error(`Easyflex2go ${pad} gaf ${r.status}: ${tekst}${info}`);
     }
     const p = (await r.json()) as Pagina<T>;
     alles.push(...p.data);
