@@ -54,6 +54,29 @@ Deno.serve(async (req) => {
   const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
   if (req.method === "OPTIONS") return new Response(null, { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" } });
 
+  // Testmodus: probeert enkele varianten van de aanvraag en geeft alleen statuscodes terug.
+  const body = await req.json().catch(() => ({}));
+  if (body?.test) {
+    const ruw = Deno.env.get("EASYFLEX_API_TOKEN")?.trim() ?? "";
+    const token = ruw.replace(/^Bearer\s+/i, "").replace(/^["']|["']$/g, "");
+    const from = Deno.env.get("EASYFLEX_FROM") ?? "m.zomer@solestus.com";
+    const varianten: [string, string, Record<string, string>][] = [
+      ["bearer+from", "/business-units", { Authorization: `Bearer ${token}`, From: from }],
+      ["bearer, geen from", "/business-units", { Authorization: `Bearer ${token}` }],
+      ["zonder Bearer-voorvoegsel", "/business-units", { Authorization: token, From: from }],
+      ["flex-workers", "/flex-workers?per_page=1", { Authorization: `Bearer ${token}`, From: from }],
+      ["relations", "/relations?per_page=1", { Authorization: `Bearer ${token}`, From: from }],
+    ];
+    const uitkomst = [];
+    for (const [naam, pad, headers] of varianten) {
+      const r = await fetch(`${BASIS}${pad}`, { headers: { ...headers, Accept: "application/json" } });
+      const t = await r.text();
+      uitkomst.push({ naam, status: r.status, antwoord: r.ok ? `ok (${t.length} tekens)` : t.slice(0, 200) });
+    }
+    const delen = token.split(".").length;
+    return json({ tokenLengte: token.length, jwtDelen: delen, begintMetCijferPipe: /^\d+\|/.test(token), from, uitkomst });
+  }
+
   // Niet vaker dan eens per 5 minuten.
   const { data: laatste } = await db.from("koppeling_log").select("tijdstip").eq("gelukt", true).order("tijdstip", { ascending: false }).limit(1).maybeSingle();
   if (laatste && Date.now() - new Date(laatste.tijdstip).getTime() < MIN_INTERVAL_MS) {
