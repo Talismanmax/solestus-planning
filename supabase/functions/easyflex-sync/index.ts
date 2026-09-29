@@ -5,6 +5,9 @@
 // Geheimen (Supabase → Edge Functions → Secrets):
 //   EASYFLEX_API_TOKEN  – API-token van Easyflex2go (tenant-token)
 //   EASYFLEX_FROM       – e-mailadres voor de verplichte From-header (optioneel)
+//
+// Wie mag starten: de cron-taak (header x-sync-sleutel, sleutel staat in private.instellingen)
+// of een ingelogde planner (knop "Nu bijwerken" in Stamgegevens).
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const MIN_INTERVAL_MS = 5 * 60 * 1000;
@@ -65,10 +68,28 @@ function naamVan(f: FlexWorker) {
   return (f.full_name?.trim()) || [f.first_name, f.insertion, f.last_name].filter(Boolean).join(" ") || `Flexkracht ${f.id}`;
 }
 
+// deno-lint-ignore no-explicit-any
+async function wieStart(req: Request, db: any): Promise<{ soort: "cron" } | { soort: "planner"; id: string } | null> {
+  const sleutel = req.headers.get("x-sync-sleutel");
+  if (sleutel) {
+    const { data } = await db.rpc("easyflex_sync_sleutel_klopt", { sleutel });
+    if (data === true) return { soort: "cron" };
+  }
+  const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  if (!jwt) return null;
+  const { data: auth } = await db.auth.getUser(jwt);
+  if (!auth?.user) return null;
+  const { data: g } = await db.from("gebruikers").select("rol").eq("id", auth.user.id).maybeSingle();
+  return g?.rol === "planner" ? { soort: "planner", id: auth.user.id } : null;
+}
+
 Deno.serve(async (req) => {
   const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
   const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
-  if (req.method === "OPTIONS") return new Response(null, { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" } });
+  if (req.method === "OPTIONS") return new Response(null, { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" } });
+
+  const wie = await wieStart(req, db);
+  if (!wie) return json({ gelukt: false, fout: "Alleen planners kunnen de koppeling starten." }, 403);
 
   // Testmodus: één aanvraag via de database, alleen de uitkomst terug.
   const body = await req.json().catch(() => ({}));
@@ -139,6 +160,9 @@ Deno.serve(async (req) => {
 
     const aantalOg = (sv as { opdrachtgevers: number } | null)?.opdrachtgevers ?? groepen.length;
     await db.from("koppeling_log").insert({ gelukt: true, medewerkers_bijgewerkt: mwUit.medewerkers ?? flex.length, opdrachtgevers_bijgewerkt: aantalOg });
+    if (wie.soort === "planner") {
+      await db.from("wijzigingen").insert({ gebruiker_id: wie.id, tabel: "koppeling_log", omschrijving: `Easyflex2go handmatig bijgewerkt: ${mwUit.medewerkers ?? flex.length} medewerkers, ${aantalOg} opdrachtgevers` });
+    }
     return json({ gelukt: true, flexkrachtrecords: flex.length, medewerkers: mwUit.medewerkers, actief: mwUit.actief, medewerkersSamengevoegd: mwUit.samengevoegd, relaties: relaties.length, opdrachtgevers: aantalOg, samengevoegd: (sv as { samengevoegd: number } | null)?.samengevoegd ?? 0, voorbeeldOpgeruimd });
   } catch (e) {
     const fout = e instanceof Error ? e.message : String(e);

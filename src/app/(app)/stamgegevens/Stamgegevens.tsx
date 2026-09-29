@@ -18,7 +18,7 @@ const Slot = () => (
   </span>
 );
 
-export default function Stamgegevens(p: { medewerkers: Mw[]; opdrachtgevers: Og[]; laatsteSync: { tijdstip: string; gelukt: boolean; foutmelding: string | null } | null; magWijzigen: boolean }) {
+export default function Stamgegevens(p: { medewerkers: Mw[]; opdrachtgevers: Og[]; laatsteSync: { tijdstip: string; gelukt: boolean; foutmelding: string | null; medewerkers_bijgewerkt?: number; opdrachtgevers_bijgewerkt?: number } | null; magWijzigen: boolean }) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const [tab, setTab] = useState<"mw" | "og">("mw");
@@ -26,7 +26,24 @@ export default function Stamgegevens(p: { medewerkers: Mw[]; opdrachtgevers: Og[
   const [nieuw, setNieuw] = useState(false);
   const [fout, setFout] = useState<string | null>(null);
   const [bewerk, setBewerk] = useState<Mw | null>(null);
+  const [bijwerken, setBijwerken] = useState(false);
   const [toast, setToast] = useState<{ tekst: string; fout?: boolean } | null>(null);
+
+  function toon(tekst: string, fout = false) {
+    setToast({ tekst, fout });
+    setTimeout(() => setToast(null), fout ? 8000 : 4000);
+  }
+
+  async function nuBijwerken() {
+    setBijwerken(true);
+    const { data, error } = await supabase.functions.invoke("easyflex-sync", { body: {} });
+    let uit = data as { gelukt?: boolean; overgeslagen?: boolean; fout?: string; medewerkers?: number; opdrachtgevers?: number } | null;
+    if (error && "context" in error) uit = await (error.context as Response).json().catch(() => null);
+    setBijwerken(false);
+    if (uit?.overgeslagen) toon("Minder dan 5 minuten geleden al bijgewerkt. Probeer het zo nog eens.");
+    else if (uit?.gelukt) { toon(`Bijgewerkt: ${uit.medewerkers ?? "?"} medewerkers en ${uit.opdrachtgevers ?? "?"} opdrachtgevers`); router.refresh(); }
+    else { toon(`Bijwerken is niet gelukt: ${uit?.fout ?? error?.message ?? "onbekende fout"}`, true); router.refresh(); }
+  }
   const ogMap = useMemo(() => new Map(p.opdrachtgevers.map((o) => [o.id, o])), [p.opdrachtgevers]);
 
   const groepLabel = (g: string) => GROEPEN.find((x) => x.id === g)?.label ?? g;
@@ -66,6 +83,9 @@ export default function Stamgegevens(p: { medewerkers: Mw[]; opdrachtgevers: Og[
         {sync
           ? <span>{sync.gelukt ? "Laatst bijgewerkt" : "Laatste poging mislukt"} · {tijdstipNL(sync.tijdstip)}{sync.foutmelding ? ` · ${sync.foutmelding}` : ""}</span>
           : <span>Nog niet ingesteld. Tot de koppeling draait, staan hier voorbeeldgegevens.</span>}
+        {sync?.gelukt && sync.medewerkers_bijgewerkt != null && <span className="hint">{sync.medewerkers_bijgewerkt} medewerkers · {sync.opdrachtgevers_bijgewerkt} opdrachtgevers · elk uur (ma–za)</span>}
+        <div style={{ flexGrow: 1 }} />
+        {p.magWijzigen && <button type="button" className="knop knop-rand" onClick={nuBijwerken} disabled={bijwerken}>{bijwerken ? "Bezig met bijwerken…" : "Nu bijwerken"}</button>}
       </div>
 
       <div className="werkbalk">

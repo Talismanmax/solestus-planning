@@ -35,4 +35,5 @@ Migraties staan in `supabase/migrations`. Row level security staat aan op alle t
 - [x] Overzicht: kerncijfers, bezetting per opdrachtgever, beschikbaar en afwezig per dag
 - [x] Afwezigheid voor een periode invoeren, wijzigen en verwijderen (vanuit Overzicht)
 - [x] Export: PDF (weekplanning liggend/staand, Scania, overzicht) via afdrukpagina's onder `/afdruk`, Excel (weekplanning, bezetting)
-- [ ] Koppeling Easyflex2go (tijdelijk via vast IP-adres)
+- [x] Koppeling Easyflex2go: elk uur (ma–za) en met "Nu bijwerken" in Stamgegevens (alleen planners). De cron-taak stuurt een geheime sleutel mee uit `private.instellingen`.
+- [x] Naam uit Microsoft bij inloggen (scope `openid email profile`; trigger vult een lege naam)

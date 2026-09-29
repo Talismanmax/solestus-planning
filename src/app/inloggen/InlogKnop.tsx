@@ -11,7 +11,7 @@ export default function InlogKnop({ label }: { label: string }) {
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: "azure",
-      options: { scopes: "email", redirectTo: `${window.location.origin}/auth/callback` },
+      options: { scopes: "openid email profile", redirectTo: `${window.location.origin}/auth/callback` },
     });
   }
 
