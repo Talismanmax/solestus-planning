@@ -68,7 +68,7 @@ export function vasteInzetLabel(v: unknown, opdrachtgevers: Map<string, Pick<Opd
   const wat = x.status === "werk" ? (opdrachtgevers.get(x.opdrachtgever_id!) ? opdrachtgeverLabel(opdrachtgevers.get(x.opdrachtgever_id!)!) : "Onbekende opdrachtgever") : STATUS[x.status].label;
   return `${wat} · ${dagenLabel(x.dagen)}`;
 }
-export type Opdrachtgever = { id: string; naam: string; korte_naam: string | null; plaats: string | null };
+export type Opdrachtgever = { id: string; naam: string; korte_naam: string | null; plaats: string | null; verborgen?: boolean };
 
 /** De Easyflex2go-relatie waaronder de Scania-ritten vallen. */
 export const SCANIA_RELATIE = "Manpower AB";

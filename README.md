@@ -30,7 +30,7 @@ Migraties staan in `supabase/migrations`. Row level security staat aan op alle t
 - [x] Weekplanning: vakken, opmerkingen per week, afwezigheid, legenda, wijzigingslog
 - [x] Weekplanning: week- en dagweergave, meerdere vakken tegelijk (Ctrl/⌘/Shift-klik: bewerken, kopiëren, plakken, leegmaken), vorige week kopiëren, wijzigingenpaneel
 - [x] Vaste inzet per medewerker (Stamgegevens → medewerker bewerken; weekplanning → Vaste inzet vult lege vakken)
-- [x] Stamgegevens: overzicht, kantoormedewerker toevoegen
+- [x] Stamgegevens: overzicht, kantoormedewerker toevoegen, medewerker bewerken, opdrachtgever bewerken (korte naam in het rooster, verbergen in de planning)
 - [x] Scania-ritten (Easyflex2go-relatie Manpower AB)
 - [x] Overzicht: kerncijfers, bezetting per opdrachtgever, beschikbaar en afwezig per dag
 - [x] Afwezigheid voor een periode invoeren, wijzigen en verwijderen (vanuit Overzicht)

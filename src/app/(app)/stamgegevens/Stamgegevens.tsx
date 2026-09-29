@@ -4,10 +4,11 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import MedewerkerPaneel, { type MwStam } from "./MedewerkerPaneel";
-import { GROEPEN, tijdstipNL, vasteInzetLabel } from "@/lib/planning";
+import OpdrachtgeverPaneel, { type OgStam } from "./OpdrachtgeverPaneel";
+import { GROEPEN, opdrachtgeverLabel, tijdstipNL, vasteInzetLabel } from "@/lib/planning";
 
 type Mw = MwStam;
-type Og = { id: string; naam: string; plaats: string | null; korte_naam: string | null; actief: boolean; werkmaatschappijen: string[]; kvk_nummer: number | null };
+type Og = OgStam;
 
 const BVS = ["Solestus Shared Services B.V.", "Solestus Nederland B.V.", "Solestus Personeelsdiensten B.V.", "Solestus Payroll Solutions B.V."];
 
@@ -26,6 +27,7 @@ export default function Stamgegevens(p: { medewerkers: Mw[]; opdrachtgevers: Og[
   const [nieuw, setNieuw] = useState(false);
   const [fout, setFout] = useState<string | null>(null);
   const [bewerk, setBewerk] = useState<Mw | null>(null);
+  const [bewerkOg, setBewerkOg] = useState<Og | null>(null);
   const [bijwerken, setBijwerken] = useState(false);
   const [toast, setToast] = useState<{ tekst: string; fout?: boolean } | null>(null);
 
@@ -121,7 +123,11 @@ export default function Stamgegevens(p: { medewerkers: Mw[]; opdrachtgevers: Og[
           <thead><tr><th>Naam</th><th>Plaats</th><th>KvK</th><th>Werkmaatschappijen</th><th>Bron</th></tr></thead>
           <tbody>
             {ogs.map((o) => (
-              <tr key={o.id}><td><strong>{o.naam}</strong></td><td>{o.plaats ?? "–"}</td><td>{o.kvk_nummer ?? "–"}</td><td>{o.werkmaatschappijen.map((w) => w.replace(/^Solestus /, "").replace(/ B\.V\.$/, "")).join(", ") || "–"}{o.werkmaatschappijen.length > 1 && <div className="hint">samengevoegd uit {o.werkmaatschappijen.length} relaties</div>}</td><td><Slot /></td></tr>
+              <tr key={o.id} style={{ opacity: o.verborgen ? 0.5 : 1 }} className={p.magWijzigen ? "klikbaar" : undefined}
+                onClick={p.magWijzigen ? () => setBewerkOg(o) : undefined}
+                onKeyDown={p.magWijzigen ? (e) => { if (e.key === "Enter") setBewerkOg(o); } : undefined}
+                tabIndex={p.magWijzigen ? 0 : undefined}>
+                <td><strong>{o.naam}</strong>{(o.korte_naam || opdrachtgeverLabel(o) !== o.naam) && <div className="hint">in het rooster: {opdrachtgeverLabel(o)}</div>}{o.verborgen && <div className="hint">verborgen in de planning</div>}</td><td>{o.plaats ?? "–"}</td><td>{o.kvk_nummer ?? "–"}</td><td>{o.werkmaatschappijen.map((w) => w.replace(/^Solestus /, "").replace(/ B\.V\.$/, "")).join(", ") || "–"}{o.werkmaatschappijen.length > 1 && <div className="hint">samengevoegd uit {o.werkmaatschappijen.length} relaties</div>}</td><td><Slot /></td></tr>
             ))}
           </tbody>
         </table>
@@ -138,6 +144,17 @@ export default function Stamgegevens(p: { medewerkers: Mw[]; opdrachtgevers: Og[
             if (!fout) { setBewerk(null); router.refresh(); }
             setToast({ tekst, fout });
             setTimeout(() => setToast(null), fout ? 6000 : 2500);
+          }}
+        />
+      )}
+      {bewerkOg && (
+        <OpdrachtgeverPaneel
+          key={bewerkOg.id}
+          og={bewerkOg}
+          onSluit={() => setBewerkOg(null)}
+          onKlaar={(tekst, fout) => {
+            if (!fout) { setBewerkOg(null); router.refresh(); }
+            toon(tekst, fout);
           }}
         />
       )}

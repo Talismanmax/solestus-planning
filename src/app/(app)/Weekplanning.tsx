@@ -516,7 +516,7 @@ function VakPaneel(props: {
           <span>Opdrachtgever</span>
           <select className="invoer" value={og} onChange={(e) => setOg(e.target.value)} required>
             <option value="">Kies een opdrachtgever</option>
-            {props.opdrachtgevers.map((o) => <option key={o.id} value={o.id}>{o.naam}{o.plaats ? ` · ${o.plaats}` : ""}</option>)}
+            {props.opdrachtgevers.filter((o) => !o.verborgen || o.id === og).map((o) => <option key={o.id} value={o.id}>{o.naam}{o.plaats ? ` · ${o.plaats}` : ""}</option>)}
           </select>
           <span className="hint">Opdrachtgevers komen uit Easyflex2go.</span>
         </label>

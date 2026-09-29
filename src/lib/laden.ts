@@ -9,7 +9,7 @@ export async function laadWeek(supabase: Db, jaar: number, week: number, maandag
   const zondag = plusDagen(maandag, 6);
   const [mw, og, vk, af, op, laatst] = await Promise.all([
     supabase.from("medewerkers").select("id, naam, groep, bv, nationaliteit, certificaten, bron, volgorde, vaste_inzet").eq("actief", true).order("volgorde").order("naam"),
-    supabase.from("opdrachtgevers").select("id, naam, korte_naam, plaats").eq("actief", true).order("naam"),
+    supabase.from("opdrachtgevers").select("id, naam, korte_naam, plaats, verborgen").eq("actief", true).order("naam"),
     supabase.from("vakken").select("id, medewerker_id, datum, status, opdrachtgever_id, notitie").gte("datum", maandag).lte("datum", zondag),
     supabase.from("afwezigheid").select("id, medewerker_id, soort, van, tot_en_met").lte("van", zondag).gte("tot_en_met", maandag),
     supabase.from("week_opmerkingen").select("id, medewerker_id, tekst").eq("jaar", jaar).eq("week", week),

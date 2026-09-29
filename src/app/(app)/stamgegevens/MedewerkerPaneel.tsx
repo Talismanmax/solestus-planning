@@ -9,7 +9,7 @@ export type MwStam = {
   id: string; naam: string; groep: string; bv: string | null; werkmaatschappijen: string[]; nationaliteit: string | null;
   certificaten: string[]; bron: string; ef_registratienummer: string | null; telefoon: string | null; actief: boolean; vaste_inzet: unknown;
 };
-type Og = { id: string; naam: string; korte_naam: string | null; plaats: string | null };
+type Og = { id: string; naam: string; korte_naam: string | null; plaats: string | null; verborgen?: boolean };
 
 const DAGEN = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 
@@ -100,7 +100,7 @@ export default function MedewerkerPaneel({ mw, opdrachtgevers, bvs, onSluit, onK
           <option value="kantoor">Kantoor</option>
           <option value="thuiswerk">Thuiswerk</option>
           <optgroup label="Opdrachtgever">
-            {opdrachtgevers.map((o) => <option key={o.id} value={`og:${o.id}`}>{opdrachtgeverLabel(o)}{o.plaats ? ` · ${o.plaats}` : ""}</option>)}
+            {opdrachtgevers.filter((o) => !o.verborgen || keuze === `og:${o.id}`).map((o) => <option key={o.id} value={`og:${o.id}`}>{opdrachtgeverLabel(o)}{o.plaats ? ` · ${o.plaats}` : ""}</option>)}
           </optgroup>
         </select>
         <div className="dagkeuze" role="group" aria-label="Dagen">
