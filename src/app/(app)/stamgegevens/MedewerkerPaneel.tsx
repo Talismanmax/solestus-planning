@@ -8,7 +8,7 @@ import { GROEPEN, geldigeVasteInzet, opdrachtgeverLabel, vasteInzetLabel, type V
 
 export type MwStam = {
   id: string; naam: string; groep: string; bv: string | null; werkmaatschappijen: string[]; nationaliteit: string | null;
-  certificaten: string[]; bron: string; ef_registratienummer: string | null; ef_id?: number | null; ef_status?: string | null; telefoon: string | null; actief: boolean; vaste_inzet: unknown;
+  certificaten: string[]; bron: string; ef_registratienummer: string | null; ef_id?: number | null; ef_status?: string | null; telefoon: string | null; actief: boolean; verborgen?: boolean; vaste_inzet: unknown;
 };
 type Og = { id: string; naam: string; korte_naam: string | null; plaats: string | null; verborgen?: boolean };
 
@@ -30,6 +30,8 @@ export default function MedewerkerPaneel({ mw, opdrachtgevers, bvs, onSluit, onK
   const [telefoon, setTelefoon] = useState(mw.telefoon ?? "");
   const [certificaten, setCertificaten] = useState(mw.certificaten.join(", "));
   const [actief, setActief] = useState(mw.actief);
+  // Easyflex2go-medewerkers: `actief` volgt de koppeling, zichtbaarheid is een eigen keuze (`verborgen`).
+  const [zichtbaar, setZichtbaar] = useState(!mw.verborgen);
   const [keuze, setKeuze] = useState(keuzeVan(huidig));
   const [dagen, setDagen] = useState<number[]>(huidig?.dagen ?? [0, 1, 2, 3, 4]);
   const [bezig, setBezig] = useState(false);
@@ -44,6 +46,7 @@ export default function MedewerkerPaneel({ mw, opdrachtgevers, bvs, onSluit, onK
     if (!ef && !naam.trim()) { onKlaar("Vul een naam in.", true); return; }
     setBezig(true);
     const wijziging: Record<string, unknown> = { telefoon: telefoon.trim() || null, vaste_inzet: vasteInzet };
+    if (ef) wijziging.verborgen = !zichtbaar;
     if (!ef) Object.assign(wijziging, {
       naam: naam.trim(), bv, actief,
       certificaten: certificaten.split(",").map((c) => c.trim()).filter(Boolean),
@@ -52,10 +55,11 @@ export default function MedewerkerPaneel({ mw, opdrachtgevers, bvs, onSluit, onK
     setBezig(false);
     if (error) { onKlaar("Opslaan is niet gelukt: " + error.message, true); return; }
     const oud = vasteInzetLabel(mw.vaste_inzet, ogMap), nieuw = vasteInzetLabel(vasteInzet, ogMap);
+    const zicht = ef && zichtbaar === !!mw.verborgen ? (zichtbaar ? ", weer zichtbaar in de planning" : ", verborgen in de planning") : "";
     const { data } = await supabase.auth.getUser();
     if (data.user) await supabase.from("wijzigingen").insert({
       gebruiker_id: data.user.id, tabel: "medewerkers", record_id: mw.id,
-      omschrijving: `${ef ? mw.naam : naam.trim()}: gegevens bijgewerkt${oud !== nieuw ? ` (vaste inzet: ${nieuw.toLowerCase()})` : ""}`,
+      omschrijving: `${ef ? mw.naam : naam.trim()}: gegevens bijgewerkt${zicht}${oud !== nieuw ? ` (vaste inzet: ${nieuw.toLowerCase()})` : ""}`,
     });
     onKlaar("Opgeslagen");
   }
@@ -120,9 +124,12 @@ export default function MedewerkerPaneel({ mw, opdrachtgevers, bvs, onSluit, onK
               <div className="veld"><label className="veld-kop" style={{ fontSize: 12, fontWeight: 600 }} htmlFor="mw-regnr">Registratienummer</label><input id="mw-regnr" className="invoer" value={mw.ef_registratienummer ?? "–"} disabled /></div>
               <div className="veld"><label className="veld-kop" style={{ fontSize: 12, fontWeight: 600 }} htmlFor="mw-efid">EF2GO-id</label><input id="mw-efid" className="invoer" value={mw.ef_id ?? "–"} disabled /></div>
             </div>
-            <span className="hint">Status in Easyflex2go: {mw.ef_status ?? (mw.actief ? "Actief" : "niet actief")}. Uitgeschreven in Easyflex2go betekent: niet meer zichtbaar in de planning.</span>
+            <span className="hint">Status in Easyflex2go: {mw.ef_status ?? (mw.actief ? "Actief" : "niet actief")}. Alleen wie op Actief staat, kan in de planning staan.</span>
           </fieldset>
-          <label className="vink" style={{ opacity: 0.55 }}><input type="checkbox" checked={mw.actief} disabled />Actief (zichtbaar in de planning)</label>
+          <label className="vink" style={{ opacity: mw.actief ? 1 : 0.55 }}>
+            <input type="checkbox" checked={mw.actief && zichtbaar} disabled={!mw.actief} onChange={(e) => setZichtbaar(e.target.checked)} />Actief (zichtbaar in de planning)
+          </label>
+          {mw.actief && !zichtbaar && <span className="hint" style={{ marginTop: -8 }}>Verborgen in de planning. Easyflex2go verandert dit niet; zet het vinkje weer aan om de medewerker terug te zetten.</span>}
         </>
       ) : (
         <label className="vink"><input type="checkbox" checked={actief} onChange={(e) => setActief(e.target.checked)} />Actief (zichtbaar in de planning)</label>

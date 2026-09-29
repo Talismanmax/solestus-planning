@@ -8,7 +8,7 @@ type Db = Awaited<ReturnType<typeof createClient>>;
 export async function laadWeek(supabase: Db, jaar: number, week: number, maandag: string) {
   const zondag = plusDagen(maandag, 6);
   const [mw, og, vk, af, op, laatst, rt] = await Promise.all([
-    supabase.from("medewerkers").select("id, naam, groep, bv, nationaliteit, certificaten, bron, volgorde, vaste_inzet, telefoon").eq("actief", true).order("volgorde").order("naam"),
+    supabase.from("medewerkers").select("id, naam, groep, bv, nationaliteit, certificaten, bron, volgorde, vaste_inzet, telefoon").eq("actief", true).eq("verborgen", false).order("volgorde").order("naam"),
     supabase.from("opdrachtgevers").select("id, naam, korte_naam, plaats, verborgen").eq("actief", true).order("naam"),
     supabase.from("vakken").select("id, medewerker_id, datum, status, opdrachtgever_id, notitie").gte("datum", maandag).lte("datum", zondag),
     supabase.from("afwezigheid").select("id, medewerker_id, soort, van, tot_en_met").lte("van", zondag).gte("tot_en_met", maandag),
@@ -38,7 +38,7 @@ export async function laadScania(supabase: Db, maandag: string) {
   const [ritten, chauffeurs, scania, afw, vakken] = await Promise.all([
     supabase.from("scania_ritten").select("id, vertrekdatum, dienst, route, chauffeur_id, notitie, rit_delen(id, volgorde, van, naar, vertrek, aankomst)")
       .gte("vertrekdatum", plusDagen(maandag, -2)).lte("vertrekdatum", plusDagen(zondag, 1)).order("vertrekdatum"),
-    supabase.from("medewerkers").select("id, naam, groep, nationaliteit").eq("actief", true).in("groep", ["nl", "int"]).order("naam"),
+    supabase.from("medewerkers").select("id, naam, groep, nationaliteit").eq("actief", true).eq("verborgen", false).in("groep", ["nl", "int"]).order("naam"),
     supabase.from("opdrachtgevers").select("id, naam").ilike("naam", SCANIA_RELATIE).eq("actief", true).limit(1).maybeSingle(),
     supabase.from("afwezigheid").select("id, medewerker_id, soort, van, tot_en_met").lte("van", zondag).gte("tot_en_met", maandag),
     supabase.from("vakken").select("id, medewerker_id, datum, status, opdrachtgever_id, notitie").gte("datum", maandag).lte("datum", zondag),
@@ -59,7 +59,7 @@ export type AfwezigheidMetNaam = Afwezigheid & { naam: string };
 export async function laadOverzicht(supabase: Db, maandag: string) {
   const zondag = plusDagen(maandag, 6);
   const [mw, og, vk, af] = await Promise.all([
-    supabase.from("medewerkers").select("id, naam, groep").eq("actief", true).order("naam"),
+    supabase.from("medewerkers").select("id, naam, groep").eq("actief", true).eq("verborgen", false).order("naam"),
     // Ook inactieve opdrachtgevers: een vak kan nog naar een oude opdrachtgever verwijzen.
     supabase.from("opdrachtgevers").select("id, naam, korte_naam"),
     supabase.from("vakken").select("id, medewerker_id, datum, status, opdrachtgever_id, notitie").gte("datum", maandag).lte("datum", zondag),

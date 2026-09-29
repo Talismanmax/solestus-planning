@@ -64,8 +64,10 @@ export default function Stamgegevens(p: {
   }
 
   const q = zoek.trim().toLowerCase();
-  const actief = p.medewerkers.filter((m) => m.actief);
-  const mws = p.medewerkers.filter((m) => (ookInactief || m.actief) && (!q || m.naam.toLowerCase().includes(q) || (m.ef_registratienummer ?? "").toLowerCase().includes(q)));
+  const zichtbaar = (m: Mw) => m.actief && !m.verborgen;
+  const actief = p.medewerkers.filter(zichtbaar);
+  const verborgenAantal = p.medewerkers.filter((m) => m.actief && m.verborgen).length;
+  const mws = p.medewerkers.filter((m) => (ookInactief || zichtbaar(m)) && (!q || m.naam.toLowerCase().includes(q) || (m.ef_registratienummer ?? "").toLowerCase().includes(q)));
   const kiesbaar = p.opdrachtgevers.filter((o) => !o.verborgen);
   const ogs = p.opdrachtgevers.filter((o) => (ookVerborgen || !o.verborgen) && (!q || o.naam.toLowerCase().includes(q) || (o.korte_naam ?? "").toLowerCase().includes(q) || String(o.ef_relatie_id ?? "").includes(q)));
 
@@ -113,9 +115,9 @@ export default function Stamgegevens(p: {
       <section className="kaart stam-kaart" aria-labelledby="h-mw">
         <div className="stam-kop">
           <h2 id="h-mw">Medewerkers</h2>
-          <span>{actief.length} actief · {efAantal} uit Easyflex2go · {actief.length - efAantal} handmatig</span>
+          <span>{actief.length} actief · {efAantal} uit Easyflex2go · {actief.length - efAantal} handmatig{verborgenAantal ? ` · ${verborgenAantal} verborgen` : ""}</span>
           <div style={{ flexGrow: 1 }} />
-          <label className="vink" style={{ fontSize: 13 }}><input type="checkbox" checked={ookInactief} onChange={(e) => setOokInactief(e.target.checked)} />Ook niet-actieve</label>
+          <label className="vink" style={{ fontSize: 13 }}><input type="checkbox" checked={ookInactief} onChange={(e) => setOokInactief(e.target.checked)} />Ook niet-actieve en verborgen</label>
           {p.magWijzigen && <button type="button" className="knop" onClick={() => setAfleiden(true)}>Vaste inzet afleiden</button>}
           {p.magWijzigen && <button type="button" className="knop knop-zwart" onClick={() => setNieuw(true)}><Icoon naam="plus" />Kantoormedewerker toevoegen</button>}
         </div>
@@ -128,8 +130,8 @@ export default function Stamgegevens(p: {
               return [
                 <tr key={g.id} className="groep"><td colSpan={8}><span><span className="bolletje" />{g.label}</span></td></tr>,
                 ...lijst.map((m) => (
-                  <tr key={m.id} style={{ opacity: m.actief ? 1 : 0.5 }} {...klikbaar(() => setBewerk(m))}>
-                    <td><strong>{m.naam}</strong>{!m.actief && <div className="hint">niet actief{m.ef_status ? ` (${m.ef_status.toLowerCase()})` : ""}</div>}</td>
+                  <tr key={m.id} style={{ opacity: zichtbaar(m) ? 1 : 0.5 }} {...klikbaar(() => setBewerk(m))}>
+                    <td><strong>{m.naam}</strong>{!m.actief ? <div className="hint">niet actief{m.ef_status ? ` (${m.ef_status.toLowerCase()})` : ""}</div> : m.verborgen && <div className="hint">verborgen in de planning</div>}</td>
                     <td>{m.bron === "easyflex" ? <span className="nr">{m.ef_registratienummer ?? "–"} <span className="bron-ef">EF2GO</span></span> : <span className="bron-hand">handmatig</span>}</td>
                     <td>{m.nationaliteit ?? "–"}</td>
                     <td>{m.werkmaatschappijen.length > 1 ? `${m.werkmaatschappijen.length} werkmaatschappijen` : m.bv ?? "–"}</td>
