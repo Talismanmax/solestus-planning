@@ -1,4 +1,4 @@
-import { STATUS, plusDagen, type Afwezigheid, type Medewerker, type Opdrachtgever, type Vak, type VakStatus } from "@/lib/planning";
+import { STATUS, opdrachtgeverLabel, plusDagen, type Afwezigheid, type Medewerker, type Opdrachtgever, type Vak, type VakStatus } from "@/lib/planning";
 
 export type OverzichtMedewerker = Pick<Medewerker, "id" | "naam" | "groep">;
 
@@ -28,7 +28,7 @@ export type Overzicht = {
 
 export function berekenOverzicht(maandag: string, medewerkers: OverzichtMedewerker[], opdrachtgevers: Pick<Opdrachtgever, "id" | "naam" | "korte_naam">[], vakken: Vak[], afwezigheid: Afwezigheid[]): Overzicht {
   const vakBij = new Map(vakken.map((v) => [`${v.medewerker_id}|${v.datum}`, v]));
-  const ogNaam = new Map(opdrachtgevers.map((o) => [o.id, o.korte_naam || o.naam]));
+  const ogNaam = new Map(opdrachtgevers.map((o) => [o.id, opdrachtgeverLabel(o)]));
   const bezetting = new Map<string, { perDag: number[]; wie: Set<string> }>();
   const beschikbaar: string[][] = Array.from({ length: 7 }, () => []);
   const afwezig: string[][] = Array.from({ length: 7 }, () => []);

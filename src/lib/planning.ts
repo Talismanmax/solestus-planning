@@ -33,6 +33,15 @@ export type Medewerker = {
   certificaten: string[]; bron: "easyflex" | "handmatig"; volgorde: number;
 };
 export type Opdrachtgever = { id: string; naam: string; korte_naam: string | null; plaats: string | null };
+
+/** De Easyflex2go-relatie waaronder de Scania-ritten vallen. */
+export const SCANIA_RELATIE = "Manpower AB";
+
+/** Naam zoals de planning die toont: korte naam, anders "Scania" voor de Scania-relatie, anders de volledige naam. */
+export function opdrachtgeverLabel(og: Pick<Opdrachtgever, "naam" | "korte_naam">) {
+  if (og.korte_naam) return og.korte_naam;
+  return og.naam.toLowerCase() === SCANIA_RELATIE.toLowerCase() ? "Scania" : og.naam;
+}
 export type Vak = { id: string; medewerker_id: string; datum: string; status: VakStatus; opdrachtgever_id: string | null; notitie: string | null };
 export type Afwezigheid = { id: string; medewerker_id: string; soort: VakStatus; van: string; tot_en_met: string; notitie?: string | null };
 

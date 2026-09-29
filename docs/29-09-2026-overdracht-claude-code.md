@@ -58,7 +58,7 @@ Lees dit eerst. Het beschrijft de stand van zaken, waar alles draait en wat nog 
 
 ## Open vragen aan Max
 
-1. Welke Easyflex2go-relatie is Scania? (Nu zoekt de Scania-pagina op "scania" in de naam en vindt niets; "Manpower AB" is een kandidaat.)
+1. ~~Welke Easyflex2go-relatie is Scania?~~ Beantwoord: **Manpower AB** (constante `SCANIA_RELATIE` in `src/lib/planning.ts`).
 2. Horen medewerkers van Solestus Payroll Solutions B.V. in de planning?
 3. Medewerkers zonder nationaliteit: bij Chauffeurs NL laten of apart?
 4. Interne relaties verbergen (Solestus-BV's, "Uitbetaling reserveringen", "Test Relatie")?

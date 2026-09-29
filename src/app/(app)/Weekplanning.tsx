@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import PaneelSchil from "@/components/PaneelSchil";
 import { createClient } from "@/lib/supabase/client";
 import {
-  GROEPEN, STATUS, STATUS_VOLGORDE, dagInfo, plusDagen, tijdstipNL, vandaagNL, weekBereik, weekParam,
+  GROEPEN, STATUS, STATUS_VOLGORDE, dagInfo, opdrachtgeverLabel, plusDagen, tijdstipNL, vandaagNL, weekBereik, weekParam,
   type Afwezigheid, type Medewerker, type Opdrachtgever, type Vak, type VakStatus, type WeekOpmerking,
 } from "@/lib/planning";
 
@@ -52,7 +52,7 @@ export default function Weekplanning(p: Props) {
     if (v) {
       const s = STATUS[v.status];
       const og = v.opdrachtgever_id ? ogById.get(v.opdrachtgever_id) : undefined;
-      return { label: v.status === "werk" ? og?.korte_naam || og?.naam || "Ingezet" : s.label, sub: v.notitie ?? "", bg: s.bg, fg: s.fg, periode: false, open: false, status: v.status as VakStatus };
+      return { label: v.status === "werk" ? (og ? opdrachtgeverLabel(og) : "Ingezet") : s.label, sub: v.notitie ?? "", bg: s.bg, fg: s.fg, periode: false, open: false, status: v.status as VakStatus };
     }
     const a = afwezigOp(mw.id, datum);
     if (a) { const s = STATUS[a.soort]; return { label: s.label, sub: "", bg: s.bg, fg: s.fg, periode: true, open: false, status: a.soort }; }

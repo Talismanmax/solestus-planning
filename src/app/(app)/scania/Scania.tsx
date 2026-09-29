@@ -106,7 +106,7 @@ export default function Scania(p: Props) {
       </div>
 
       {p.laadFout && <div className="melding melding-fout" role="alert" style={{ maxWidth: "none", marginBottom: 14 }}><strong>Laden is niet gelukt</strong>{p.laadFout}</div>}
-      {!p.scaniaId && <div className="voorbeeld">Opdrachtgever Scania is niet gevonden in de stamgegevens. Ritten worden wel opgeslagen, maar niet in de weekplanning gezet.</div>}
+      {!p.scaniaId && <div className="voorbeeld">Opdrachtgever Scania (Easyflex2go-relatie “Manpower AB”) is niet gevonden in de stamgegevens. Ritten worden wel opgeslagen, maar niet in de weekplanning gezet.</div>}
 
       <div className="werkbalk">
         <div style={{ flexGrow: 1 }} />
