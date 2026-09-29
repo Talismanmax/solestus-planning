@@ -93,7 +93,7 @@ export default function Stamgegevens(p: { medewerkers: Mw[]; opdrachtgevers: Og[
       <div className="werkbalk">
         <div className="seg" role="group" aria-label="Soort">
           <button type="button" aria-pressed={tab === "mw"} onClick={() => setTab("mw")}>Medewerkers · {p.medewerkers.length}</button>
-          <button type="button" aria-pressed={tab === "og"} onClick={() => setTab("og")}>Opdrachtgevers · {p.opdrachtgevers.length}</button>
+          <button type="button" aria-pressed={tab === "og"} onClick={() => setTab("og")}>Opdrachtgevers · {p.opdrachtgevers.filter((o) => !o.verborgen).length} kiesbaar</button>
         </div>
         <input className="zoek" type="search" placeholder="Zoeken" aria-label="Zoeken" value={zoek} onChange={(e) => setZoek(e.target.value)} />
       </div>
@@ -120,14 +120,14 @@ export default function Stamgegevens(p: { medewerkers: Mw[]; opdrachtgevers: Og[
         </table>
       ) : (
         <table className="tabel">
-          <thead><tr><th>Naam</th><th>Plaats</th><th>KvK</th><th>Werkmaatschappijen</th><th>Bron</th></tr></thead>
+          <thead><tr><th>Naam</th><th>Plaats</th><th>Status in Easyflex2go</th><th>KvK</th><th>Werkmaatschappijen</th><th>Bron</th></tr></thead>
           <tbody>
             {ogs.map((o) => (
               <tr key={o.id} style={{ opacity: o.verborgen ? 0.5 : 1 }} className={p.magWijzigen ? "klikbaar" : undefined}
                 onClick={p.magWijzigen ? () => setBewerkOg(o) : undefined}
                 onKeyDown={p.magWijzigen ? (e) => { if (e.key === "Enter") setBewerkOg(o); } : undefined}
                 tabIndex={p.magWijzigen ? 0 : undefined}>
-                <td><strong>{o.naam}</strong>{(o.korte_naam || opdrachtgeverLabel(o) !== o.naam) && <div className="hint">in het rooster: {opdrachtgeverLabel(o)}</div>}{o.verborgen && <div className="hint">verborgen in de planning</div>}</td><td>{o.plaats ?? "–"}</td><td>{o.kvk_nummer ?? "–"}</td><td>{o.werkmaatschappijen.map((w) => w.replace(/^Solestus /, "").replace(/ B\.V\.$/, "")).join(", ") || "–"}{o.werkmaatschappijen.length > 1 && <div className="hint">samengevoegd uit {o.werkmaatschappijen.length} relaties</div>}</td><td><Slot /></td></tr>
+                <td><strong>{o.naam}</strong>{(o.korte_naam || opdrachtgeverLabel(o) !== o.naam) && <div className="hint">in het rooster: {opdrachtgeverLabel(o)}</div>}{o.verborgen && <div className="hint">verborgen in de planning</div>}</td><td>{o.plaats ?? "–"}</td><td>{o.ef_status ?? "–"}</td><td>{o.kvk_nummer ?? "–"}</td><td>{o.werkmaatschappijen.map((w) => w.replace(/^Solestus /, "").replace(/ B\.V\.$/, "")).join(", ") || "–"}{o.werkmaatschappijen.length > 1 && <div className="hint">samengevoegd uit {o.werkmaatschappijen.length} relaties</div>}</td><td><Slot /></td></tr>
             ))}
           </tbody>
         </table>

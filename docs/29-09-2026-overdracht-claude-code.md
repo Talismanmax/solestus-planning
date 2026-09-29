@@ -61,7 +61,7 @@ Lees dit eerst. Het beschrijft de stand van zaken, waar alles draait en wat nog 
 1. ~~Welke Easyflex2go-relatie is Scania?~~ Beantwoord: **Manpower AB** (constante `SCANIA_RELATIE` in `src/lib/planning.ts`).
 2. Horen medewerkers van Solestus Payroll Solutions B.V. in de planning?
 3. Medewerkers zonder nationaliteit: bij Chauffeurs NL laten of apart?
-4. Interne relaties verbergen (Solestus-BV's, "Uitbetaling reserveringen", "Test Relatie")?
+4. ~~Interne relaties verbergen?~~ Gedaan: opdrachtgevers die in Easyflex2go niet op Actief staan zijn automatisch verborgen (kolom `verborgen`, volgt de status); de Solestus-BV's, "Test Relatie" en "Uitbetaling reserveringen" zijn handmatig verborgen.
 5. Controleren: "Sluyter Logistics Deventer B.V." en "Zwier Veldhoen" zijn samengevoegd op hetzelfde KvK-nummer.
 6. Twee medewerkers met dezelfde naam maar verschillend registratienummer — zelfde persoon?
 7. Definitie van de Scania-standaardweek.

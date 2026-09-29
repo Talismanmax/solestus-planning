@@ -7,7 +7,7 @@ import { isoWeek, maandagVan, opdrachtgeverLabel, plusDagen, vandaagNL } from "@
 
 export type OgStam = {
   id: string; naam: string; plaats: string | null; korte_naam: string | null; actief: boolean; verborgen: boolean;
-  werkmaatschappijen: string[]; kvk_nummer: number | null; ef_relatie_id: number | null;
+  werkmaatschappijen: string[]; kvk_nummer: number | null; ef_relatie_id: number | null; ef_status: string | null;
 };
 
 /** Opdrachtgever bewerken: korte naam en zichtbaarheid horen bij de planning, de rest komt uit Easyflex2go. */
@@ -72,6 +72,7 @@ export default function OpdrachtgeverPaneel({ og, onSluit, onKlaar }: {
         <label className="veld"><span>Plaats</span><input className="invoer" value={og.plaats ?? "–"} disabled /></label>
         <label className="veld"><span>KvK-nummer</span><input className="invoer" value={og.kvk_nummer ?? "–"} disabled /></label>
       </div>
+      <label className="veld"><span>Status in Easyflex2go</span><input className="invoer" value={og.ef_status ?? "–"} disabled /></label>
       {og.werkmaatschappijen.length > 0 && (
         <label className="veld"><span>Werkmaatschappijen</span><input className="invoer" value={og.werkmaatschappijen.join(", ")} disabled /></label>
       )}
@@ -89,7 +90,8 @@ export default function OpdrachtgeverPaneel({ og, onSluit, onKlaar }: {
         Kiesbaar in de planning
       </label>
       <span className="hint" style={{ marginTop: -10 }}>
-        Zet dit uit voor interne relaties of testrelaties. Wat al ingepland is, blijft staan.
+        Relaties die in Easyflex2go niet op Actief staan, zijn automatisch niet kiesbaar; verandert de status daar, dan past de planning dit aan.
+        Zet dit zelf uit voor interne relaties of testrelaties. Wat al ingepland is, blijft staan.
         {!og.actief && " Deze relatie staat niet (meer) in Easyflex2go en is daarom sowieso niet kiesbaar."}
       </span>
     </PaneelSchil>

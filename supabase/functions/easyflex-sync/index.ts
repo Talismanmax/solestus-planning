@@ -21,6 +21,7 @@ type FlexWorker = {
 type Relatie = {
   id: number; name: string; chamber_of_commerce_number: number | null;
   visiting_address?: { city: string | null } | null; operating_company?: { name: string } | null;
+  state?: { attribute: string | null; translation: string | null } | null;
 };
 
 // Zelfde klant bij meer werkmaatschappijen: samenvoegen op naam (zonder leestekens) of KvK-nummer.
@@ -40,7 +41,7 @@ function groepeer(relaties: Relatie[]) {
   const groepen = new Map<number, Relatie[]>();
   for (const r of relaties) { const w = vind(r.id); groepen.set(w, [...(groepen.get(w) ?? []), r]); }
   return [...groepen.values()].map((leden) => ({
-    leden: leden.map((r) => ({ id: r.id, naam: r.name, kvk: r.chamber_of_commerce_number ? String(r.chamber_of_commerce_number) : "", plaats: r.visiting_address?.city ?? "", wm: r.operating_company?.name ?? null })),
+    leden: leden.map((r) => ({ id: r.id, naam: r.name, kvk: r.chamber_of_commerce_number ? String(r.chamber_of_commerce_number) : "", plaats: r.visiting_address?.city ?? "", wm: r.operating_company?.name ?? null, status: r.state?.attribute ?? r.state?.translation ?? null })),
   }));
 }
 
@@ -111,7 +112,7 @@ Deno.serve(async (req) => {
   try {
     const [flex, relaties] = await Promise.all([
       haalAlles<FlexWorker>(db, "/flex-workers", "&include=operating_company,labels"),
-      haalAlles<Relatie>(db, "/relations", "&include=visiting_address,operating_company"),
+      haalAlles<Relatie>(db, "/relations", "&include=visiting_address,operating_company,state"),
     ]);
     // Medewerkers: records van dezelfde persoon (zelfde registratienummer) samenvoegen
     const RANG: Record<number, number> = { 2: 4, 1: 3, 3: 2, 4: 1 };
