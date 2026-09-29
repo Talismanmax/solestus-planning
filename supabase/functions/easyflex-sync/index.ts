@@ -134,7 +134,8 @@ Deno.serve(async (req) => {
           wm: f.operating_company?.name ?? null,
           status: STATUS[f.flex_worker_state] ?? String(f.flex_worker_state),
           rang: f.deleted_at ? 0 : (RANG[f.flex_worker_state] ?? 0),
-          actief: !f.deleted_at && (f.flex_worker_state === 1 || f.flex_worker_state === 2),
+          // Alleen status Actief telt; Ingeschreven, Passief en Uitgeschreven zijn verborgen in de planning.
+          actief: !f.deleted_at && f.flex_worker_state === 2,
           certificaten: (f.labels ?? []).map((l) => l.label_name).filter(Boolean),
         };
       }),
