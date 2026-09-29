@@ -33,9 +33,9 @@ async function haalAlles<T>(pad: string, params: Record<string, string>): Promis
     const r = await fetch(`${BASIS}${pad}?${q}`, { headers: { Authorization: `Bearer ${token}`, From: from, Accept: "application/json" } });
     if (!r.ok) {
       const tekst = (await r.text()).slice(0, 300);
-      const ruw = Deno.env.get("EASYFLEX_API_TOKEN") ?? "";
-      const info = r.status === 401 ? ` (token: ${token.length} tekens, spaties/aanhalingstekens: ${/[\s"']/.test(ruw) ? "ja" : "nee"}, From: ${from})` : "";
-      throw new Error(`Easyflex2go ${pad} gaf ${r.status}: ${tekst}${info}`);
+      if (r.status === 401) throw new Error(`Easyflex2go accepteert het API-token niet. Vraag een geldig tenant-token aan en zet het in Supabase (EASYFLEX_API_TOKEN).`);
+      if (r.status === 403) throw new Error(`Het API-token mist rechten voor ${pad} (nodig: flex_workers_read en relations_read).`);
+      throw new Error(`Easyflex2go ${pad} gaf ${r.status}: ${tekst}`);
     }
     const p = (await r.json()) as Pagina<T>;
     alles.push(...p.data);
