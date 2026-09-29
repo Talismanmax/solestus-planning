@@ -24,11 +24,25 @@ export function standaardDelen(datum: string, dienst: Dienst, route: Route): Rit
   if (route === "rade") {
     return [{ volgorde: 1, van: "Zwolle", naar: "Rade (swap) – Zwolle", vertrek: t(0, start), aankomst: t(eindDag, eind) }];
   }
+  // Terug uit Ishøj: dag vertrekt de volgende dag 09.00, nacht de volgende dag 20.00.
+  const terug = dienst === "dag" ? "09:00" : "20:00";
   return [
     { volgorde: 1, van: "Zwolle", naar: "Ishøj", vertrek: t(0, start), aankomst: t(eindDag, eind) },
-    { volgorde: 2, van: "Ishøj", naar: "Zwolle", vertrek: t(1, start), aankomst: t(1 + eindDag, eind) },
+    { volgorde: 2, van: "Ishøj", naar: "Zwolle", vertrek: t(1, terug), aankomst: t(1 + eindDag, eind) },
   ];
 }
+
+/** De vaste ritten van een gewone week: dag (0 = maandag), dienst en route. Tijden volgen uit standaardDelen. */
+export const STANDAARDWEEK: { dag: number; dienst: Dienst; route: Route }[] = [
+  { dag: 0, dienst: "dag", route: "ishoj" },
+  { dag: 1, dienst: "nacht", route: "ishoj" },
+  { dag: 2, dienst: "dag", route: "ishoj" },
+  { dag: 3, dienst: "nacht", route: "ishoj" },
+  { dag: 4, dienst: "dag", route: "ishoj" },
+  { dag: 5, dienst: "nacht", route: "rade" },
+  { dag: 6, dienst: "dag", route: "rade" },
+  { dag: 6, dienst: "nacht", route: "ishoj" },
+];
 
 export const begin = (r: Rit) => r.rit_delen.reduce((a, d) => (d.vertrek < a ? d.vertrek : a), r.rit_delen[0]?.vertrek ?? r.vertrekdatum + "T00:00:00Z");
 export const einde = (r: Rit) => r.rit_delen.reduce((a, d) => (d.aankomst > a ? d.aankomst : a), r.rit_delen[0]?.aankomst ?? r.vertrekdatum + "T23:59:00Z");

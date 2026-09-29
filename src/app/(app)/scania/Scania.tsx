@@ -8,7 +8,7 @@ import PaneelSchil, { PaneelVoet } from "@/components/PaneelSchil";
 import WeekKiezer from "@/components/WeekKiezer";
 import { createClient } from "@/lib/supabase/client";
 import { dagInfo, isoWeek, plusDagen, weekParam, type Afwezigheid, type Vak } from "@/lib/planning";
-import { ROUTE_NAAM, afwezigOp, deelRegel, ritMeldingen, ritTekst, rustVoor, RUST_UREN, standaardDelen, type Chauffeur, type Dienst, type Rit, type RitDeel, type Route } from "@/lib/scania";
+import { ROUTE_NAAM, STANDAARDWEEK, afwezigOp, deelRegel, ritMeldingen, ritTekst, rustVoor, RUST_UREN, standaardDelen, type Chauffeur, type Dienst, type Rit, type RitDeel, type Route } from "@/lib/scania";
 import { naarIso, naarLokaal } from "@/lib/tijd";
 
 type Props = {
@@ -56,6 +56,26 @@ export default function Scania(p: Props) {
   async function log(omschrijving: string, recordId?: string) {
     const { data } = await supabase.auth.getUser();
     if (data.user) await supabase.from("wijzigingen").insert({ gebruiker_id: data.user.id, omschrijving, tabel: "scania_ritten", record_id: recordId ?? null });
+  }
+
+  async function standaardWeekInvullen() {
+    setMenu(null);
+    setBezig(true);
+    // Ritten die er al staan (zelfde dag, dienst en route) niet dubbel toevoegen.
+    const ontbreekt = STANDAARDWEEK.map((s) => ({ ...s, datum: plusDagen(p.maandag, s.dag) }))
+      .filter((s) => !inWeek.some((r) => r.vertrekdatum === s.datum && r.dienst === s.dienst && r.route === s.route));
+    if (!ontbreekt.length) { setBezig(false); toon(`De standaardritten staan al in week ${p.week}.`); return; }
+    for (const s of ontbreekt) {
+      const { data: nieuw, error } = await supabase.from("scania_ritten").insert({ vertrekdatum: s.datum, dienst: s.dienst, route: s.route, chauffeur_id: null, notitie: null }).select("id").single();
+      if (error || !nieuw) { setBezig(false); toon("Invullen is deels mislukt.", true); router.refresh(); return; }
+      const delen = standaardDelen(s.datum, s.dienst, s.route).map((d) => ({ rit_id: nieuw.id, volgorde: d.volgorde, van: d.van, naar: d.naar, vertrek: d.vertrek, aankomst: d.aankomst }));
+      const { error: e2 } = await supabase.from("rit_delen").insert(delen);
+      if (e2) { setBezig(false); toon("Invullen is deels mislukt.", true); router.refresh(); return; }
+    }
+    await log(`Standaardweek ingevuld in week ${p.week}: ${ontbreekt.length} ${ontbreekt.length === 1 ? "rit" : "ritten"}`);
+    setBezig(false);
+    toon(`${ontbreekt.length} ${ontbreekt.length === 1 ? "rit" : "ritten"} toegevoegd`);
+    router.refresh();
   }
 
   async function vorigeWeekKopieren() {
@@ -123,11 +143,11 @@ export default function Scania(p: Props) {
                         <span className="export-icoon"><Icoon naam="kopie" maat={20} /></span>
                         <span><b>Vorige week kopiëren</b><small>Ritten van week {vorigeWeek} schuiven een week op, met of zonder chauffeurs</small></span>
                       </button>
-                      <button type="button" role="menuitem" className="export-keuze" style={{ height: "auto", minHeight: 64, padding: "10px 12px", opacity: 0.55, cursor: "default" }} disabled>
+                      <button type="button" role="menuitem" className="export-keuze" style={{ height: "auto", minHeight: 64, padding: "10px 12px" }} onClick={standaardWeekInvullen}>
                         <span className="export-icoon"><Icoon naam="wissel" maat={20} /></span>
-                        <span><b>Standaardweek invullen</b><small>Volgt zodra de vaste ritten van een gewone week zijn vastgesteld</small></span>
+                        <span><b>Standaardweek invullen</b><small>{STANDAARDWEEK.length} vaste ritten: ma–vr afwisselend dag en nacht naar Ishøj, za en zo Rade (swap), zo-nacht Ishøj; zonder chauffeurs</small></span>
                       </button>
-                      <span className="export-uitleg">Staan er al ritten in week {p.week}, dan komen de gekopieerde ritten erbij.</span>
+                      <span className="export-uitleg">Staan er al ritten in week {p.week}, dan komen de nieuwe ritten erbij. Standaardritten die er al staan, worden niet dubbel toegevoegd.</span>
                     </div>
                   ) : (
                     <div className="menu kopieer-menu" role="dialog" aria-label={`Ritten van week ${vorigeWeek} kopiëren`}>
@@ -202,7 +222,7 @@ export default function Scania(p: Props) {
               </button>
             );
           })}
-          {inWeek.length === 0 && <div className="rit-leeg">Nog geen ritten in week {p.week}.{p.magWijzigen ? " Voeg een rit toe of vul de week met de ritten van vorige week." : ""}</div>}
+          {inWeek.length === 0 && <div className="rit-leeg">Nog geen ritten in week {p.week}.{p.magWijzigen ? " Voeg een rit toe, of vul de week met de standaardweek of de ritten van vorige week." : ""}</div>}
         </section>
 
         <aside className="scania-zij">
