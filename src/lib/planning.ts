@@ -31,7 +31,43 @@ export type Groep = (typeof GROEPEN)[number]["id"];
 export type Medewerker = {
   id: string; naam: string; groep: Groep; bv: string | null; nationaliteit: string | null;
   certificaten: string[]; bron: "easyflex" | "handmatig"; volgorde: number;
+  vaste_inzet?: VasteInzet | null;
 };
+
+/** Vaste inzet van een medewerker (kolom medewerkers.vaste_inzet). Dagen: 0 = maandag … 6 = zondag. */
+export type VasteInzet = { status: "werk" | "kantoor" | "thuiswerk"; opdrachtgever_id: string | null; dagen: number[] };
+
+const DAG_AFK = ["ma", "di", "wo", "do", "vr", "za", "zo"];
+
+/** "ma–vr", "ma, wo" of "ma–do, za". */
+export function dagenLabel(dagen: number[]): string {
+  const d = [...new Set(dagen)].filter((x) => x >= 0 && x <= 6).sort((a, b) => a - b);
+  const delen: string[] = [];
+  for (let i = 0; i < d.length; i++) {
+    let j = i;
+    while (j + 1 < d.length && d[j + 1] === d[j] + 1) j++;
+    delen.push(j - i >= 2 ? `${DAG_AFK[d[i]]}–${DAG_AFK[d[j]]}` : d.slice(i, j + 1).map((x) => DAG_AFK[x]).join(", "));
+    i = j;
+  }
+  return delen.join(", ");
+}
+
+/** Geldige vaste inzet, of null (leeg, geen dagen, of werk zonder opdrachtgever). */
+export function geldigeVasteInzet(v: unknown): VasteInzet | null {
+  if (!v || typeof v !== "object") return null;
+  const x = v as Partial<VasteInzet>;
+  if (!x.status || !["werk", "kantoor", "thuiswerk"].includes(x.status) || !Array.isArray(x.dagen) || !x.dagen.length) return null;
+  if (x.status === "werk" && !x.opdrachtgever_id) return null;
+  return { status: x.status, opdrachtgever_id: x.status === "werk" ? x.opdrachtgever_id ?? null : null, dagen: x.dagen.filter((d) => Number.isInteger(d) && d >= 0 && d <= 6) };
+}
+
+/** "Opdrachtgever B · ma–vr", "Kantoor · ma, wo" of "Geen". */
+export function vasteInzetLabel(v: unknown, opdrachtgevers: Map<string, Pick<Opdrachtgever, "naam" | "korte_naam">>): string {
+  const x = geldigeVasteInzet(v);
+  if (!x) return "Geen";
+  const wat = x.status === "werk" ? (opdrachtgevers.get(x.opdrachtgever_id!) ? opdrachtgeverLabel(opdrachtgevers.get(x.opdrachtgever_id!)!) : "Onbekende opdrachtgever") : STATUS[x.status].label;
+  return `${wat} · ${dagenLabel(x.dagen)}`;
+}
 export type Opdrachtgever = { id: string; naam: string; korte_naam: string | null; plaats: string | null };
 
 /** De Easyflex2go-relatie waaronder de Scania-ritten vallen. */

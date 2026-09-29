@@ -3,9 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { GROEPEN, tijdstipNL } from "@/lib/planning";
+import MedewerkerPaneel, { type MwStam } from "./MedewerkerPaneel";
+import { GROEPEN, tijdstipNL, vasteInzetLabel } from "@/lib/planning";
 
-type Mw = { id: string; naam: string; groep: string; bv: string | null; werkmaatschappijen: string[]; nationaliteit: string | null; certificaten: string[]; bron: string; ef_registratienummer: string | null; telefoon: string | null; actief: boolean };
+type Mw = MwStam;
 type Og = { id: string; naam: string; plaats: string | null; korte_naam: string | null; actief: boolean; werkmaatschappijen: string[]; kvk_nummer: number | null };
 
 const BVS = ["Solestus Shared Services B.V.", "Solestus Nederland B.V.", "Solestus Personeelsdiensten B.V.", "Solestus Payroll Solutions B.V."];
@@ -24,6 +25,9 @@ export default function Stamgegevens(p: { medewerkers: Mw[]; opdrachtgevers: Og[
   const [zoek, setZoek] = useState("");
   const [nieuw, setNieuw] = useState(false);
   const [fout, setFout] = useState<string | null>(null);
+  const [bewerk, setBewerk] = useState<Mw | null>(null);
+  const [toast, setToast] = useState<{ tekst: string; fout?: boolean } | null>(null);
+  const ogMap = useMemo(() => new Map(p.opdrachtgevers.map((o) => [o.id, o])), [p.opdrachtgevers]);
 
   const groepLabel = (g: string) => GROEPEN.find((x) => x.id === g)?.label ?? g;
   const mws = p.medewerkers.filter((m) => !zoek || m.naam.toLowerCase().includes(zoek.toLowerCase()));
@@ -74,14 +78,18 @@ export default function Stamgegevens(p: { medewerkers: Mw[]; opdrachtgevers: Og[
 
       {tab === "mw" ? (
         <table className="tabel">
-          <thead><tr><th>Naam</th><th>Groep</th><th>Nationaliteit</th><th>BV</th><th>Certificaten</th><th>Bron</th></tr></thead>
+          <thead><tr><th>Naam</th><th>Groep</th><th>Nationaliteit</th><th>BV</th><th>Vaste inzet</th><th>Certificaten</th><th>Bron</th></tr></thead>
           <tbody>
             {mws.map((m) => (
-              <tr key={m.id} style={{ opacity: m.actief ? 1 : 0.5 }}>
-                <td><strong>{m.naam}</strong>{m.ef_registratienummer && <div className="hint">Reg.nr. {m.ef_registratienummer}</div>}</td>
+              <tr key={m.id} style={{ opacity: m.actief ? 1 : 0.5 }} className={p.magWijzigen ? "klikbaar" : undefined}
+                onClick={p.magWijzigen ? () => setBewerk(m) : undefined}
+                onKeyDown={p.magWijzigen ? (e) => { if (e.key === "Enter") setBewerk(m); } : undefined}
+                tabIndex={p.magWijzigen ? 0 : undefined}>
+                <td><strong>{m.naam}</strong>{m.telefoon && <div className="hint">{m.telefoon}</div>}{m.ef_registratienummer && <div className="hint">Reg.nr. {m.ef_registratienummer}</div>}</td>
                 <td>{groepLabel(m.groep)}{m.bron === "easyflex" && <div className="hint">volgt uit nationaliteit</div>}</td>
                 <td>{m.nationaliteit ?? "–"}</td>
                 <td>{m.werkmaatschappijen.length > 1 ? m.werkmaatschappijen.join(", ") : m.bv ?? "–"}{m.werkmaatschappijen.length > 1 && <div className="hint">actief bij {m.werkmaatschappijen.length} werkmaatschappijen</div>}</td>
+                <td>{vasteInzetLabel(m.vaste_inzet, ogMap)}</td>
                 <td>{m.certificaten.join(", ") || "–"}</td>
                 <td>{m.bron === "easyflex" ? <Slot /> : "Handmatig"}</td>
               </tr>
@@ -98,6 +106,22 @@ export default function Stamgegevens(p: { medewerkers: Mw[]; opdrachtgevers: Og[
           </tbody>
         </table>
       )}
+
+      {bewerk && (
+        <MedewerkerPaneel
+          key={bewerk.id}
+          mw={bewerk}
+          opdrachtgevers={p.opdrachtgevers}
+          bvs={BVS}
+          onSluit={() => setBewerk(null)}
+          onKlaar={(tekst, fout) => {
+            if (!fout) { setBewerk(null); router.refresh(); }
+            setToast({ tekst, fout });
+            setTimeout(() => setToast(null), fout ? 6000 : 2500);
+          }}
+        />
+      )}
+      {toast && <div className={`toast${toast.fout ? " fout" : ""}`} role="status">{toast.tekst}</div>}
 
       {nieuw && (
         <>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import VasteInzetKnop from "./VasteInzetKnop";
 import WeekKopieren from "./WeekKopieren";
 import WijzigingenPaneel from "./WijzigingenPaneel";
 import AfwezigheidPaneel from "@/components/AfwezigheidPaneel";
@@ -11,7 +12,7 @@ import PaneelSchil from "@/components/PaneelSchil";
 import { weekNaarExcel } from "@/lib/excel";
 import { createClient } from "@/lib/supabase/client";
 import {
-  GROEPEN, STATUS, STATUS_VOLGORDE, celInhoud, dagInfo, dagTelling, isoWeek, periodeKort, plusDagen, tijdstipNL, vandaagNL, weekBereik, weekParam,
+  GROEPEN, STATUS, STATUS_VOLGORDE, celInhoud, dagInfo, dagTelling, geldigeVasteInzet, isoWeek, periodeKort, plusDagen, tijdstipNL, vandaagNL, weekBereik, weekParam,
   type Afwezigheid, type Medewerker, type Opdrachtgever, type Vak, type VakStatus, type WeekOpmerking,
 } from "@/lib/planning";
 
@@ -202,6 +203,28 @@ export default function Weekplanning(p: Props) {
     melding(`${rijen.length} vakken gekopieerd${aantalOpm ? ` en ${aantalOpm} opmerkingen` : ""}`);
   }
 
+  /** Lege vakken (geen vak, geen afwezigheid) op de dagen van iemands vaste inzet. */
+  const vasteInzetRijen = p.medewerkers.flatMap((m) => {
+    const v = geldigeVasteInzet(m.vaste_inzet);
+    if (!v) return [];
+    return v.dagen.map((i) => dagen[i]).filter((d) => !vakken.has(sleutel(m.id, d)) && !afwezigOp(m.id, d))
+      .map((datum) => ({ medewerker_id: m.id, datum, status: v.status as VakStatus, opdrachtgever_id: v.opdrachtgever_id }));
+  });
+
+  async function vasteInzetInvullen() {
+    if (!vasteInzetRijen.length) return;
+    const { data: auth } = await supabase.auth.getUser();
+    const nu = new Date().toISOString();
+    // ignoreDuplicates: een vak dat intussen door iemand anders is ingevuld, blijft staan.
+    const { data, error } = await supabase.from("vakken")
+      .upsert(vasteInzetRijen.map((r) => ({ ...r, notitie: null, gewijzigd_door: auth.user?.id ?? null, gewijzigd_op: nu })), { onConflict: "medewerker_id,datum", ignoreDuplicates: true })
+      .select(VAK_VELDEN);
+    if (error || !data) { melding("Invullen is niet gelukt. Er is niets veranderd.", true); return; }
+    setVakken((m) => { const n = new Map(m); (data as Vak[]).forEach((v) => n.set(sleutel(v.medewerker_id, v.datum), v)); return n; });
+    await logWijziging(`Vaste inzet ingevuld in week ${p.week}: ${data.length} vakken`, "vakken");
+    melding(`${data.length} vakken ingevuld met de vaste inzet`);
+  }
+
   function klikVak(e: React.MouseEvent, mw: Medewerker, i: number) {
     const k = sleutel(mw.id, dagen[i]);
     if (e.ctrlKey || e.metaKey || e.shiftKey || selectie.size > 0) {
@@ -300,6 +323,7 @@ export default function Weekplanning(p: Props) {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5M12 7v5l3 2" /></svg>
           Wijzigingen
         </button>
+        {p.magWijzigen && <VasteInzetKnop week={p.week} aantalVakken={vasteInzetRijen.length} aantalMedewerkers={new Set(vasteInzetRijen.map((r) => r.medewerker_id)).size || p.medewerkers.filter((m) => geldigeVasteInzet(m.vaste_inzet)).length} onInvullen={vasteInzetInvullen} />}
         {p.magWijzigen && <WeekKopieren week={p.week} vorigeWeek={vorigeIso.week} ingevuld={ingevuld} onKopieer={vorigeWeekKopieren} />}
         <ExportMenu
           uitleg={`Week ${p.week}${groep === "alle" ? "" : `, alleen ${GROEPEN.find((g) => g.id === groep)?.label}`}.`}
