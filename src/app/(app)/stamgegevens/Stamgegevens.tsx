@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { GROEPEN, tijdstipNL } from "@/lib/planning";
 
 type Mw = { id: string; naam: string; groep: string; bv: string | null; nationaliteit: string | null; certificaten: string[]; bron: string; ef_registratienummer: string | null; telefoon: string | null; actief: boolean };
-type Og = { id: string; naam: string; plaats: string | null; korte_naam: string | null; actief: boolean };
+type Og = { id: string; naam: string; plaats: string | null; korte_naam: string | null; actief: boolean; werkmaatschappijen: string[]; kvk_nummer: number | null };
 
 const BVS = ["Solestus Shared Services B.V.", "Solestus Nederland B.V.", "Solestus Personeelsdiensten B.V.", "Solestus Payroll Solutions B.V."];
 
@@ -90,10 +90,10 @@ export default function Stamgegevens(p: { medewerkers: Mw[]; opdrachtgevers: Og[
         </table>
       ) : (
         <table className="tabel">
-          <thead><tr><th>Naam</th><th>Korte naam</th><th>Plaats</th><th>Bron</th></tr></thead>
+          <thead><tr><th>Naam</th><th>Plaats</th><th>KvK</th><th>Werkmaatschappijen</th><th>Bron</th></tr></thead>
           <tbody>
             {ogs.map((o) => (
-              <tr key={o.id}><td><strong>{o.naam}</strong></td><td>{o.korte_naam ?? "–"}</td><td>{o.plaats ?? "–"}</td><td><Slot /></td></tr>
+              <tr key={o.id}><td><strong>{o.naam}</strong></td><td>{o.plaats ?? "–"}</td><td>{o.kvk_nummer ?? "–"}</td><td>{o.werkmaatschappijen.map((w) => w.replace(/^Solestus /, "").replace(/ B\.V\.$/, "")).join(", ") || "–"}{o.werkmaatschappijen.length > 1 && <div className="hint">samengevoegd uit {o.werkmaatschappijen.length} relaties</div>}</td><td><Slot /></td></tr>
             ))}
           </tbody>
         </table>

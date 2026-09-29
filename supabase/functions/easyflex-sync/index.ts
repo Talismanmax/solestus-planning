@@ -15,7 +15,31 @@ type FlexWorker = {
   flex_worker_state: number; deleted_at: string | null; type: number;
   operating_company?: { name: string } | null; labels?: { label_name: string }[];
 };
-type Relatie = { id: number; name: string; visiting_address?: { city: string | null } | null };
+type Relatie = {
+  id: number; name: string; chamber_of_commerce_number: number | null;
+  visiting_address?: { city: string | null } | null; operating_company?: { name: string } | null;
+};
+
+// Zelfde klant bij meer werkmaatschappijen: samenvoegen op naam (zonder leestekens) of KvK-nummer.
+const normaal = (naam: string) => naam.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+function groepeer(relaties: Relatie[]) {
+  const ouder = new Map<number, number>();
+  const vind = (x: number): number => { const p = ouder.get(x)!; if (p === x) return x; const r = vind(p); ouder.set(x, r); return r; };
+  const koppel = (a: number, b: number) => { const ra = vind(a), rb = vind(b); if (ra !== rb) ouder.set(Math.max(ra, rb), Math.min(ra, rb)); };
+  relaties.forEach((r) => ouder.set(r.id, r.id));
+  const opNaam = new Map<string, number>(), opKvk = new Map<number, number>();
+  for (const r of relaties) {
+    const n = normaal(r.name);
+    if (n) { if (opNaam.has(n)) koppel(r.id, opNaam.get(n)!); else opNaam.set(n, r.id); }
+    const k = r.chamber_of_commerce_number;
+    if (k) { if (opKvk.has(k)) koppel(r.id, opKvk.get(k)!); else opKvk.set(k, r.id); }
+  }
+  const groepen = new Map<number, Relatie[]>();
+  for (const r of relaties) { const w = vind(r.id); groepen.set(w, [...(groepen.get(w) ?? []), r]); }
+  return [...groepen.values()].map((leden) => ({
+    leden: leden.map((r) => ({ id: r.id, naam: r.name, kvk: r.chamber_of_commerce_number ? String(r.chamber_of_commerce_number) : "", plaats: r.visiting_address?.city ?? "", wm: r.operating_company?.name ?? null })),
+  }));
+}
 
 const STATUS = { 1: "Ingeschreven", 2: "Actief", 3: "Passief", 4: "Uitgeschreven" } as Record<number, string>;
 
@@ -66,7 +90,7 @@ Deno.serve(async (req) => {
   try {
     const [flex, relaties] = await Promise.all([
       haalAlles<FlexWorker>(db, "/flex-workers", "&include=operating_company,labels"),
-      haalAlles<Relatie>(db, "/relations", "&include=visiting_address"),
+      haalAlles<Relatie>(db, "/relations", "&include=visiting_address,operating_company"),
     ]);
     const nu = new Date().toISOString();
 
@@ -92,22 +116,13 @@ Deno.serve(async (req) => {
       if (error) throw new Error("Opslaan medewerkers: " + error.message);
     }
 
-    // Opdrachtgevers
-    const ogRijen = relaties.map((r) => ({
-      ef_relatie_id: r.id,
-      naam: r.name,
-      plaats: r.visiting_address?.city ?? null,
-      actief: true,
-      laatst_gesynchroniseerd: nu,
-    }));
-    for (let i = 0; i < ogRijen.length; i += 500) {
-      const { error } = await db.from("opdrachtgevers").upsert(ogRijen.slice(i, i + 500), { onConflict: "ef_relatie_id" });
-      if (error) throw new Error("Opslaan opdrachtgevers: " + error.message);
-    }
+    // Opdrachtgevers: relaties van dezelfde klant samenvoegen
+    const groepen = groepeer(relaties);
+    const { data: sv, error: svFout } = await db.rpc("opdrachtgevers_samenvoegen", { groepen });
+    if (svFout) throw new Error("Opslaan opdrachtgevers: " + svFout.message);
 
     // Wie niet meer in Easyflex2go staat, wordt inactief (niet verwijderd: de planning blijft bewaard).
     await db.from("medewerkers").update({ actief: false }).eq("bron", "easyflex").gt("ef_id", 0).lt("laatst_gesynchroniseerd", nu);
-    await db.from("opdrachtgevers").update({ actief: false }).gt("ef_relatie_id", 0).lt("laatst_gesynchroniseerd", nu);
 
     // Eerste echte synchronisatie: voorbeeldgegevens opruimen.
     let voorbeeldOpgeruimd = false;
@@ -120,8 +135,9 @@ Deno.serve(async (req) => {
       voorbeeldOpgeruimd = (count ?? 0) > 0 || vbOgIds.length > 0;
     }
 
-    await db.from("koppeling_log").insert({ gelukt: true, medewerkers_bijgewerkt: mwRijen.length, opdrachtgevers_bijgewerkt: ogRijen.length });
-    return json({ gelukt: true, medewerkers: mwRijen.length, opdrachtgevers: ogRijen.length, voorbeeldOpgeruimd });
+    const aantalOg = (sv as { opdrachtgevers: number } | null)?.opdrachtgevers ?? groepen.length;
+    await db.from("koppeling_log").insert({ gelukt: true, medewerkers_bijgewerkt: mwRijen.length, opdrachtgevers_bijgewerkt: aantalOg });
+    return json({ gelukt: true, medewerkers: mwRijen.length, relaties: relaties.length, opdrachtgevers: aantalOg, samengevoegd: (sv as { samengevoegd: number } | null)?.samengevoegd ?? 0, voorbeeldOpgeruimd });
   } catch (e) {
     const fout = e instanceof Error ? e.message : String(e);
     await db.from("koppeling_log").insert({ gelukt: false, foutmelding: fout.slice(0, 500) });

@@ -1,0 +1,2 @@
+-- Zie Supabase-migratie "opdrachtgevers_samenvoegen": tabel ef_relaties, kolommen kvk_nummer en
+-- werkmaatschappijen op opdrachtgevers, en functie public.opdrachtgevers_samenvoegen(jsonb).
