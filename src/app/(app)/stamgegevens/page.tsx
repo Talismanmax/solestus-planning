@@ -1,0 +1,20 @@
+import Stamgegevens from "./Stamgegevens";
+import { createClient, getGebruiker } from "@/lib/supabase/server";
+
+export default async function StamgegevensPagina() {
+  const supabase = await createClient();
+  const gebruiker = await getGebruiker();
+  const [mw, og, log] = await Promise.all([
+    supabase.from("medewerkers").select("id, naam, groep, bv, nationaliteit, certificaten, bron, ef_registratienummer, telefoon, actief").order("volgorde").order("naam"),
+    supabase.from("opdrachtgevers").select("id, naam, plaats, korte_naam, actief").order("naam"),
+    supabase.from("koppeling_log").select("tijdstip, gelukt, foutmelding").order("tijdstip", { ascending: false }).limit(1).maybeSingle(),
+  ]);
+  return (
+    <Stamgegevens
+      medewerkers={mw.data ?? []}
+      opdrachtgevers={og.data ?? []}
+      laatsteSync={log.data ?? null}
+      magWijzigen={gebruiker?.rol === "planner"}
+    />
+  );
+}
