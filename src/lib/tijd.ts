@@ -49,3 +49,9 @@ export function datumVan(iso: string): string {
   const x = delen(new Date(iso));
   return `${x.j}-${x.m}-${x.d}`;
 }
+
+/** "di 29 sep 2026 om 10.12" (Nederlandse tijd). */
+export function gemaaktOp(d: Date = new Date()): string {
+  const f = (o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("nl-NL", { timeZone: TZ, ...o }).format(d);
+  return `${f({ weekday: "short" }).replace(".", "")} ${f({ day: "numeric", month: "short", year: "numeric" }).replace(".", "")} om ${f({ hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).replace(":", ".")}`;
+}

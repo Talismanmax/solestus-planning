@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import "./scania.css";
 import { createClient } from "@/lib/supabase/client";
 import { STATUS, dagInfo, plusDagen, weekBereik, weekParam, type Afwezigheid, type Vak } from "@/lib/planning";
-import { ROUTE_KORT, ROUTE_NAAM, RUST_UREN, deelRegel, einde, ritTekst, rustVoor, standaardDelen, type Chauffeur, type Dienst, type Rit, type RitDeel, type Route } from "@/lib/scania";
+import { ROUTE_KORT, ROUTE_NAAM, RUST_UREN, afwezigOp, deelRegel, einde, ritTekst, ritWaarschuwingen, rustVoor, standaardDelen, type Chauffeur, type Dienst, type Rit, type RitDeel, type Route } from "@/lib/scania";
 import { naarIso, naarLokaal } from "@/lib/tijd";
 
 type Props = {
@@ -30,24 +30,8 @@ export default function Scania(p: Props) {
 
   function toon(t: string, fout = false) { setMelding({ t, fout }); setTimeout(() => setMelding(null), fout ? 6000 : 2500); }
 
-  function afwezig(mwId: string, datum: string): string | null {
-    const a = p.afwezigheid.find((x) => x.medewerker_id === mwId && x.van <= datum && x.tot_en_met >= datum);
-    if (a) return STATUS[a.soort].label.toLowerCase();
-    const v = p.vakken.find((x) => x.medewerker_id === mwId && x.datum === datum);
-    if (v && STATUS[v.status].soort === "weg") return STATUS[v.status].label.toLowerCase();
-    return null;
-  }
-
-  function waarschuwingen(r: Rit): string[] {
-    const w: string[] = [];
-    if (!r.chauffeur_id) return w;
-    const n = naam.get(r.chauffeur_id) ?? "Chauffeur";
-    const rust = rustVoor(r, p.ritten);
-    if (rust && rust.uren < RUST_UREN) w.push(`Maar ${Math.max(0, Math.round(rust.uren))} uur rust na de vorige rit (terug ${deelRegel({ ...rust.vorige.rit_delen[0], aankomst: einde(rust.vorige) }).tijden.split(" – ")[1]}).`);
-    const a = afwezig(r.chauffeur_id, r.vertrekdatum);
-    if (a) w.push(`${n} staat op ${a} op deze dag.`);
-    return w;
-  }
+  const afwezig = (mwId: string, datum: string) => afwezigOp(mwId, datum, p.afwezigheid, p.vakken);
+  const waarschuwingen = (r: Rit) => ritWaarschuwingen(r, p.ritten, naam, p.afwezigheid, p.vakken);
 
   async function vorigeWeekKopieren() {
     setMenu(null);
@@ -126,7 +110,7 @@ export default function Scania(p: Props) {
           {menu === "export" && (
             <div className="menu" role="menu" style={{ top: 48 }}>
               <button type="button" role="menuitem" className="menu-item" onClick={exportTekst}>Ritten als tekst</button>
-              <button type="button" role="menuitem" className="menu-item" disabled>PDF A4 liggend (volgt)</button>
+              <a role="menuitem" className="menu-item" href={`/afdruk/scania?week=${weekParam(p.maandag)}`} target="_blank" rel="noopener" onClick={() => setMenu(null)} style={{ textDecoration: "none" }}>PDF, A4 liggend</a>
             </div>
           )}
         </div>

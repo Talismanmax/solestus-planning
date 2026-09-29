@@ -47,6 +47,46 @@ export type Afwezigheid = { id: string; medewerker_id: string; soort: VakStatus;
 
 /** Soorten die als afwezigheid voor een periode kunnen worden ingevoerd (zie check in de database). */
 export const AFWEZIG_SOORTEN: VakStatus[] = ["vakantie", "vrij", "ziek", "nbb", "einde"];
+
+export type Cel = {
+  label: string; sub: string; bg: string; fg: string;
+  /** Afwezigheid uit een periode (cursief). */
+  periode: boolean;
+  /** Leeg op een werkdag: nog niet gepland. */
+  open: boolean;
+  /** Ingepland terwijl de medewerker afwezig is. */
+  conflict: boolean;
+  status: VakStatus | null;
+};
+
+/** Wat er in een vak van de weekplanning staat (scherm en PDF). */
+export function celInhoud(
+  mw: Pick<Medewerker, "id" | "groep">, datum: string, dagIndex: number, vak: Vak | undefined,
+  afwezigheid: Afwezigheid[], opdrachtgevers: Map<string, Pick<Opdrachtgever, "naam" | "korte_naam">>,
+): Cel {
+  const a = afwezigheid.find((x) => x.medewerker_id === mw.id && x.van <= datum && x.tot_en_met >= datum);
+  if (vak) {
+    const s = STATUS[vak.status];
+    const og = vak.opdrachtgever_id ? opdrachtgevers.get(vak.opdrachtgever_id) : undefined;
+    return {
+      label: vak.status === "werk" ? (og ? opdrachtgeverLabel(og) : "Ingezet") : s.label, sub: vak.notitie ?? "",
+      bg: s.bg, fg: s.fg, periode: false, open: false, conflict: !!a && s.soort === "in", status: vak.status,
+    };
+  }
+  if (a) { const s = STATUS[a.soort]; return { label: s.label, sub: "", bg: s.bg, fg: s.fg, periode: true, open: false, conflict: false, status: a.soort }; }
+  const open = dagIndex < 5 && mw.groep !== "kantoor";
+  return { label: open ? "Open" : "", sub: "", bg: "transparent", fg: "#231f20", periode: false, open, conflict: false, status: null };
+}
+
+/** Per dag: aantal ingezet en aantal open vakken. */
+export function dagTelling(cellen: Cel[]) {
+  let inzet = 0, open = 0;
+  for (const c of cellen) {
+    if (c.open) open++;
+    else if (c.status && STATUS[c.status].soort === "in") inzet++;
+  }
+  return { inzet, open };
+}
 export type WeekOpmerking = { id: string; medewerker_id: string; tekst: string };
 
 // ---- Datums (als yyyy-mm-dd, zonder tijdzone-gedoe) ----

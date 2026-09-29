@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import ExportMenu from "@/components/ExportMenu";
 import PaneelSchil from "@/components/PaneelSchil";
+import { weekNaarExcel } from "@/lib/excel";
 import { createClient } from "@/lib/supabase/client";
 import {
-  GROEPEN, STATUS, STATUS_VOLGORDE, dagInfo, opdrachtgeverLabel, plusDagen, tijdstipNL, vandaagNL, weekBereik, weekParam,
+  GROEPEN, STATUS, STATUS_VOLGORDE, celInhoud, dagInfo, dagTelling, plusDagen, tijdstipNL, vandaagNL, weekBereik, weekParam,
   type Afwezigheid, type Medewerker, type Opdrachtgever, type Vak, type VakStatus, type WeekOpmerking,
 } from "@/lib/planning";
 
@@ -47,31 +49,12 @@ export default function Weekplanning(p: Props) {
     return p.afwezigheid.find((a) => a.medewerker_id === mwId && a.van <= datum && a.tot_en_met >= datum);
   }
 
-  function celInhoud(mw: Medewerker, datum: string, i: number) {
-    const v = vakken.get(sleutel(mw.id, datum));
-    if (v) {
-      const s = STATUS[v.status];
-      const og = v.opdrachtgever_id ? ogById.get(v.opdrachtgever_id) : undefined;
-      return { label: v.status === "werk" ? (og ? opdrachtgeverLabel(og) : "Ingezet") : s.label, sub: v.notitie ?? "", bg: s.bg, fg: s.fg, periode: false, open: false, status: v.status as VakStatus };
-    }
-    const a = afwezigOp(mw.id, datum);
-    if (a) { const s = STATUS[a.soort]; return { label: s.label, sub: "", bg: s.bg, fg: s.fg, periode: true, open: false, status: a.soort }; }
-    const open = i < 5 && mw.groep !== "kantoor";
-    return { label: open ? "Open" : "", sub: "", bg: "transparent", fg: "#231f20", periode: false, open, status: null };
-  }
+  const cel = (mw: Medewerker, datum: string, i: number) => celInhoud(mw, datum, i, vakken.get(sleutel(mw.id, datum)), p.afwezigheid, ogById);
 
   const zichtbaar = p.medewerkers.filter((m) =>
     (groep === "alle" || m.groep === groep) && (!zoek || m.naam.toLowerCase().includes(zoek.toLowerCase())));
 
-  const telling = dagen.map((d, i) => {
-    let inzet = 0, open = 0;
-    p.medewerkers.forEach((m) => {
-      const c = celInhoud(m, d, i);
-      if (c.open) open++;
-      else if (c.status && STATUS[c.status].soort === "in") inzet++;
-    });
-    return { inzet, open };
-  });
+  const telling = dagen.map((d, i) => dagTelling(p.medewerkers.map((m) => cel(m, d, i))));
 
   async function logWijziging(omschrijving: string, tabel: string, recordId?: string) {
     const { data } = await supabase.auth.getUser();
@@ -166,6 +149,15 @@ export default function Weekplanning(p: Props) {
           {GROEPEN.map((g) => <button key={g.id} type="button" aria-pressed={groep === g.id} onClick={() => setGroep(g.id)}>{g.label}</button>)}
         </div>
         <button type="button" className="icoonknop" aria-label="Legenda" onClick={() => setLegenda(true)} style={{ fontWeight: 800 }}>?</button>
+        <div style={{ flexGrow: 1 }} />
+        <ExportMenu
+          uitleg={`Week ${p.week}${groep === "alle" ? "" : `, alleen ${GROEPEN.find((g) => g.id === groep)?.label}`}.`}
+          keuzes={[
+            { titel: "PDF, A4 liggend", sub: "hele week op één pagina", href: `/afdruk/week?week=${weekParam(p.maandag)}&groep=${groep}&stand=liggend`, soort: "liggend" },
+            { titel: "PDF, A4 staand", sub: "compact, met opmerkingen eronder", href: `/afdruk/week?week=${weekParam(p.maandag)}&groep=${groep}&stand=staand`, soort: "staand" },
+            { titel: "Excel", sub: "om verder te rekenen of te delen", onClick: () => weekNaarExcel({ ...p, vakken: [...vakken.values()], opmerkingen: [...opmerkingen.values()], groep }), soort: "excel" },
+          ]}
+        />
       </div>
 
       <div className="rooster">
@@ -208,7 +200,7 @@ export default function Weekplanning(p: Props) {
                         )}
                       </th>
                       {dagen.map((d, i) => {
-                        const c = celInhoud(m, d, i);
+                        const c = cel(m, d, i);
                         const gekozen = paneel?.soort === "vak" && paneel.mw.id === m.id && paneel.dag === i;
                         return (
                           <td key={d} className={`dagcel${i >= 5 ? " weekend" : ""}`}>
@@ -218,8 +210,9 @@ export default function Weekplanning(p: Props) {
                               style={{ background: c.bg, color: c.fg }}
                               disabled={!p.magWijzigen}
                               onClick={() => setPaneel({ soort: "vak", mw: m, dag: i })}
-                              aria-label={`${m.naam}, ${dagInfo(d, i).lang}: ${c.label || "leeg"}${c.sub ? ", " + c.sub : ""}`}
+                              aria-label={`${m.naam}, ${dagInfo(d, i).lang}: ${c.label || "leeg"}${c.sub ? ", " + c.sub : ""}${c.conflict ? ", ingepland tijdens afwezigheid" : ""}`}
                             >
+                              {c.conflict && <span className="conflict" title="Ingepland tijdens afwezigheid" aria-hidden="true">!</span>}
                               {c.label}
                               {c.sub && <small>{c.sub}</small>}
                             </button>

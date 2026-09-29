@@ -141,3 +141,23 @@ textarea.invoer { height: auto; min-height: 80px; padding: 10px 12px; resize: ve
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--zwart); color: var(--wit); padding: 12px 18px; border-radius: 14px; font-weight: 600; z-index: 60; }
 .toast.fout { background: var(--fout); }
 .leeg-staat { padding: 60px 24px; text-align: center; background: var(--grijs); border-radius: 18px; }
+
+/* Menu onder een knop, en exportmenu */
+.menu-anker { position: relative; }
+.menu-anker .menu { width: 260px; }
+.menu-sluiter { position: fixed; inset: 0; z-index: 45; }
+.menu-anker .export-menu { top: 50px; width: 320px; padding: 8px; gap: 2px; }
+.export-uitleg { padding: 10px 12px 8px; font-size: 13px; line-height: 18px; }
+.export-keuze { height: 60px; border: 0; border-radius: 12px; background: transparent; padding: 0 12px; display: flex; align-items: center; gap: 14px; text-align: left; text-decoration: none; cursor: pointer; width: 100%; }
+.export-keuze:hover { background: var(--grijs); }
+.export-keuze b { display: block; font-size: 14px; }
+.export-keuze small { display: block; font-size: 12px; }
+.export-icoon { width: 40px; height: 40px; flex-shrink: 0; border-radius: 10px; background: var(--grijs); display: flex; align-items: center; justify-content: center; }
+.export-keuze:hover .export-icoon { background: var(--wit); }
+.export-blad { border-radius: 3px; box-shadow: inset 0 0 0 2px var(--zwart); background: var(--wit); }
+.export-liggend { width: 24px; height: 17px; }
+.export-staand { width: 17px; height: 24px; }
+
+/* Ingepland tijdens afwezigheid */
+.vak { position: relative; }
+.conflict { position: absolute; right: 4px; top: 4px; width: 16px; height: 16px; border-radius: 8px; background: var(--fout); color: var(--wit); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }

@@ -1,3 +1,4 @@
+import { STATUS, type Afwezigheid, type Vak } from "./planning";
 import { dagTijd, naarIso, tijd } from "./tijd";
 
 export type Dienst = "dag" | "nacht";
@@ -40,6 +41,27 @@ export function rustVoor(rit: Rit, alle: Rit[]): { uren: number; vorige: Rit } |
   if (!eerder.length) return null;
   const vorige = eerder.reduce((a, r) => (einde(r) > einde(a) ? r : a));
   return { uren: (new Date(start).getTime() - new Date(einde(vorige)).getTime()) / 3600000, vorige };
+}
+
+/** Afwezigheid van een chauffeur op een dag (periode of vak), als kleine letters, of null. */
+export function afwezigOp(mwId: string, datum: string, afwezigheid: Afwezigheid[], vakken: Vak[]): string | null {
+  const a = afwezigheid.find((x) => x.medewerker_id === mwId && x.van <= datum && x.tot_en_met >= datum);
+  if (a) return STATUS[a.soort].label.toLowerCase();
+  const v = vakken.find((x) => x.medewerker_id === mwId && x.datum === datum);
+  if (v && STATUS[v.status].soort === "weg") return STATUS[v.status].label.toLowerCase();
+  return null;
+}
+
+/** Waarschuwingen bij een rit: te weinig rust, of de chauffeur is afwezig. */
+export function ritWaarschuwingen(r: Rit, alleRitten: Rit[], naam: Map<string, string>, afwezigheid: Afwezigheid[], vakken: Vak[]): string[] {
+  const w: string[] = [];
+  if (!r.chauffeur_id) return w;
+  const n = naam.get(r.chauffeur_id) ?? "Chauffeur";
+  const rust = rustVoor(r, alleRitten);
+  if (rust && rust.uren < RUST_UREN) w.push(`Maar ${Math.max(0, Math.round(rust.uren))} uur rust na de vorige rit (terug ${deelRegel({ ...rust.vorige.rit_delen[0], aankomst: einde(rust.vorige) }).tijden.split(" – ")[1]}).`);
+  const a = afwezigOp(r.chauffeur_id, r.vertrekdatum, afwezigheid, vakken);
+  if (a) w.push(`${n} staat op ${a} op deze dag.`);
+  return w;
 }
 
 /** Regels voor het bericht aan de chauffeur, zoals in het design. */

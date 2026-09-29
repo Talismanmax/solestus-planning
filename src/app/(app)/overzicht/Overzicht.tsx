@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import "./overzicht.css";
 import AfwezigheidPaneel from "@/components/AfwezigheidPaneel";
+import ExportMenu from "@/components/ExportMenu";
+import { overzichtNaarExcel } from "@/lib/excel";
+import type { AfwezigheidMetNaam } from "@/lib/laden";
 import { berekenOverzicht, type OverzichtMedewerker } from "@/lib/overzicht";
 import { STATUS, aantalDagen, periodeKort, plusDagen, vandaagNL, weekBereik, weekParam, type Afwezigheid, type Opdrachtgever, type Vak } from "@/lib/planning";
-
-type AfwezigheidMetNaam = Afwezigheid & { naam: string };
 
 type Props = {
   week: number; maandag: string;
@@ -50,6 +51,13 @@ export default function Overzicht(p: Props) {
           <Link className="icoonknop" href={`/overzicht?week=${vorigeWeek}`} aria-label="Vorige week"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg></Link>
           <Link className="knop" href="/overzicht">Deze week</Link>
           <Link className="icoonknop" href={`/overzicht?week=${volgendeWeek}`} aria-label="Volgende week"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg></Link>
+          <ExportMenu
+            uitleg={`Het overzicht van week ${p.week}.`}
+            keuzes={[
+              { titel: "PDF, A4 liggend", sub: "cijfers, bezetting en afwezigheid", href: `/afdruk/overzicht?week=${wp}`, soort: "liggend" },
+              { titel: "Excel", sub: "bezetting per opdrachtgever per dag", onClick: () => overzichtNaarExcel(p), soort: "excel" },
+            ]}
+          />
         </div>
       </div>
 
