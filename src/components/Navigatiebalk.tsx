@@ -12,6 +12,7 @@ const LINKS = [
   { href: "/", label: "Weekplanning", icoon: <><rect x="4" y="5" width="16" height="16" rx="2" /><path d="M8 3v4M16 3v4M4 11h16" /></> },
   { href: "/scania", label: "Scania-ritten", icoon: <><path d="M2 6h12v10H2z" /><path d="M14 10h4l3 3v3h-7" /><circle cx="6.5" cy="18" r="2" /><circle cx="17" cy="18" r="2" /></> },
   { href: "/overzicht", label: "Overzicht", icoon: <path d="M6 20V11M12 20V5M18 20v-6M3 20h18" /> },
+  { href: "/verloning", label: "Verloning", icoon: <><path d="M17.5 6.5A7 7 0 1 0 17.5 17.5" /><path d="M4 10.5h9M4 13.5h9" /></> },
   { href: "/stamgegevens", label: "Stamgegevens", icoon: <><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20c1-3.5 3.6-5.5 6.5-5.5s5.5 2 6.5 5.5" /><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c1.8.7 3 2.5 3.5 5.2" /></> },
 ];
 
@@ -52,9 +53,9 @@ export default function Navigatiebalk({ naam, email, rol, wijzigingenDezeWeek }:
         })}
       </nav>
       <div style={{ flexGrow: 1 }} />
-      <button type="button" className="nav-wijzigingen" onClick={() => setWijzigingen(true)} aria-label={`Wijzigingen, ${wijzigingenDezeWeek} deze week`}>
+      <button type="button" className="nav-wijzigingen" onClick={() => setWijzigingen(true)} title="Wijzigingen" aria-label={`Wijzigingen, ${wijzigingenDezeWeek} deze week`}>
         <Icoon naam="geschiedenis" />
-        Wijzigingen
+        <span className="nav-tekst">Wijzigingen</span>
         {wijzigingenDezeWeek > 0 && <span className="teller">{wijzigingenDezeWeek > 99 ? "99+" : wijzigingenDezeWeek}</span>}
       </button>
       <div className="profiel" ref={ref}>

@@ -1,0 +1,15 @@
+/* Verloning: rooster van de weekplanning, laatste kolom "Verwerkt" */
+.periode-tabs { display: inline-flex; }
+.periode-tabs a { height: 36px; padding: 0 16px; border-radius: 10px; display: inline-flex; align-items: center; font-size: 14px; font-weight: 700; text-decoration: none; }
+.periode-tabs a[aria-current="page"] { background: var(--zwart); color: var(--wit); }
+.periode-tabs a:not([aria-current="page"]):hover { background: var(--grijs); }
+.voortgang { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+.voortgang .balk { width: 160px; height: 10px; border-radius: 5px; background: var(--lijn); overflow: hidden; }
+.voortgang .balk i { display: block; height: 10px; border-radius: 5px; background: var(--zwart); }
+.verwerkt-cel { padding: 4px 12px; display: flex; flex-direction: column; justify-content: center; gap: 1px; min-width: 0; }
+.verwerkt-cel .vink { font-size: 13px; font-weight: 700; gap: 8px; }
+.verwerkt-cel small { font-size: 11px; padding-left: 26px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mwrij.is-verwerkt > :not(.verwerkt-cel) { opacity: 0.45; }
+.mwrij.is-verwerkt { background: var(--grijs); }
+.naamcel .opm { padding: 0 6px; font-size: 11px; line-height: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.verloning-rooster .rrij { grid-template-columns: 212px repeat(5, minmax(0, 1fr)) repeat(2, minmax(0, 0.7fr)) 168px; }

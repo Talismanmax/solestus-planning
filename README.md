@@ -36,5 +36,6 @@ Migraties staan in `supabase/migrations`. Row level security staat aan op alle t
 - [x] Afwezigheid voor een periode invoeren, wijzigen en verwijderen (vanuit Overzicht)
 - [x] Export: PDF (weekplanning liggend/staand, Scania, overzicht) via afdrukpagina's onder `/afdruk`, Excel (weekplanning, bezetting)
 - [x] Dark mode: Licht, Donker of Systeem via het profielmenu (per browser bewaard); PDF's blijven altijd licht
+- [x] Verloning: per 4-wekenperiode (periode 1 = week 1–4 … periode 13 = week 49 t/m laatste week) de planning week voor week, met per medewerker een vinkje "verwerkt" (wie en wanneer); voor iedereen die kan inloggen
 - [x] Koppeling Easyflex2go: elk uur (ma–za) en met "Nu bijwerken" in Stamgegevens (alleen planners). De cron-taak stuurt een geheime sleutel mee uit `private.instellingen`.
 - [x] Naam uit Microsoft bij inloggen (scope `openid email profile`; trigger vult een lege naam)

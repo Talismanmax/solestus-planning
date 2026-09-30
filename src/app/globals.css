@@ -167,11 +167,11 @@ button { cursor: pointer; }
 }
 
 /* Navigatiebalk */
-.nav { position: sticky; top: 0; z-index: 30; height: 72px; background: var(--wit); border-bottom: 1px solid var(--lijn); padding: 0 40px; display: flex; align-items: center; gap: 36px; }
+.nav { position: sticky; top: 0; z-index: 30; height: 72px; background: var(--wit); border-bottom: 1px solid var(--lijn); padding: 0 40px; display: flex; align-items: center; gap: 28px; }
 .nav-merk { display: flex; align-items: center; gap: 10px; text-decoration: none; }
 .nav-merk .zilla { font-size: 21px; line-height: 1; }
 .nav-links { display: flex; gap: 4px; }
-.nav-link { height: 42px; border-radius: 12px; padding: 0 16px; display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 15px; font-weight: 600; }
+.nav-link { height: 42px; border-radius: 12px; padding: 0 12px; display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: 15px; font-weight: 600; }
 .nav-link:hover { background: var(--grijs); }
 .nav-link[aria-current="page"] { background: var(--geel); font-weight: 700; }
 .nav-wijzigingen { height: 42px; border: 0; border-radius: 12px; padding: 0 14px; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; background: var(--grijs); }
@@ -408,6 +408,8 @@ button.pil[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--wit), 0 0 0 4px va
 .vakcel.weekend { background: var(--weekend); }
 .vakcel.weekend.geselecteerd, .vakcel.geselecteerd { background: var(--geel-licht); }
 .nav-link, .nav-wijzigingen { white-space: nowrap; }
+/* Smallere schermen: bij Wijzigingen alleen icoon en teller */
+@media (max-width: 1500px) { .nav-wijzigingen .nav-tekst { display: none; } }
 .paneel .dagkeuze { flex-wrap: nowrap; gap: 5px; }
 .paneel .dagkeuze button:not(.knop-link) { width: 42px; height: 42px; flex-shrink: 0; }
 

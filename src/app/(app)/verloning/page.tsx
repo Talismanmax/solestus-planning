@@ -1,0 +1,16 @@
+import Verloning from "./Verloning";
+import { laadVerloning } from "@/lib/laden";
+import { isoWeek, periodeUitParam, vandaagNL } from "@/lib/planning";
+import { createClient } from "@/lib/supabase/server";
+
+export default async function VerloningPagina({ searchParams }: { searchParams: Promise<{ periode?: string; week?: string }> }) {
+  const { periode: pp, week: wp } = await searchParams;
+  const periode = periodeUitParam(pp);
+  // Tab: de gevraagde week, anders de huidige week als die in de periode valt, anders de eerste.
+  const nu = isoWeek(vandaagNL());
+  const week = periode.weken.includes(Number(wp)) ? Number(wp)
+    : nu.jaar === periode.jaar && periode.weken.includes(nu.week) ? nu.week : periode.weken[0];
+  const supabase = await createClient();
+  const data = await laadVerloning(supabase, periode.jaar, periode.periode, periode.weken);
+  return <Verloning periode={periode} week={week} {...data} />;
+}

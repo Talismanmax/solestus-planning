@@ -162,6 +162,35 @@ export function weekUitParam(p?: string): { jaar: number; week: number; maandag:
 
 export const weekParam = (maandag: string) => { const w = isoWeek(maandag); return `${w.jaar}-W${w.week}`; };
 
+// ---- Verloningsperiodes van 4 weken: periode 1 = week 1–4, …, periode 13 = week 49 t/m de laatste week ----
+/** Aantal ISO-weken in een jaar (52 of 53): 28 december valt altijd in de laatste week. */
+export const wekenInJaar = (jaar: number) => isoWeek(`${jaar}-12-28`).week;
+
+export type Periode = { jaar: number; periode: number; weken: number[] };
+
+export function periodeVan(jaar: number, week: number): Periode {
+  const periode = Math.min(13, Math.ceil(week / 4));
+  const eerste = (periode - 1) * 4 + 1;
+  const laatste = periode === 13 ? wekenInJaar(jaar) : eerste + 3;
+  return { jaar, periode, weken: Array.from({ length: laatste - eerste + 1 }, (_, i) => eerste + i) };
+}
+
+/** "2026-P10" → periode; ongeldig of leeg → de periode van vandaag. */
+export function periodeUitParam(p?: string): Periode {
+  const m = p?.match(/^(\d{4})-P(\d{1,2})$/);
+  if (m && +m[2] >= 1 && +m[2] <= 13) return periodeVan(+m[1], (+m[2] - 1) * 4 + 1);
+  const nu = isoWeek(vandaagNL());
+  return periodeVan(nu.jaar, nu.week);
+}
+
+export const periodeParam = (p: Pick<Periode, "jaar" | "periode">) => `${p.jaar}-P${p.periode}`;
+
+/** Vorige of volgende periode, over de jaargrens heen. */
+export function periodeErnaast(p: Pick<Periode, "jaar" | "periode">, stap: 1 | -1): Periode {
+  if (stap === 1) return p.periode === 13 ? periodeVan(p.jaar + 1, 1) : periodeVan(p.jaar, p.periode * 4 + 1);
+  return p.periode === 1 ? periodeVan(p.jaar - 1, 49) : periodeVan(p.jaar, (p.periode - 2) * 4 + 1);
+}
+
 const DAG_KORT = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 const DAG_LANG = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag", "Zondag"];
 const MAAND = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];

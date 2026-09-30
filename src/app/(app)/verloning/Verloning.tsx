@@ -1,0 +1,181 @@
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import "./verloning.css";
+import Icoon from "@/components/Icoon";
+import type { Verwerkt } from "@/lib/laden";
+import {
+  GROEPEN, celInhoud, dagInfo, maandagVan, periodeErnaast, periodeKort, periodeParam, plusDagen, vandaagNL,
+  type Afwezigheid, type Medewerker, type Opdrachtgever, type Periode, type Vak, type WeekOpmerking,
+} from "@/lib/planning";
+import { createClient } from "@/lib/supabase/client";
+
+type Props = {
+  periode: Periode; week: number;
+  medewerkers: Medewerker[]; opdrachtgevers: Opdrachtgever[]; vakken: Vak[]; afwezigheid: Afwezigheid[];
+  opmerkingen: (WeekOpmerking & { week: number })[]; verwerkt: Verwerkt[]; laadFout: string | null;
+};
+
+type Filter = "alle" | "open" | "verwerkt";
+
+const datumKort = (ts: string) => new Intl.DateTimeFormat("nl-NL", { timeZone: "Europe/Amsterdam", day: "numeric", month: "short" }).format(new Date(ts)).replace(".", "");
+
+/** Verloning per 4-wekenperiode: de planning week voor week, met per medewerker een vinkje "verwerkt" voor de hele periode. */
+export default function Verloning(p: Props) {
+  const supabase = useMemo(() => createClient(), []);
+  const [verwerkt, setVerwerkt] = useState(() => new Map(p.verwerkt.map((v) => [v.medewerker_id, v])));
+  const [bezig, setBezig] = useState<Set<string>>(new Set());
+  const [filter, setFilter] = useState<Filter>("alle");
+  const [zoek, setZoek] = useState("");
+  const [toast, setToast] = useState<{ tekst: string; fout?: boolean } | null>(null);
+
+  const { jaar, periode, weken } = p.periode;
+  const pp = periodeParam(p.periode);
+  const maandag = maandagVan(jaar, p.week);
+  const dagen = Array.from({ length: 7 }, (_, i) => plusDagen(maandag, i));
+  const vandaag = vandaagNL();
+  const begin = maandagVan(jaar, weken[0]);
+  const einde = plusDagen(maandagVan(jaar, weken[weken.length - 1]), 6);
+  const vorige = periodeErnaast(p.periode, -1), volgende = periodeErnaast(p.periode, 1);
+
+  const ogById = useMemo(() => new Map(p.opdrachtgevers.map((o) => [o.id, o])), [p.opdrachtgevers]);
+  const vakken = useMemo(() => new Map(p.vakken.map((v) => [`${v.medewerker_id}|${v.datum}`, v])), [p.vakken]);
+  const opmerking = (mwId: string) => p.opmerkingen.find((o) => o.medewerker_id === mwId && o.week === p.week)?.tekst;
+
+  const q = zoek.trim().toLowerCase();
+  const zichtbaar = p.medewerkers.filter((m) =>
+    (!q || m.naam.toLowerCase().includes(q)) &&
+    (filter === "alle" || (filter === "verwerkt") === verwerkt.has(m.id)));
+  const aantalVerwerkt = p.medewerkers.filter((m) => verwerkt.has(m.id)).length;
+
+  function toon(tekst: string, fout = false) {
+    setToast({ tekst, fout });
+    setTimeout(() => setToast(null), fout ? 6000 : 2500);
+  }
+
+  async function wissel(m: Medewerker, aan: boolean) {
+    setBezig((b) => new Set(b).add(m.id));
+    const { data: auth } = await supabase.auth.getUser();
+    const { data: g } = auth.user ? await supabase.from("gebruikers").select("naam, email").eq("id", auth.user.id).maybeSingle() : { data: null };
+    const { error } = aan
+      ? await supabase.from("verloning_verwerkt").insert({ medewerker_id: m.id, jaar, periode, verwerkt_door: auth.user?.id ?? null })
+      : await supabase.from("verloning_verwerkt").delete().eq("medewerker_id", m.id).eq("jaar", jaar).eq("periode", periode);
+    setBezig((b) => { const n = new Set(b); n.delete(m.id); return n; });
+    if (error && error.code !== "23505") { toon(`Opslaan lukte niet: ${error.message}`, true); return; }
+    setVerwerkt((v) => {
+      const n = new Map(v);
+      if (aan) n.set(m.id, { medewerker_id: m.id, verwerkt_op: new Date().toISOString(), door: g?.naam?.split(" ")[0] || g?.email?.split("@")[0] || "jij" });
+      else n.delete(m.id);
+      return n;
+    });
+    if (auth.user) await supabase.from("wijzigingen").insert({
+      gebruiker_id: auth.user.id, tabel: "verloning_verwerkt", record_id: m.id,
+      omschrijving: `Verloning periode ${periode} ${jaar}: ${m.naam} ${aan ? "verwerkt" : "weer open"}`,
+    });
+  }
+
+  return (
+    <main className="pagina">
+      <div className="kop">
+        <div>
+          <div className="kop-titel"><h1 className="machina">Verloning</h1></div>
+          <div className="kop-meta">Periode {periode} · week {weken[0]}–{weken[weken.length - 1]} · {periodeKort(begin, einde)} {jaar}</div>
+        </div>
+        <div className="weekkiezer">
+          <Link className="weekkiezer-pijl" href={`/verloning?periode=${periodeParam(vorige)}`} aria-label="Vorige periode"><Icoon naam="links" maat={20} /></Link>
+          <Link className="weekkiezer-week" href="/verloning" title="Naar de huidige periode">
+            <b>Periode {periode}</b>
+            <small>week {weken[0]}–{weken[weken.length - 1]} {jaar}</small>
+          </Link>
+          <Link className="weekkiezer-pijl" href={`/verloning?periode=${periodeParam(volgende)}`} aria-label="Volgende periode"><Icoon naam="rechts" maat={20} /></Link>
+        </div>
+      </div>
+
+      {p.laadFout && <div className="melding melding-fout" role="alert" style={{ maxWidth: "none" }}><strong>Laden is niet gelukt</strong>{p.laadFout}</div>}
+
+      <div className="werkbalk">
+        <nav className="seg periode-tabs" aria-label="Week">
+          {weken.map((w) => (
+            <Link key={w} href={`/verloning?periode=${pp}&week=${w}`} aria-current={w === p.week ? "page" : undefined} scroll={false}>Week {w}</Link>
+          ))}
+        </nav>
+        <label className="zoekveld">
+          <Icoon naam="zoek" />
+          <input type="search" aria-label="Zoek medewerker" placeholder="Zoek medewerker" value={zoek} onChange={(e) => setZoek(e.target.value)} />
+        </label>
+        <div className="seg" role="group" aria-label="Tonen">
+          <button type="button" aria-pressed={filter === "alle"} onClick={() => setFilter("alle")}>Alle</button>
+          <button type="button" aria-pressed={filter === "open"} onClick={() => setFilter("open")}>Nog te doen</button>
+          <button type="button" aria-pressed={filter === "verwerkt"} onClick={() => setFilter("verwerkt")}>Verwerkt</button>
+        </div>
+        <div style={{ flexGrow: 1 }} />
+        <div className="voortgang" role="status">
+          <span><strong>{aantalVerwerkt}</strong> van {p.medewerkers.length} verwerkt</span>
+          <span className="balk" aria-hidden="true"><i style={{ width: `${p.medewerkers.length ? Math.round((aantalVerwerkt / p.medewerkers.length) * 100) : 0}%` }} /></span>
+        </div>
+      </div>
+
+      <section className="rooster verloning-rooster" aria-label={`Verloning periode ${periode}, week ${p.week}`}>
+        <div className="rooster-kop">
+          <div className="rrij">
+            <span>Medewerker</span>
+            {dagen.map((d, i) => {
+              const info = dagInfo(d, i);
+              return <span key={d} className={`dagkop${d === vandaag ? " vandaag" : ""}`}><span>{info.kort}</span><b>{info.nummer}</b></span>;
+            })}
+            <span>Verwerkt</span>
+          </div>
+        </div>
+        {GROEPEN.map((g) => {
+          const lijst = zichtbaar.filter((m) => m.groep === g.id);
+          if (!lijst.length) return null;
+          return (
+            <div key={g.id}>
+              <div className="groepkop"><span className="bolletje" />{g.label}<small>{lijst.length}</small></div>
+              {lijst.map((m) => {
+                const v = verwerkt.get(m.id);
+                const opm = opmerking(m.id);
+                return (
+                  <div key={m.id} className={`rrij mwrij${v ? " is-verwerkt" : ""}`}>
+                    <div className="naamcel">
+                      <span className="naam" style={{ cursor: "default" }}>{m.naam}</span>
+                      {opm && <span className="opm hint" title={opm}>{opm}</span>}
+                    </div>
+                    {dagen.map((d, i) => {
+                      const c = celInhoud(m, d, i, vakken.get(`${m.id}|${d}`), p.afwezigheid, ogById);
+                      return (
+                        <div key={d} className={`vakcel${i >= 5 ? " weekend" : ""}`} aria-label={`${dagInfo(d, i).lang}: ${c.label || "leeg"}${c.sub ? ", " + c.sub : ""}`}>
+                          <span className={`vak${c.open ? " open" : ""}${c.periode ? " periode" : ""}`} style={c.open ? undefined : { background: c.bg, color: c.fg }}>
+                            <span className="vak-label">{c.open && <span className="bolletje" />}{c.label}</span>
+                            {c.sub && <span className="vak-sub">{c.sub}</span>}
+                            {c.conflict && <span className="conflict" title="Ingepland tijdens afwezigheid" aria-hidden="true">!</span>}
+                          </span>
+                        </div>
+                      );
+                    })}
+                    <div className="verwerkt-cel">
+                      <label className="vink">
+                        <input type="checkbox" checked={!!v} disabled={bezig.has(m.id)} onChange={(e) => wissel(m, e.target.checked)}
+                          aria-label={`${m.naam} verwerkt voor periode ${periode}`} />
+                        {v ? "Verwerkt" : "Verwerken"}
+                      </label>
+                      {v && <small>{datumKort(v.verwerkt_op)} · {v.door}</small>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+        {zichtbaar.length === 0 && (
+          <div className="leeg-staat">
+            {filter === "open" && !q ? `Iedereen is verwerkt voor periode ${periode}.` : "Geen medewerkers gevonden."}
+          </div>
+        )}
+      </section>
+
+      {toast && <div className="toast" role={toast.fout ? "alert" : "status"}>{toast.fout && <Icoon naam="waarschuwing" maat={20} />}<span>{toast.tekst}</span></div>}
+    </main>
+  );
+}
