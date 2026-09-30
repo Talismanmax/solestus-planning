@@ -346,7 +346,7 @@ export default function Weekplanning(p: Props) {
         <WeekKiezer pad="/" maandag={p.maandag} />
       </div>
 
-      {voorbeeld && <div className="voorbeeld">Je ziet voorbeeldgegevens. Zodra de koppeling met Easyflex2go draait, komen hier de echte medewerkers en opdrachtgevers.</div>}
+      {voorbeeld && <div className="voorbeeld">Je ziet voorbeeldgegevens. Zodra de koppeling met Easyflex2go draait, komen hier de echte medewerkers.</div>}
       {p.laadFout && <div className="melding melding-fout" role="alert" style={{ maxWidth: "none" }}><strong>Laden is niet gelukt</strong>{p.laadFout}</div>}
 
       <div className="werkbalk">

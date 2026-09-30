@@ -59,7 +59,7 @@ export default function VakPaneel(p: {
       {status === "werk" && (
         <div className="veld">
           <label className="veld-kop" htmlFor="vak-og">Opdrachtgever</label>
-          <input id="vak-og" className="invoer" type="search" value={zoek} onChange={(e) => setZoek(e.target.value)} placeholder="Zoek opdrachtgever uit Easyflex2go" autoComplete="off" />
+          <input id="vak-og" className="invoer" type="search" value={zoek} onChange={(e) => setZoek(e.target.value)} placeholder="Zoek opdrachtgever" autoComplete="off" />
           <div className="keuzelijst" role="group" aria-label="Opdrachtgevers">
             {zichtbaar.map((o) => (
               <button key={o.id} type="button" aria-pressed={og === o.id} onClick={() => setOg(o.id)}>

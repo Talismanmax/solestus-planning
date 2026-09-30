@@ -1,6 +1,7 @@
-// Haalt medewerkers (flexkrachten) en opdrachtgevers (relaties) op uit Easyflex2go
-// en zet ze in de planning. Easyflex2go is leidend: de velden uit Easyflex2go worden
-// overschreven, planningsgegevens (volgorde, vaste inzet) blijven staan.
+// Haalt medewerkers (flexkrachten) op uit Easyflex2go en zet ze in de planning.
+// Easyflex2go is leidend: de velden uit Easyflex2go worden overschreven, planningsgegevens
+// (volgorde, vaste inzet, verborgen) blijven staan. Opdrachtgevers komen niet uit Easyflex2go:
+// die maken planners zelf aan in Stamgegevens.
 //
 // Geheimen (Supabase → Edge Functions → Secrets):
 //   EASYFLEX_API_TOKEN  – API-token van Easyflex2go (tenant-token)
@@ -18,33 +19,6 @@ type FlexWorker = {
   flex_worker_state: number; deleted_at: string | null; type: number;
   operating_company?: { name: string } | null; labels?: { label_name: string }[];
 };
-type Relatie = {
-  id: number; name: string; chamber_of_commerce_number: number | null;
-  visiting_address?: { city: string | null } | null; operating_company?: { name: string } | null;
-  state?: { attribute: string | null; translation: string | null } | null;
-};
-
-// Zelfde klant bij meer werkmaatschappijen: samenvoegen op naam (zonder leestekens) of KvK-nummer.
-const normaal = (naam: string) => naam.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-function groepeer(relaties: Relatie[]) {
-  const ouder = new Map<number, number>();
-  const vind = (x: number): number => { const p = ouder.get(x)!; if (p === x) return x; const r = vind(p); ouder.set(x, r); return r; };
-  const koppel = (a: number, b: number) => { const ra = vind(a), rb = vind(b); if (ra !== rb) ouder.set(Math.max(ra, rb), Math.min(ra, rb)); };
-  relaties.forEach((r) => ouder.set(r.id, r.id));
-  const opNaam = new Map<string, number>(), opKvk = new Map<number, number>();
-  for (const r of relaties) {
-    const n = normaal(r.name);
-    if (n) { if (opNaam.has(n)) koppel(r.id, opNaam.get(n)!); else opNaam.set(n, r.id); }
-    const k = r.chamber_of_commerce_number;
-    if (k) { if (opKvk.has(k)) koppel(r.id, opKvk.get(k)!); else opKvk.set(k, r.id); }
-  }
-  const groepen = new Map<number, Relatie[]>();
-  for (const r of relaties) { const w = vind(r.id); groepen.set(w, [...(groepen.get(w) ?? []), r]); }
-  return [...groepen.values()].map((leden) => ({
-    leden: leden.map((r) => ({ id: r.id, naam: r.name, kvk: r.chamber_of_commerce_number ? String(r.chamber_of_commerce_number) : "", plaats: r.visiting_address?.city ?? "", wm: r.operating_company?.name ?? null, status: r.state?.attribute ?? r.state?.translation ?? null })),
-  }));
-}
-
 const STATUS = { 1: "Ingeschreven", 2: "Actief", 3: "Passief", 4: "Uitgeschreven" } as Record<number, string>;
 
 // De aanvragen lopen via de database (functie easyflex_ophalen), zodat ze altijd
@@ -59,7 +33,7 @@ async function haalAlles<T>(db: any, pad: string, extra: string): Promise<T[]> {
     const m = /EASYFLEX_HTTP_(\d+)/.exec(error.message);
     const status = m ? Number(m[1]) : 0;
     if (status === 401) throw new Error("Easyflex2go accepteert het API-token niet. Controleer het token en de IP-whitelist (63.186.227.188).");
-    if (status === 403) throw new Error(`Het API-token mist rechten voor ${pad} (nodig: flex_workers_read en relations_read).`);
+    if (status === 403) throw new Error(`Het API-token mist rechten voor ${pad} (nodig: flex_workers_read).`);
     throw new Error(`Easyflex2go ${pad}: ${error.message.slice(0, 300)}`);
   }
   return (data ?? []) as T[];
@@ -112,10 +86,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const [flex, relaties] = await Promise.all([
-      haalAlles<FlexWorker>(db, "/flex-workers", "&include=operating_company,labels"),
-      haalAlles<Relatie>(db, "/relations", "&include=visiting_address,operating_company,state"),
-    ]);
+    const flex = await haalAlles<FlexWorker>(db, "/flex-workers", "&include=operating_company,labels");
     // Medewerkers: records van dezelfde persoon (zelfde registratienummer) samenvoegen
     const RANG: Record<number, number> = { 2: 4, 1: 3, 3: 2, 4: 1 };
     const perPersoon = new Map<string, FlexWorker[]>();
@@ -149,28 +120,18 @@ Deno.serve(async (req) => {
     if (mvFout) throw new Error("Opslaan medewerkers: " + mvFout.message);
     const mwUit = (mv ?? {}) as { medewerkers?: number; actief?: number; samengevoegd?: number };
 
-    // Opdrachtgevers: relaties van dezelfde klant samenvoegen
-    const groepen = groepeer(relaties);
-    const { data: sv, error: svFout } = await db.rpc("opdrachtgevers_samenvoegen", { groepen });
-    if (svFout) throw new Error("Opslaan opdrachtgevers: " + svFout.message);
-
-    // Eerste echte synchronisatie: voorbeeldgegevens opruimen.
+    // Eerste echte synchronisatie: voorbeeldmedewerkers opruimen.
     let voorbeeldOpgeruimd = false;
     if (flex.length > 0) {
-      const { data: vbOg } = await db.from("opdrachtgevers").select("id").lt("ef_relatie_id", 0);
-      const vbOgIds = (vbOg ?? []).map((o) => o.id);
-      if (vbOgIds.length) await db.from("vakken").delete().in("opdrachtgever_id", vbOgIds);
       const { count } = await db.from("medewerkers").delete({ count: "exact" }).or("ef_id.lt.0,ef_status.eq.VOORBEELD");
-      if (vbOgIds.length) await db.from("opdrachtgevers").delete().in("id", vbOgIds);
-      voorbeeldOpgeruimd = (count ?? 0) > 0 || vbOgIds.length > 0;
+      voorbeeldOpgeruimd = (count ?? 0) > 0;
     }
 
-    const aantalOg = (sv as { opdrachtgevers: number } | null)?.opdrachtgevers ?? groepen.length;
-    await db.from("koppeling_log").insert({ gelukt: true, medewerkers_bijgewerkt: mwUit.medewerkers ?? flex.length, opdrachtgevers_bijgewerkt: aantalOg });
+    await db.from("koppeling_log").insert({ gelukt: true, medewerkers_bijgewerkt: mwUit.medewerkers ?? flex.length });
     if (wie.soort === "planner") {
-      await db.from("wijzigingen").insert({ gebruiker_id: wie.id, tabel: "koppeling_log", omschrijving: `Easyflex2go handmatig bijgewerkt: ${mwUit.medewerkers ?? flex.length} medewerkers, ${aantalOg} opdrachtgevers` });
+      await db.from("wijzigingen").insert({ gebruiker_id: wie.id, tabel: "koppeling_log", omschrijving: `Easyflex2go handmatig bijgewerkt: ${mwUit.medewerkers ?? flex.length} medewerkers` });
     }
-    return json({ gelukt: true, flexkrachtrecords: flex.length, medewerkers: mwUit.medewerkers, actief: mwUit.actief, medewerkersSamengevoegd: mwUit.samengevoegd, relaties: relaties.length, opdrachtgevers: aantalOg, samengevoegd: (sv as { samengevoegd: number } | null)?.samengevoegd ?? 0, voorbeeldOpgeruimd });
+    return json({ gelukt: true, flexkrachtrecords: flex.length, medewerkers: mwUit.medewerkers, actief: mwUit.actief, medewerkersSamengevoegd: mwUit.samengevoegd, voorbeeldOpgeruimd });
   } catch (e) {
     const fout = e instanceof Error ? e.message : String(e);
     await db.from("koppeling_log").insert({ gelukt: false, foutmelding: fout.slice(0, 500) });

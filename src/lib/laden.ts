@@ -1,5 +1,5 @@
 import type { createClient } from "@/lib/supabase/server";
-import { SCANIA_RELATIE, plusDagen, type Afwezigheid, type Medewerker, type Opdrachtgever, type Vak, type WeekOpmerking } from "@/lib/planning";
+import { plusDagen, type Afwezigheid, type Medewerker, type Opdrachtgever, type Vak, type WeekOpmerking } from "@/lib/planning";
 import type { Chauffeur, Rit } from "@/lib/scania";
 
 type Db = Awaited<ReturnType<typeof createClient>>;
@@ -39,7 +39,7 @@ export async function laadScania(supabase: Db, maandag: string) {
     supabase.from("scania_ritten").select("id, vertrekdatum, dienst, route, chauffeur_id, notitie, omschrijving, rit_delen(id, volgorde, van, naar, vertrek, aankomst)")
       .gte("vertrekdatum", plusDagen(maandag, -2)).lte("vertrekdatum", plusDagen(zondag, 1)).order("vertrekdatum"),
     supabase.from("medewerkers").select("id, naam, groep, nationaliteit").eq("actief", true).eq("verborgen", false).in("groep", ["nl", "int"]).order("achternaam").order("naam"),
-    supabase.from("opdrachtgevers").select("id, naam").ilike("naam", SCANIA_RELATIE).eq("actief", true).limit(1).maybeSingle(),
+    supabase.from("opdrachtgevers").select("id, naam").eq("scania", true).limit(1).maybeSingle(),
     supabase.from("afwezigheid").select("id, medewerker_id, soort, van, tot_en_met").lte("van", zondag).gte("tot_en_met", maandag),
     supabase.from("vakken").select("id, medewerker_id, datum, status, opdrachtgever_id, notitie").gte("datum", maandag).lte("datum", zondag),
   ]);

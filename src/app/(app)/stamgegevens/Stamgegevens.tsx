@@ -12,7 +12,7 @@ import { GROEPEN, geldigeVasteInzet, opdrachtgeverLabel, plusDagen, vasteInzetLa
 
 type Mw = MwStam;
 type Og = OgStam;
-type Sync = { tijdstip: string; gelukt: boolean; foutmelding: string | null; medewerkers_bijgewerkt?: number; opdrachtgevers_bijgewerkt?: number };
+type Sync = { tijdstip: string; gelukt: boolean; foutmelding: string | null; medewerkers_bijgewerkt?: number };
 
 const BVS = ["Solestus Shared Services B.V.", "Solestus Nederland B.V.", "Solestus Personeelsdiensten B.V.", "Solestus Payroll Solutions B.V."];
 
@@ -39,7 +39,7 @@ export default function Stamgegevens(p: {
   const [zoek, setZoek] = useState("");
   const [nieuw, setNieuw] = useState(false);
   const [bewerk, setBewerk] = useState<Mw | null>(() => (p.magWijzigen && p.openMedewerker ? p.medewerkers.find((m) => m.id === p.openMedewerker) ?? null : null));
-  const [bewerkOg, setBewerkOg] = useState<Og | null>(null);
+  const [bewerkOg, setBewerkOg] = useState<Og | "nieuw" | null>(null);
   const [afleiden, setAfleiden] = useState(false);
   const [bijwerken, setBijwerken] = useState(false);
   const [toast, setToast] = useState<{ tekst: string; fout?: boolean } | null>(null);
@@ -55,11 +55,11 @@ export default function Stamgegevens(p: {
   async function nuBijwerken() {
     setBijwerken(true);
     const { data, error } = await supabase.functions.invoke("easyflex-sync", { body: {} });
-    let uit = data as { gelukt?: boolean; overgeslagen?: boolean; fout?: string; medewerkers?: number; opdrachtgevers?: number } | null;
+    let uit = data as { gelukt?: boolean; overgeslagen?: boolean; fout?: string; medewerkers?: number } | null;
     if (error && "context" in error) uit = await (error.context as Response).json().catch(() => null);
     setBijwerken(false);
     if (uit?.overgeslagen) toon("Minder dan 5 minuten geleden al bijgewerkt. Probeer het zo nog eens.");
-    else if (uit?.gelukt) { toon(`Bijgewerkt: ${uit.medewerkers ?? "?"} medewerkers en ${uit.opdrachtgevers ?? "?"} opdrachtgevers`); router.refresh(); }
+    else if (uit?.gelukt) { toon(`Bijgewerkt: ${uit.medewerkers ?? "?"} medewerkers`); router.refresh(); }
     else { toon(`Bijwerken lukte niet: ${uit?.fout ?? error?.message ?? "onbekende fout"}`, true); router.refresh(); }
   }
 
@@ -69,7 +69,7 @@ export default function Stamgegevens(p: {
   const verborgenAantal = p.medewerkers.filter((m) => m.actief && m.verborgen).length;
   const mws = p.medewerkers.filter((m) => (ookInactief || zichtbaar(m)) && (!q || m.naam.toLowerCase().includes(q) || (m.ef_registratienummer ?? "").toLowerCase().includes(q)));
   const kiesbaar = p.opdrachtgevers.filter((o) => !o.verborgen);
-  const ogs = p.opdrachtgevers.filter((o) => (ookVerborgen || !o.verborgen) && (!q || o.naam.toLowerCase().includes(q) || (o.korte_naam ?? "").toLowerCase().includes(q) || String(o.ef_relatie_id ?? "").includes(q)));
+  const ogs = p.opdrachtgevers.filter((o) => (ookVerborgen || !o.verborgen) && (!q || o.naam.toLowerCase().includes(q) || (o.korte_naam ?? "").toLowerCase().includes(q) || (o.plaats ?? "").toLowerCase().includes(q)));
 
   const sync = p.laatsteSync;
   const mislukt = sync && !sync.gelukt;
@@ -85,11 +85,11 @@ export default function Stamgegevens(p: {
       <div className="kop">
         <div>
           <div className="kop-titel"><h1 className="machina">Stamgegevens</h1></div>
-          <div className="kop-meta">Easyflex2go is leidend. Chauffeurs en opdrachtgevers komen daaruit; kantoormedewerkers voeg je hier zelf toe.</div>
+          <div className="kop-meta">Chauffeurs komen uit Easyflex2go; kantoormedewerkers en opdrachtgevers voeg je hier zelf toe.</div>
         </div>
         <label className="zoekveld">
           <Icoon naam="zoek" />
-          <input type="search" aria-label="Zoeken" placeholder="Zoek op naam of Easyflex-nummer" value={zoek} onChange={(e) => setZoek(e.target.value)} />
+          <input type="search" aria-label="Zoeken" placeholder="Zoek op naam, plaats of Easyflex-nummer" value={zoek} onChange={(e) => setZoek(e.target.value)} />
         </label>
       </div>
 
@@ -101,7 +101,7 @@ export default function Stamgegevens(p: {
             {mislukt
               ? `${ok ? `Laatst gelukt: ${wanneer(ok.tijdstip)}.` : "Het is nog niet eerder gelukt."} Nieuwe medewerkers of wijzigingen van vandaag staan er mogelijk nog niet in.${sync?.foutmelding ? ` (${sync.foutmelding})` : ""}`
               : ok
-                ? `Laatst bijgewerkt ${wanneer(ok.tijdstip)} · ${ok.medewerkers_bijgewerkt ?? "?"} medewerkers en ${ok.opdrachtgevers_bijgewerkt ?? "?"} opdrachtgevers. Wijzigingen doe je in Easyflex2go.`
+                ? `Medewerkers laatst bijgewerkt ${wanneer(ok.tijdstip)} · ${ok.medewerkers_bijgewerkt ?? "?"} medewerkers. Wijzigingen aan chauffeurs doe je in Easyflex2go.`
                 : "Nog niet bijgewerkt. Tot de koppeling draait, staan hier voorbeeldgegevens."}
           </span>
         </div>
@@ -154,25 +154,25 @@ export default function Stamgegevens(p: {
           <span>{kiesbaar.length} actief{p.opdrachtgevers.length > kiesbaar.length ? ` · ${p.opdrachtgevers.length - kiesbaar.length} verborgen` : ""}</span>
           <div style={{ flexGrow: 1 }} />
           <label className="vink" style={{ fontSize: 13 }}><input type="checkbox" checked={ookVerborgen} onChange={(e) => setOokVerborgen(e.target.checked)} />Ook verborgen</label>
-          <span className="hint">Nieuwe opdrachtgever? Voeg hem toe in Easyflex2go; hij verschijnt hier bij de volgende update.</span>
+          {p.magWijzigen && <button type="button" className="knop knop-zwart" onClick={() => setBewerkOg("nieuw")}><Icoon naam="plus" />Opdrachtgever toevoegen</button>}
         </div>
         <table className="tabel">
-          <thead><tr><th>Naam</th><th>Plaats</th><th>EF2GO relatie-id</th><th className="getal">Diensten wk {p.week}</th><th aria-label="Acties" /></tr></thead>
+          <thead><tr><th>Naam</th><th>Plaats</th><th>In het rooster</th><th className="getal">Diensten wk {p.week}</th><th aria-label="Acties" /></tr></thead>
           <tbody>
             {ogs.map((o) => (
               <tr key={o.id} style={{ opacity: o.verborgen ? 0.5 : 1 }} {...klikbaar(() => setBewerkOg(o))}>
                 <td>
                   <strong>{o.naam}</strong>
-                  {opdrachtgeverLabel(o) !== o.naam && <div className="hint">in het rooster: {opdrachtgeverLabel(o)}</div>}
-                  {o.verborgen && <div className="hint">verborgen in de planning{o.ef_status && o.ef_status !== "Actief" ? ` · ${o.ef_status.toLowerCase()} in Easyflex2go` : ""}</div>}
+                  {o.scania && <div className="hint">Scania-ritten</div>}
+                  {o.verborgen && <div className="hint">verborgen in de planning</div>}
                 </td>
                 <td>{o.plaats ?? "–"}</td>
-                <td>{o.ef_relatie_id ?? "–"}</td>
+                <td>{opdrachtgeverLabel(o)}</td>
                 <td className="getal"><strong>{p.diensten[o.id] ?? 0}</strong></td>
                 <td className="getal">{p.magWijzigen && <span className="knop-link" style={{ height: "auto" }}>Bewerken</span>}</td>
               </tr>
             ))}
-            {ogs.length === 0 && <tr><td colSpan={5}>Geen opdrachtgevers gevonden.</td></tr>}
+            {ogs.length === 0 && <tr><td colSpan={5}>{p.opdrachtgevers.length ? "Geen opdrachtgevers gevonden." : "Nog geen opdrachtgevers. Voeg de eerste toe met ‘Opdrachtgever toevoegen’."}</td></tr>}
           </tbody>
         </table>
       </section>
@@ -189,8 +189,9 @@ export default function Stamgegevens(p: {
       )}
       {bewerkOg && (
         <OpdrachtgeverPaneel
-          key={bewerkOg.id}
-          og={bewerkOg}
+          key={bewerkOg === "nieuw" ? "nieuw" : bewerkOg.id}
+          og={bewerkOg === "nieuw" ? null : bewerkOg}
+          anderScania={p.opdrachtgevers.find((o) => o.scania && (bewerkOg === "nieuw" || o.id !== bewerkOg.id))?.naam ?? null}
           onSluit={() => setBewerkOg(null)}
           onKlaar={(tekst, fout) => { if (!fout) { setBewerkOg(null); router.refresh(); } toon(tekst, fout); }}
         />
