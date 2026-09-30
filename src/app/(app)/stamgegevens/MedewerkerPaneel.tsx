@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import Icoon from "@/components/Icoon";
 import PaneelSchil, { PaneelVoet } from "@/components/PaneelSchil";
 import { createClient } from "@/lib/supabase/client";
-import { GROEPEN, geldigeVasteInzet, opdrachtgeverLabel, vasteInzetLabel, type VasteInzet } from "@/lib/planning";
+import { logWijziging } from "@/lib/wijzigingen";
+import { DAG_KORT, GROEPEN, geldigeVasteInzet, opdrachtgeverLabel, vasteInzetLabel, type VasteInzet } from "@/lib/planning";
 
 export type MwStam = {
   id: string; naam: string; groep: string; bv: string | null; werkmaatschappijen: string[]; nationaliteit: string | null;
@@ -12,7 +13,6 @@ export type MwStam = {
 };
 type Og = { id: string; naam: string; korte_naam: string | null; plaats: string | null; verborgen?: boolean };
 
-const DAGEN = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 
 /** Keuze in de lijst: "", "kantoor", "thuiswerk" of "og:<id>". */
 const keuzeVan = (v: VasteInzet | null) => (!v ? "" : v.status === "werk" ? `og:${v.opdrachtgever_id}` : v.status);
@@ -56,11 +56,7 @@ export default function MedewerkerPaneel({ mw, opdrachtgevers, bvs, onSluit, onK
     if (error) { onKlaar("Opslaan is niet gelukt: " + error.message, true); return; }
     const oud = vasteInzetLabel(mw.vaste_inzet, ogMap), nieuw = vasteInzetLabel(vasteInzet, ogMap);
     const zicht = ef && zichtbaar === !!mw.verborgen ? (zichtbaar ? ", weer zichtbaar in de planning" : ", verborgen in de planning") : "";
-    const { data } = await supabase.auth.getUser();
-    if (data.user) await supabase.from("wijzigingen").insert({
-      gebruiker_id: data.user.id, tabel: "medewerkers", record_id: mw.id,
-      omschrijving: `${ef ? mw.naam : naam.trim()}: gegevens bijgewerkt${zicht}${oud !== nieuw ? ` (vaste inzet: ${nieuw.toLowerCase()})` : ""}`,
-    });
+    await logWijziging(supabase, "medewerkers", `${ef ? mw.naam : naam.trim()}: gegevens bijgewerkt${zicht}${oud !== nieuw ? ` (vaste inzet: ${nieuw.toLowerCase()})` : ""}`, mw.id);
     onKlaar("Opgeslagen");
   }
 
@@ -108,7 +104,7 @@ export default function MedewerkerPaneel({ mw, opdrachtgevers, bvs, onSluit, onK
           </optgroup>
         </select>
         <div className="dagkeuze" role="group" aria-label="Dagen">
-          {DAGEN.map((d, i) => (
+          {DAG_KORT.map((d, i) => (
             <button key={d} type="button" aria-pressed={dagen.includes(i)} disabled={!keuze}
               onClick={() => setDagen(dagen.includes(i) ? dagen.filter((x) => x !== i) : [...dagen, i])}>{d}</button>
           ))}

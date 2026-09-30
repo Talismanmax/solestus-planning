@@ -1,8 +1,9 @@
 import Blad from "../Blad";
 import type { laadScania } from "@/lib/laden";
-import { dagInfo, plusDagen, weekBereik } from "@/lib/planning";
-import { ROUTE_NAAM, deelRegel, ritWaarschuwingen } from "@/lib/scania";
+import { TELEFOON, dagInfo, plusDagen, weekBereik } from "@/lib/planning";
+import { ROUTE, deelRegel, ritMeldingen } from "@/lib/scania";
 import { gemaaktOp } from "@/lib/tijd";
+import { korteNaam } from "@/lib/namen";
 
 export default function ScaniaAfdruk({ week, maandag, d, gebruiker }: {
   week: number; maandag: string; d: Awaited<ReturnType<typeof laadScania>>; gebruiker: { naam: string | null; email: string } | null;
@@ -13,14 +14,14 @@ export default function ScaniaAfdruk({ week, maandag, d, gebruiker }: {
   const eerste = (r: (typeof d.ritten)[number]) => [...r.rit_delen].sort((a, b) => a.volgorde - b.volgorde)[0]?.vertrek ?? "";
   const ritten = d.ritten.filter((r) => r.vertrekdatum >= maandag && r.vertrekdatum <= dagen[6])
     .sort((a, b) => a.vertrekdatum.localeCompare(b.vertrekdatum) || eerste(a).localeCompare(eerste(b)));
-  const waarsch = new Map(ritten.map((r) => [r.id, ritWaarschuwingen(r, d.ritten, d.afwezigheid, d.vakken)]));
+  const waarsch = new Map(ritten.map((r) => [r.id, ritMeldingen(r, d.ritten, d.afwezigheid, d.vakken).map((m) => m.kort)]));
   const perChauffeur = new Map<string, number>();
   for (const r of ritten) if (r.chauffeur_id) perChauffeur.set(r.chauffeur_id, (perChauffeur.get(r.chauffeur_id) ?? 0) + 1);
   const open = ritten.filter((r) => !r.chauffeur_id).length;
-  const door = gebruiker?.naam?.split(" ")[0] || gebruiker?.email.split("@")[0] || "onbekend";
+  const door = korteNaam(gebruiker);
 
   return (
-    <Blad stand="liggend" titel={`Scania-ritten week ${week}`} sub={`${weekBereik(maandag)} · ${ROUTE_NAAM.ishoj} en ${ROUTE_NAAM.rade}${ritten.some((r) => r.route === "extra") ? " · met extra opdrachten" : ""}`} voet={`Gemaakt op ${gemaaktOp()} door ${door}`}>
+    <Blad stand="liggend" titel={`Scania-ritten week ${week}`} sub={`${weekBereik(maandag)} · ${ROUTE.ishoj.naam} en ${ROUTE.rade.naam}${ritten.some((r) => r.route === "extra") ? " · met extra opdrachten" : ""}`} voet={`Gemaakt op ${gemaaktOp()} door ${door}`}>
       {d.laadFout && <p className="let">De ritten konden niet volledig worden geladen: {d.laadFout}</p>}
       <div className="pcijfers" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
         <div className="pcijfer"><b>{ritten.length}</b><span>ritten</span></div>
@@ -42,7 +43,7 @@ export default function ScaniaAfdruk({ week, maandag, d, gebruiker }: {
               <tr key={r.id} className={r.route === "extra" ? "pextra" : undefined}>
                 <td><b>{nieuweDag ? `${info.kort} ${info.nummer} ${info.maand}` : ""}</b></td>
                 <td>{r.route === "extra" ? <span className="pextra-label">EXTRA</span> : <span className={`pdienst${r.dienst === "nacht" ? " nacht" : ""}`}>{r.dienst === "dag" ? "Dag" : "Nacht"}</span>}</td>
-                <td>{r.route === "extra" ? <b>{r.omschrijving?.trim() || "Extra opdracht"}</b> : r.route === "rade" ? "Zwolle – Rade (swap)" : "Zwolle – Ishøj"}</td>
+                <td>{r.route === "extra" ? <b>{r.omschrijving?.trim() || "Extra opdracht"}</b> : ROUTE[r.route].heen}</td>
                 <td>{delen[0] ? <><b style={{ fontWeight: 600 }}>{delen[0].titel}</b><br /><small>{delen[0].tijden}</small></> : "–"}</td>
                 <td>{delen.length > 1 ? delen.slice(1).map((d, j) => <div key={j}><b style={{ fontWeight: 600 }}>{d.titel}</b><br /><small>{d.tijden}</small></div>) : r.route === "rade" ? "Swap in Rade" : "–"}</td>
                 <td className={r.chauffeur_id ? undefined : "pgeel"}><b>{r.chauffeur_id ? naam.get(r.chauffeur_id) ?? "Onbekend" : "Nog geen chauffeur"}</b>{r.notitie && <><br /><small>{r.notitie}</small></>}</td>
@@ -67,7 +68,7 @@ export default function ScaniaAfdruk({ week, maandag, d, gebruiker }: {
         <section>
           <h2 className="ptitel">Toelichting</h2>
           <p style={{ margin: "0 0 6px", fontSize: 11 }}>Dag = vertrek 09.00 · Nacht = vertrek 21.00. Bij Rade (swap) staat de hele rit onder Heen. EXTRA = extra opdracht van Scania naast de vaste ritten (bijv. pendelen).</p>
-          <p style={{ margin: 0, fontSize: 11 }}>Nog geen chauffeur = rit staat open. Vragen over een rit? Bel 0570-781010.</p>
+          <p style={{ margin: 0, fontSize: 11 }}>Nog geen chauffeur = rit staat open. Vragen over een rit? Bel {TELEFOON.nl}.</p>
         </section>
       </div>
     </Blad>

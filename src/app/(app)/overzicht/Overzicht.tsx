@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import "./overzicht.css";
 import AfwezigheidPaneel from "@/components/AfwezigheidPaneel";
+import Toast, { useToast } from "@/components/Toast";
 import ExportMenu from "@/components/ExportMenu";
 import WeekKiezer from "@/components/WeekKiezer";
 import { overzichtNaarExcel } from "@/lib/excel";
 import type { AfwezigheidMetNaam } from "@/lib/laden";
 import { berekenOverzicht, type OverzichtMedewerker } from "@/lib/overzicht";
-import { STATUS, aantalDagen, periodeKort, plusDagen, vandaagNL, weekParam, type Afwezigheid, type Opdrachtgever, type Vak } from "@/lib/planning";
+import { DAG_KORT, STATUS, aantalDagen, periodeKort, plusDagen, vandaagNL, weekParam, type Afwezigheid, type Opdrachtgever, type Vak } from "@/lib/planning";
 
 type Props = {
   week: number; maandag: string;
@@ -19,12 +20,11 @@ type Props = {
   magWijzigen: boolean; laadFout: string | null;
 };
 
-const DAGEN = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 
 export default function Overzicht(p: Props) {
   const router = useRouter();
   const [paneel, setPaneel] = useState<{ bestaand: Afwezigheid | null } | null>(null);
-  const [toast, setToast] = useState<{ tekst: string; fout?: boolean } | null>(null);
+  const { melding, toon, sluit } = useToast();
 
   const o = berekenOverzicht(p.maandag, p.medewerkers, p.opdrachtgevers, p.vakken, p.afwezigheid);
   const max = Math.max(1, ...o.bezetting.map((r) => r.totaal));
@@ -34,8 +34,7 @@ export default function Overzicht(p: Props) {
 
   function klaar(tekst: string, fout = false) {
     if (!fout) setPaneel(null);
-    setToast({ tekst, fout });
-    setTimeout(() => setToast(null), fout ? 6000 : 2500);
+    toon(tekst, fout);
     router.refresh();
   }
 
@@ -71,12 +70,12 @@ export default function Overzicht(p: Props) {
       <section className="blok bezetting" aria-labelledby="h-bez">
         <div className="blok-kop"><h2 id="h-bez">Bezetting per opdrachtgever</h2><span>diensten per dag</span></div>
         <div className="bez-rij bez-kop" aria-hidden="true">
-          <span>Opdrachtgever</span>{DAGEN.map((d) => <span key={d}>{d}</span>)}<span>Totaal</span><span />
+          <span>Opdrachtgever</span>{DAG_KORT.map((d) => <span key={d}>{d}</span>)}<span>Totaal</span><span />
         </div>
         {o.bezetting.map((r) => (
           <div key={r.id} className="bez-rij">
             <span className="bez-naam"><b>{r.naam}</b><small>{r.wie.join(", ")}</small></span>
-            {r.perDag.map((v, i) => <span key={i} aria-label={`${DAGEN[i]}: ${v}`}>{v || "–"}</span>)}
+            {r.perDag.map((v, i) => <span key={i} aria-label={`${DAG_KORT[i]}: ${v}`}>{v || "–"}</span>)}
             <span className="bez-totaal">{r.totaal}</span>
             <span className="balk" aria-hidden="true"><i style={{ width: `${Math.round((r.totaal / max) * 100)}%` }} /></span>
           </div>
@@ -117,7 +116,7 @@ export default function Overzicht(p: Props) {
           onKlaar={klaar}
         />
       )}
-      {toast && <div className={`toast${toast.fout ? " fout" : ""}`} role="status">{toast.tekst}</div>}
+      <Toast melding={melding} sluit={sluit} />
     </main>
   );
 }
@@ -128,7 +127,7 @@ function DagLijst({ id, titel, sub, lijsten }: { id: string; titel: string; sub:
       <div className="blok-kop" style={{ paddingBottom: 8 }}><h2 id={id}>{titel}</h2><span>{sub}</span></div>
       {lijsten.map((namen, i) => (
         <div key={i} className="dag-rij">
-          <b>{DAGEN[i]}</b>
+          <b>{DAG_KORT[i]}</b>
           <span style={{ fontWeight: namen.length ? 600 : 400 }}>{namen.length ? namen.join(", ") : "niemand"}</span>
           <b>{namen.length || ""}</b>
         </div>

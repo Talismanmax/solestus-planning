@@ -1,19 +1,19 @@
-import { STATUS, opdrachtgeverLabel, plusDagen, type Afwezigheid, type Medewerker, type Opdrachtgever, type Vak, type VakStatus } from "@/lib/planning";
+import { afwezigheidOp, STATUS, opdrachtgeverLabel, plusDagen, type Afwezigheid, type Medewerker, type Opdrachtgever, type Vak, type VakStatus } from "@/lib/planning";
 
 export type OverzichtMedewerker = Pick<Medewerker, "id" | "naam" | "groep">;
 
 /** Wat er op een dag voor een medewerker geldt: vak gaat voor afwezigheid; leeg op ma–vr is "open" (niet voor kantoor). */
-export type DagStand = { status: VakStatus; opdrachtgeverId: string | null } | { status: "open" } | null;
+type DagStand = { status: VakStatus; opdrachtgeverId: string | null } | { status: "open" } | null;
 
-export function dagStand(mw: OverzichtMedewerker, datum: string, dagIndex: number, vak: Vak | undefined, afwezigheid: Afwezigheid[]): DagStand {
+function dagStand(mw: OverzichtMedewerker, datum: string, dagIndex: number, vak: Vak | undefined, afwezigheid: Afwezigheid[]): DagStand {
   if (vak) return { status: vak.status, opdrachtgeverId: vak.opdrachtgever_id };
-  const a = afwezigheid.find((x) => x.medewerker_id === mw.id && x.van <= datum && x.tot_en_met >= datum);
+  const a = afwezigheidOp(afwezigheid, mw.id, datum);
   if (a) return { status: a.soort, opdrachtgeverId: null };
   if (dagIndex < 5 && mw.groep !== "kantoor") return { status: "open" };
   return null;
 }
 
-export type BezettingRij = { id: string; naam: string; wie: string[]; perDag: number[]; totaal: number };
+type BezettingRij = { id: string; naam: string; wie: string[]; perDag: number[]; totaal: number };
 
 export type Overzicht = {
   ingezet: number;

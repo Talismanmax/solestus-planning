@@ -1,4 +1,4 @@
-import type { Vak, VasteInzet } from "@/lib/planning";
+import { dagIndex, type Vak, type VasteInzet } from "@/lib/planning";
 
 /**
  * Vaste inzet afleiden uit de afgelopen weken: per medewerker de meest voorkomende inzet
@@ -17,7 +17,7 @@ export function leidVasteInzetAf(vakken: Vak[], drempel = 3): Map<string, VasteI
     lijst.forEach((v) => telling.set(sleutel(v), (telling.get(sleutel(v)) ?? 0) + 1));
     const [beste] = [...telling].sort((a, b) => b[1] - a[1])[0];
     const perDag = [0, 0, 0, 0, 0, 0, 0];
-    lijst.filter((v) => sleutel(v) === beste).forEach((v) => { perDag[(new Date(v.datum + "T00:00:00Z").getUTCDay() + 6) % 7]++; });
+    lijst.filter((v) => sleutel(v) === beste).forEach((v) => { perDag[dagIndex(v.datum)]++; });
     const dagen = perDag.map((n, i) => (n >= drempel ? i : -1)).filter((i) => i >= 0);
     if (!dagen.length) continue;
     const [status, og] = beste.split("|");

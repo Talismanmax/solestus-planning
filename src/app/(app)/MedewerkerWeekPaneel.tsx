@@ -4,11 +4,10 @@ import Link from "next/link";
 import { useState } from "react";
 import Icoon from "@/components/Icoon";
 import PaneelSchil from "@/components/PaneelSchil";
-import { GROEPEN, type Cel, type Medewerker, type Opdrachtgever, type Vak } from "@/lib/planning";
+import { DAG_KORT, GROEPEN, type Cel, type Medewerker, type Opdrachtgever, type Vak } from "@/lib/planning";
 import type { Rit } from "@/lib/scania";
 import { weekbericht } from "@/lib/weekbericht";
 
-const DAGEN = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 
 /** Medewerker en weekbericht: de week in één oogopslag en een bericht om in WhatsApp te plakken. */
 export default function MedewerkerWeekPaneel(p: {
@@ -49,7 +48,7 @@ export default function MedewerkerWeekPaneel(p: {
         <div className="weekstrip">
           {p.cellen.map((c, i) => (
             <span key={i} title={c.label || "leeg"} className={c.status ? undefined : "leeg"} style={c.status ? { background: c.bg, color: c.fg } : undefined}>
-              <b>{DAGEN[i]}</b><span>{c.status ? c.label : "–"}</span>
+              <b>{DAG_KORT[i]}</b><span>{c.status ? c.label : "–"}</span>
             </span>
           ))}
         </div>

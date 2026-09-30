@@ -22,7 +22,7 @@ const PADEN = {
   tabel: <><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M4 10h16M4 15h16M10 4v16" /></>,
 };
 
-export type IcoonNaam = keyof typeof PADEN;
+type IcoonNaam = keyof typeof PADEN;
 
 export default function Icoon({ naam, maat = 18, dik = 2 }: { naam: IcoonNaam; maat?: number; dik?: number }) {
   return (

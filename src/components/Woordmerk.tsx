@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 /** Officieel Solestus-woordmerk (zwart), uit het Solestus design system. */
 export default function Woordmerk({ hoogte = 20, payoff = false }: { hoogte?: number; payoff?: boolean }) {
   return payoff

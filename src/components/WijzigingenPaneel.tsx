@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import PaneelSchil, { PaneelVoet } from "@/components/PaneelSchil";
 import { createClient } from "@/lib/supabase/client";
-import { isoWeek, tijdstipNL, vandaagNL } from "@/lib/planning";
+import { isoWeek, vandaagNL } from "@/lib/planning";
+import { tijdstipNL } from "@/lib/tijd";
+import { korteNaam } from "@/lib/namen";
 
 type Regel = { id: number; tijdstip: string; omschrijving: string; gebruikers: { naam: string | null; email: string } | null };
 
@@ -33,7 +35,7 @@ export default function WijzigingenPaneel({ onSluit }: { onSluit: () => void }) 
         <ol className="wijzigingen">
           {regels.map((r) => (
             <li key={r.id}>
-              <small><span>{tijdstipNL(r.tijdstip)}</span><strong>{r.gebruikers?.naam?.split(" ")[0] || r.gebruikers?.email.split("@")[0] || "Koppeling"}</strong></small>
+              <small><span>{tijdstipNL(r.tijdstip)}</span><strong>{korteNaam(r.gebruikers, "Koppeling")}</strong></small>
               <span>{r.omschrijving}</span>
             </li>
           ))}

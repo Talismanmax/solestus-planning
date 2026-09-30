@@ -1,10 +1,10 @@
 import Blad from "../Blad";
 import type { laadOverzicht } from "@/lib/laden";
 import { berekenOverzicht } from "@/lib/overzicht";
-import { STATUS, aantalDagen, periodeKort, weekBereik } from "@/lib/planning";
+import { DAG_KORT, STATUS, aantalDagen, periodeKort, weekBereik } from "@/lib/planning";
 import { gemaaktOp } from "@/lib/tijd";
+import { korteNaam } from "@/lib/namen";
 
-const DAGEN = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 
 function DagLijst({ titel, sub, lijsten }: { titel: string; sub: string; lijsten: string[][] }) {
   return (
@@ -12,7 +12,7 @@ function DagLijst({ titel, sub, lijsten }: { titel: string; sub: string; lijsten
       <h2 className="ptitel">{titel} <span>· {sub}</span></h2>
       <div className="plijst">
         {lijsten.map((namen, i) => (
-          <div key={i}><b>{DAGEN[i]}</b><span style={{ fontWeight: namen.length ? 600 : 400 }}>{namen.length ? namen.join(", ") : "niemand"}</span><b>{namen.length || ""}</b></div>
+          <div key={i}><b>{DAG_KORT[i]}</b><span style={{ fontWeight: namen.length ? 600 : 400 }}>{namen.length ? namen.join(", ") : "niemand"}</span><b>{namen.length || ""}</b></div>
         ))}
       </div>
     </section>
@@ -23,7 +23,7 @@ export default function OverzichtAfdruk({ week, maandag, d, gebruiker }: {
   week: number; maandag: string; d: Awaited<ReturnType<typeof laadOverzicht>>; gebruiker: { naam: string | null; email: string } | null;
 }) {
   const o = berekenOverzicht(maandag, d.medewerkers, d.opdrachtgevers, d.vakken, d.afwezigheid);
-  const door = gebruiker?.naam?.split(" ")[0] || gebruiker?.email.split("@")[0] || "onbekend";
+  const door = korteNaam(gebruiker);
 
   return (
     <Blad stand="liggend" titel={`Overzicht week ${week}`} sub={`${weekBereik(maandag)} · bezetting en beschikbaarheid`} voet={`Gemaakt op ${gemaaktOp()} door ${door}`}>
@@ -39,8 +39,8 @@ export default function OverzichtAfdruk({ week, maandag, d, gebruiker }: {
       <section>
         <h2 className="ptitel">Bezetting per opdrachtgever <span>· diensten per dag</span></h2>
         <table className="pt">
-          <colgroup><col style={{ width: 200 }} />{DAGEN.map((x) => <col key={x} style={{ width: 52 }} />)}<col style={{ width: 62 }} /><col /></colgroup>
-          <thead><tr><th>Opdrachtgever</th>{DAGEN.map((x) => <th key={x} className="getal">{x}</th>)}<th className="getal">Totaal</th><th>Medewerkers</th></tr></thead>
+          <colgroup><col style={{ width: 200 }} />{DAG_KORT.map((x) => <col key={x} style={{ width: 52 }} />)}<col style={{ width: 62 }} /><col /></colgroup>
+          <thead><tr><th>Opdrachtgever</th>{DAG_KORT.map((x) => <th key={x} className="getal">{x}</th>)}<th className="getal">Totaal</th><th>Medewerkers</th></tr></thead>
           <tbody>
             {o.bezetting.map((r) => (
               <tr key={r.id}>

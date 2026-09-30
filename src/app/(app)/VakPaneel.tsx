@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import PaneelSchil, { PaneelVoet } from "@/components/PaneelSchil";
-import { STATUS, STATUS_VOLGORDE, opdrachtgeverLabel, type Opdrachtgever, type VakStatus } from "@/lib/planning";
+import { DAG_KORT, STATUS, STATUS_VOLGORDE, opdrachtgeverLabel, type Opdrachtgever, type VakStatus } from "@/lib/planning";
 
 export type Invulling = { status: VakStatus; opdrachtgeverId: string | null; notitie: string };
 
-const DAGEN = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 
 /**
  * Vak bewerken (één vak, met "Toepassen op" voor meer dagen van dezelfde medewerker)
@@ -79,7 +78,7 @@ export default function VakPaneel(p: {
         <fieldset className="veld">
           <legend>Toepassen op</legend>
           <div className="dagkeuze">
-            {DAGEN.map((d, i) => <button key={d} type="button" aria-pressed={dagen.includes(i)} onClick={() => wissel(i)}>{d}</button>)}
+            {DAG_KORT.map((d, i) => <button key={d} type="button" aria-pressed={dagen.includes(i)} onClick={() => wissel(i)}>{d}</button>)}
             <button type="button" className="knop-link" onClick={() => setDagen([0, 1, 2, 3, 4])}>ma–vr</button>
           </div>
         </fieldset>

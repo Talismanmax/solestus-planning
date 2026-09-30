@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import PaneelSchil, { PaneelVoet } from "@/components/PaneelSchil";
 import { createClient } from "@/lib/supabase/client";
+import { logWijziging } from "@/lib/wijzigingen";
 import { AFWEZIG_SOORTEN, STATUS, aantalDagen, periodeKort, type Afwezigheid, type VakStatus } from "@/lib/planning";
 
 type Mw = { id: string; naam: string };
@@ -26,10 +27,7 @@ export default function AfwezigheidPaneel(props: {
   const periodeKlopt = !!van && !!tot && van <= tot;
   const kanOpslaan = !!mwId && periodeKlopt && !bezig;
 
-  async function log(omschrijving: string, recordId: string) {
-    const { data } = await supabase.auth.getUser();
-    if (data.user) await supabase.from("wijzigingen").insert({ gebruiker_id: data.user.id, omschrijving, tabel: "afwezigheid", record_id: recordId });
-  }
+  const log = (omschrijving: string, recordId: string) => logWijziging(supabase, "afwezigheid", omschrijving, recordId);
 
   async function opslaan() {
     setBezig(true);

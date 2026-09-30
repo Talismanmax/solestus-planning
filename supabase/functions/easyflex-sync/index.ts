@@ -11,7 +11,11 @@
 // of een ingelogde planner (knop "Nu bijwerken" in Stamgegevens).
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const MIN_INTERVAL_MS = 5 * 60 * 1000;
+const MIN_INTERVAL_MS = 5 * 60 * 1000; // na een gelukte synchronisatie
+const MIN_INTERVAL_FOUT_MS = 60 * 1000; // na een mislukte poging
+
+/** Fout met een korte melding voor planners; de details gaan alleen naar de functielogs. */
+class KoppelingFout extends Error {}
 
 type FlexWorker = {
   id: number; full_name: string | null; first_name: string | null; insertion: string | null; last_name: string | null;
@@ -26,15 +30,16 @@ const STATUS = { 1: "Ingeschreven", 2: "Actief", 3: "Passief", 4: "Uitgeschreven
 // deno-lint-ignore no-explicit-any
 async function haalAlles<T>(db: any, pad: string, extra: string): Promise<T[]> {
   const token = Deno.env.get("EASYFLEX_API_TOKEN")?.trim().replace(/^Bearer\s+/i, "").replace(/^["']|["']$/g, "");
-  if (!token) throw new Error("EASYFLEX_API_TOKEN ontbreekt in de Supabase-secrets");
+  if (!token) throw new KoppelingFout("EASYFLEX_API_TOKEN ontbreekt in de Supabase-secrets");
   const from = Deno.env.get("EASYFLEX_FROM") ?? "m.zomer@solestus.com";
   const { data, error } = await db.rpc("easyflex_ophalen", { pad, token, afzender: from, extra });
   if (error) {
     const m = /EASYFLEX_HTTP_(\d+)/.exec(error.message);
     const status = m ? Number(m[1]) : 0;
-    if (status === 401) throw new Error("Easyflex2go accepteert het API-token niet. Controleer het token en de IP-whitelist (63.186.227.188).");
-    if (status === 403) throw new Error(`Het API-token mist rechten voor ${pad} (nodig: flex_workers_read).`);
-    throw new Error(`Easyflex2go ${pad}: ${error.message.slice(0, 300)}`);
+    if (status === 401) throw new KoppelingFout("Easyflex2go accepteert het API-token niet. Controleer het token en de IP-whitelist (63.186.227.188).");
+    if (status === 403) throw new KoppelingFout(`Het API-token mist rechten voor ${pad} (nodig: flex_workers_read).`);
+    console.error(`Easyflex2go ${pad}:`, error.message);
+    throw new KoppelingFout(`Easyflex2go gaf een fout bij ${pad}${status ? ` (code ${status})` : ""}. Probeer het later opnieuw.`);
   }
   return (data ?? []) as T[];
 }
@@ -68,21 +73,10 @@ Deno.serve(async (req) => {
   const wie = await wieStart(req, db);
   if (!wie) return json({ gelukt: false, fout: "Alleen planners kunnen de koppeling starten." }, 403);
 
-  // Testmodus: één aanvraag via de database, alleen de uitkomst terug.
-  const body = await req.json().catch(() => ({}));
-  if (body?.test) {
-    try {
-      const bu = await haalAlles<unknown>(db, "/business-units", "");
-      return json({ gelukt: true, werkmaatschappijen: bu.length });
-    } catch (e) {
-      return json({ gelukt: false, fout: e instanceof Error ? e.message : String(e) });
-    }
-  }
-
-  // Niet vaker dan eens per 5 minuten.
-  const { data: laatste } = await db.from("koppeling_log").select("tijdstip").eq("gelukt", true).order("tijdstip", { ascending: false }).limit(1).maybeSingle();
-  if (laatste && Date.now() - new Date(laatste.tijdstip).getTime() < MIN_INTERVAL_MS) {
-    return json({ overgeslagen: true, reden: "Minder dan 5 minuten geleden bijgewerkt" });
+  // Niet vaker dan eens per 5 minuten na een gelukte synchronisatie, en eens per minuut na een mislukte poging.
+  const { data: laatste } = await db.from("koppeling_log").select("tijdstip, gelukt").order("tijdstip", { ascending: false }).limit(1).maybeSingle();
+  if (laatste && Date.now() - new Date(laatste.tijdstip).getTime() < (laatste.gelukt ? MIN_INTERVAL_MS : MIN_INTERVAL_FOUT_MS)) {
+    return json({ overgeslagen: true, reden: laatste.gelukt ? "Minder dan 5 minuten geleden bijgewerkt" : "Net nog geprobeerd; probeer het over een minuut opnieuw" });
   }
 
   try {
@@ -117,24 +111,18 @@ Deno.serve(async (req) => {
       }),
     }));
     const { data: mv, error: mvFout } = await db.rpc("medewerkers_samenvoegen", { groepen: mwGroepen });
-    if (mvFout) throw new Error("Opslaan medewerkers: " + mvFout.message);
+    if (mvFout) { console.error("medewerkers_samenvoegen:", mvFout.message); throw new KoppelingFout("Opslaan van de medewerkers is niet gelukt."); }
     const mwUit = (mv ?? {}) as { medewerkers?: number; actief?: number; samengevoegd?: number };
-
-    // Eerste echte synchronisatie: voorbeeldmedewerkers opruimen.
-    let voorbeeldOpgeruimd = false;
-    if (flex.length > 0) {
-      const { count } = await db.from("medewerkers").delete({ count: "exact" }).or("ef_id.lt.0,ef_status.eq.VOORBEELD");
-      voorbeeldOpgeruimd = (count ?? 0) > 0;
-    }
 
     await db.from("koppeling_log").insert({ gelukt: true, medewerkers_bijgewerkt: mwUit.medewerkers ?? flex.length });
     if (wie.soort === "planner") {
       await db.from("wijzigingen").insert({ gebruiker_id: wie.id, tabel: "koppeling_log", omschrijving: `Easyflex2go handmatig bijgewerkt: ${mwUit.medewerkers ?? flex.length} medewerkers` });
     }
-    return json({ gelukt: true, flexkrachtrecords: flex.length, medewerkers: mwUit.medewerkers, actief: mwUit.actief, medewerkersSamengevoegd: mwUit.samengevoegd, voorbeeldOpgeruimd });
+    return json({ gelukt: true, flexkrachtrecords: flex.length, medewerkers: mwUit.medewerkers, actief: mwUit.actief, medewerkersSamengevoegd: mwUit.samengevoegd });
   } catch (e) {
-    const fout = e instanceof Error ? e.message : String(e);
-    await db.from("koppeling_log").insert({ gelukt: false, foutmelding: fout.slice(0, 500) });
+    if (!(e instanceof KoppelingFout)) console.error(e);
+    const fout = e instanceof KoppelingFout ? e.message : "Bijwerken is niet gelukt door een onverwachte fout.";
+    await db.from("koppeling_log").insert({ gelukt: false, foutmelding: fout });
     return json({ gelukt: false, fout }, 502);
   }
 });

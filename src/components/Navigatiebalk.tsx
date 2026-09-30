@@ -7,6 +7,7 @@ import Icoon from "./Icoon";
 import ThemaKeuze from "./ThemaKeuze";
 import WijzigingenPaneel from "./WijzigingenPaneel";
 import Woordmerk from "./Woordmerk";
+import { initialen } from "@/lib/namen";
 
 const LINKS = [
   { href: "/", label: "Weekplanning", icoon: <><rect x="4" y="5" width="16" height="16" rx="2" /><path d="M8 3v4M16 3v4M4 11h16" /></> },
@@ -31,8 +32,6 @@ export default function Navigatiebalk({ naam, email, rol, wijzigingenDezeWeek }:
     return () => { document.removeEventListener("mousedown", klik); document.removeEventListener("keydown", toets); };
   }, [open]);
 
-  const woorden = naam.trim().split(/\s+/);
-  const initialen = (woorden.length > 1 ? woorden[0][0] + woorden[woorden.length - 1][0] : naam.slice(0, 2)).toUpperCase();
   const rolLabel = rol === "planner" ? "Planner" : "Alleen lezen";
 
   return (
@@ -60,7 +59,7 @@ export default function Navigatiebalk({ naam, email, rol, wijzigingenDezeWeek }:
       </button>
       <div className="profiel" ref={ref}>
         <button type="button" className="profiel-knop" aria-expanded={open} aria-haspopup="menu" onClick={() => setOpen(!open)}>
-          <span className="avatar machina">{initialen}</span>
+          <span className="avatar machina">{initialen(naam)}</span>
           <span className="stapel-8" style={{ gap: 1 }}>
             <span style={{ fontSize: 14, fontWeight: 700 }}>{naam}</span>
             <span style={{ fontSize: 12 }}>{rolLabel} · Solestus</span>
@@ -77,7 +76,7 @@ export default function Navigatiebalk({ naam, email, rol, wijzigingenDezeWeek }:
             <ThemaKeuze />
             <form action="/uitloggen" method="post">
               <button type="submit" role="menuitem" className="menu-item">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" /><path d="M10 8l-4 4 4 4M6 12h10" /></svg>
+                <Icoon naam="uitloggen" maat={20} />
                 Uitloggen
               </button>
             </form>

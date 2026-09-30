@@ -21,7 +21,19 @@ npm run dev
 
 ## Database
 
-Migraties staan in `supabase/migrations`. Row level security staat aan op alle tabellen.
+Migraties staan in `supabase/migrations`. Row level security staat aan op alle tabellen (ook `private.instellingen`).
+
+- Anon heeft geen rechten op tabellen in `public`; ingelogde gebruikers lezen alles, alleen planners schrijven (uitzondering: het vinkje "verwerkt" in de verloning, alleen op eigen naam).
+- `bron` en `ef_id` van medewerkers kan alleen de koppeling (service_role) wijzigen.
+- `koppeling_log` wordt dagelijks opgeschoond (regels ouder dan 90 dagen, cron-taak `koppeling-log-opruimen`).
+- De koppeling draait maximaal eens per 5 minuten (1 minuut na een mislukte poging); foutdetails staan in de logs van de edge function, niet in de tabel.
+- Nog te doen na livegang van deze versie: kolommen `opdrachtgevers.actief` en `koppeling_log.opdrachtgevers_bijgewerkt` laten vallen (de code gebruikt ze niet meer).
+
+## Beveiliging
+
+- Beveiligingsheaders in `next.config.ts` (geen iframes, nosniff, referrer- en permissions-policy).
+- Excel-exports zetten een `'` voor tekst die met `= + - @` begint (geen formules).
+- Zelf in te stellen: Azure-provider single-tenant (Tenant URL), e-mail/wachtwoord-provider uit in Supabase Auth, sessieduur 8 uur in Supabase Auth → Sessions.
 
 ## Status
 

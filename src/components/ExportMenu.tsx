@@ -3,22 +3,22 @@
 import { useState } from "react";
 import Icoon from "./Icoon";
 
-type Keuze = { titel: string; sub: string; soort: "liggend" | "staand" | "excel" } & ({ href: string } | { onClick: () => Promise<void> });
+type Keuze = { titel: string; sub: string; soort: "liggend" | "staand" | "excel" | "kopie" } & ({ href: string } | { onClick: () => Promise<void> | void });
 
 const SoortIcoon = ({ soort }: { soort: Keuze["soort"] }) =>
-  soort === "excel"
-    ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M4 10h16M4 15h16M10 4v16" /></svg>
+  soort === "excel" ? <Icoon naam="tabel" maat={20} />
+    : soort === "kopie" ? <Icoon naam="kopie" maat={20} />
     : <span className={`export-blad export-${soort}`} aria-hidden="true" />;
 
 /** Knop "Exporteren" met een menu. PDF's openen een afdrukpagina in een nieuw tabblad; Excel wordt direct gedownload. */
-export default function ExportMenu({ uitleg, keuzes }: { uitleg: string; keuzes: Keuze[] }) {
+export default function ExportMenu({ uitleg, keuzes, knop = "knop knop-zwart" }: { uitleg: string; keuzes: Keuze[]; knop?: string }) {
   const [open, setOpen] = useState(false);
   const [bezig, setBezig] = useState(false);
   const [fout, setFout] = useState(false);
 
   return (
     <div className="menu-anker">
-      <button type="button" className="knop knop-zwart" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)} disabled={bezig} style={open ? { boxShadow: "0 0 0 3px var(--geel)" } : undefined}>
+      <button type="button" className={knop} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)} disabled={bezig} style={open ? { boxShadow: "0 0 0 3px var(--geel)" } : undefined}>
         <Icoon naam="download" />
         {bezig ? "Bezig…" : "Exporteren"}
         <Icoon naam="omlaag" maat={16} />

@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import PaneelSchil, { PaneelVoet } from "@/components/PaneelSchil";
 import { createClient } from "@/lib/supabase/client";
+import { logWijziging } from "@/lib/wijzigingen";
 import { isoWeek, maandagVan, opdrachtgeverLabel, plusDagen, vandaagNL } from "@/lib/planning";
 
 export type OgStam = {
-  id: string; naam: string; plaats: string | null; korte_naam: string | null; actief: boolean; verborgen: boolean; scania: boolean;
+  id: string; naam: string; plaats: string | null; korte_naam: string | null; verborgen: boolean; scania: boolean;
 };
 
 /** Opdrachtgever toevoegen (og = null) of bewerken. Opdrachtgevers beheren planners zelf; ze komen niet uit Easyflex2go. */
@@ -36,10 +37,7 @@ export default function OpdrachtgeverPaneel({ og, anderScania, onSluit, onKlaar 
     });
   }, [supabase, og, week.jaar, week.week]);
 
-  async function log(omschrijving: string, id?: string) {
-    const { data } = await supabase.auth.getUser();
-    if (data.user) await supabase.from("wijzigingen").insert({ gebruiker_id: data.user.id, tabel: "opdrachtgevers", record_id: id ?? null, omschrijving });
-  }
+  const log = (omschrijving: string, id?: string) => logWijziging(supabase, "opdrachtgevers", omschrijving, id);
 
   async function opslaan() {
     const n = naam.trim();
@@ -50,7 +48,7 @@ export default function OpdrachtgeverPaneel({ og, anderScania, onSluit, onKlaar 
     const rij = { naam: n, plaats: plaats.trim() || null, korte_naam: korteNaam.trim() || null, verborgen: !kiesbaar, scania };
     const { data, error } = og
       ? await supabase.from("opdrachtgevers").update(rij).eq("id", og.id).select("id").single()
-      : await supabase.from("opdrachtgevers").insert({ ...rij, actief: true }).select("id").single();
+      : await supabase.from("opdrachtgevers").insert(rij).select("id").single();
     setBezig(false);
     if (error) { onKlaar("Opslaan is niet gelukt: " + error.message, true); return; }
     if (!og) {

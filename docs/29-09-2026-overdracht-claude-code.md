@@ -1,3 +1,5 @@
+> **Momentopname van 29-09-2026.** Veel hiervan is inmiddels gebouwd of veranderd (o.a. opdrachtgevers worden nu zelf beheerd in plaats van uit Easyflex2go gehaald, en alleen status Actief telt). Zie de README voor de actuele stand.
+
 # Overdracht Solestus Planning → Claude Code (29-09-2026)
 
 Lees dit eerst. Het beschrijft de stand van zaken, waar alles draait en wat nog open staat.

@@ -3,16 +3,19 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import "./scania.css";
+import ExportMenu from "@/components/ExportMenu";
 import Icoon from "@/components/Icoon";
+import Toast, { useToast } from "@/components/Toast";
 import PaneelSchil, { PaneelVoet } from "@/components/PaneelSchil";
 import WeekKiezer from "@/components/WeekKiezer";
 import { createClient } from "@/lib/supabase/client";
-import { dagInfo, isoWeek, plusDagen, weekParam, type Afwezigheid, type Vak } from "@/lib/planning";
-import { ROUTE_KORT, ROUTE_NAAM, STANDAARDWEEK, afwezigOp, deelRegel, ritMeldingen, ritTekst, rustVoor, RUST_UREN, standaardDelen, type Chauffeur, type Dienst, type Rit, type RitDeel, type Route } from "@/lib/scania";
+import { logWijziging } from "@/lib/wijzigingen";
+import { DAG_KORT, dagIndex, dagInfo, dagMaand, isoWeek, plusDagen, weekParam, type Afwezigheid, type Vak } from "@/lib/planning";
+import { ROUTE, STANDAARDWEEK, afwezigOp, deelRegel, ritMeldingen, ritTekst, rustVoor, RUST_UREN, standaardDelen, type Chauffeur, type Dienst, type Rit, type RitDeel, type Route } from "@/lib/scania";
 import { naarIso, naarLokaal } from "@/lib/tijd";
 
 type Props = {
-  week: number; maandag: string; ritten: Rit[]; chauffeurs: Chauffeur[]; scaniaId: string | null;
+  week: number; maandag: string; ritten: Rit[]; chauffeurs: Chauffeur[]; scaniaId: string | null; scaniaNaam: string;
   afwezigheid: Afwezigheid[]; vakken: Vak[]; magWijzigen: boolean; laadFout: string | null;
 };
 
@@ -22,10 +25,10 @@ export default function Scania(p: Props) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const [bewerk, setBewerk] = useState<Rit | "nieuw" | "extra" | null>(null);
-  const [menu, setMenu] = useState<"vullen" | "export" | "kopieren" | null>(null);
+  const [menu, setMenu] = useState<"vullen" | "kopieren" | null>(null);
   const [metChauffeurs, setMetChauffeurs] = useState(true);
   const [tekst, setTekst] = useState<string | null>(null);
-  const [melding, setMelding] = useState<{ t: string; fout?: boolean } | null>(null);
+  const { melding, toon, sluit } = useToast();
   const [bezig, setBezig] = useState(false);
   const [ookInPlanning, setOokInPlanning] = useState(true);
 
@@ -50,13 +53,9 @@ export default function Scania(p: Props) {
   const metWaarschuwing = inWeek.filter((r) => meldingen.get(r.id)!.length).length;
   const vorigeWeek = isoWeek(plusDagen(p.maandag, -7)).week;
 
-  function toon(t: string, fout = false) { setMelding({ t, fout }); setTimeout(() => setMelding(null), fout ? 6000 : 2500); }
   const afwezig = (mwId: string, datum: string) => afwezigOp(mwId, datum, p.afwezigheid, p.vakken);
 
-  async function log(omschrijving: string, recordId?: string) {
-    const { data } = await supabase.auth.getUser();
-    if (data.user) await supabase.from("wijzigingen").insert({ gebruiker_id: data.user.id, omschrijving, tabel: "scania_ritten", record_id: recordId ?? null });
-  }
+  const log = (omschrijving: string, recordId?: string) => logWijziging(supabase, "scania_ritten", omschrijving, recordId);
 
   async function standaardWeekInvullen() {
     setMenu(null);
@@ -85,12 +84,14 @@ export default function Scania(p: Props) {
       .gte("vertrekdatum", plusDagen(p.maandag, -7)).lte("vertrekdatum", plusDagen(p.maandag, -1));
     if (error) { setBezig(false); toon("Kopiëren lukte niet.", true); return; }
     if (!data?.length) { setBezig(false); toon(`Week ${vorigeWeek} heeft geen ritten.`); return; }
-    const plus7 = (iso: string) => new Date(new Date(iso).getTime() + 7 * 86400000).toISOString();
+    // Een week later op dezelfde klokkijd, ook als er een zomer-/wintertijdwissel tussen zit.
+    const plus7 = (iso: string) => { const l = naarLokaal(iso); return naarIso(`${plusDagen(l.slice(0, 10), 7)}${l.slice(10)}`); };
     for (const r of data as Omit<Rit, "id">[]) {
       const { data: nieuw, error: e1 } = await supabase.from("scania_ritten").insert({ vertrekdatum: plusDagen(r.vertrekdatum, 7), dienst: r.dienst, route: r.route, omschrijving: r.omschrijving ?? null, chauffeur_id: metChauffeurs ? r.chauffeur_id : null, notitie: null }).select("id").single();
       if (e1 || !nieuw) { setBezig(false); toon("Kopiëren is deels mislukt.", true); router.refresh(); return; }
       const delen = r.rit_delen.map((d) => ({ rit_id: nieuw.id, volgorde: d.volgorde, van: d.van, naar: d.naar, vertrek: plus7(d.vertrek), aankomst: plus7(d.aankomst) }));
-      if (delen.length) await supabase.from("rit_delen").insert(delen);
+      const { error: e2 } = delen.length ? await supabase.from("rit_delen").insert(delen) : { error: null };
+      if (e2) { setBezig(false); toon("Kopiëren is deels mislukt: de tijden van een rit zijn niet opgeslagen.", true); router.refresh(); return; }
     }
     await log(`Scania-ritten van week ${vorigeWeek} gekopieerd naar week ${p.week}${metChauffeurs ? "" : " (zonder chauffeurs)"}`);
     setBezig(false);
@@ -124,7 +125,7 @@ export default function Scania(p: Props) {
       <div className="kop">
         <div>
           <div className="kop-titel"><h1 className="machina">Scania-ritten</h1></div>
-          <div className="kop-meta">{ROUTE_NAAM.ishoj} en {ROUTE_NAAM.rade}</div>
+          <div className="kop-meta">{ROUTE.ishoj.naam} en {ROUTE.rade.naam}</div>
         </div>
         <div className="kop-acties">
           <WeekKiezer pad="/scania" maandag={p.maandag} />
@@ -164,34 +165,21 @@ export default function Scania(p: Props) {
               )}
             </div>
           )}
-          <div className="menu-anker">
-            <button type="button" className="knop knop-hoog" aria-expanded={menu === "export"} aria-haspopup="menu" onClick={() => setMenu(menu === "export" ? null : "export")}
-              style={menu === "export" ? { boxShadow: "0 0 0 3px var(--geel)" } : undefined}>
-              <Icoon naam="download" />Exporteren<Icoon naam="omlaag" maat={16} />
-            </button>
-            {menu === "export" && (
-              <>
-                <div className="menu-sluiter" onClick={() => setMenu(null)} />
-                <div className="menu export-menu" role="menu" aria-label="Exporteren">
-                  <a role="menuitem" className="export-keuze" href={`/afdruk/scania?week=${weekParam(p.maandag)}`} target="_blank" rel="noopener" onClick={() => setMenu(null)}>
-                    <span className="export-icoon"><span className="export-blad export-liggend" /></span>
-                    <span><b>PDF, A4 liggend</b><small>alle ritten van week {p.week}</small></span>
-                  </a>
-                  <button type="button" role="menuitem" className="export-keuze" onClick={tekstKopieren}>
-                    <span className="export-icoon"><Icoon naam="kopie" maat={20} /></span>
-                    <span><b>Ritten als tekst kopiëren</b><small>om te plakken in WhatsApp of mail</small></span>
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+          <ExportMenu
+            knop="knop knop-hoog"
+            uitleg={`De ritten van week ${p.week}.`}
+            keuzes={[
+              { titel: "PDF, A4 liggend", sub: `alle ritten van week ${p.week}`, href: `/afdruk/scania?week=${weekParam(p.maandag)}`, soort: "liggend" },
+              { titel: "Ritten als tekst kopiëren", sub: "om te plakken in WhatsApp of mail", onClick: tekstKopieren, soort: "kopie" },
+            ]}
+          />
           {p.magWijzigen && <button type="button" className="knop knop-hoog knop-extra" onClick={() => setBewerk("extra")}><Icoon naam="plus" />Extra opdracht</button>}
           {p.magWijzigen && <button type="button" className="knop knop-zwart knop-hoog" onClick={() => setBewerk("nieuw")}><Icoon naam="plus" />Rit toevoegen</button>}
         </div>
       </div>
 
       {p.laadFout && <div className="melding melding-fout" role="alert" style={{ maxWidth: "none" }}><strong>Laden is niet gelukt</strong>{p.laadFout}</div>}
-      {!p.scaniaId && <div className="voorbeeld">Er is geen Scania-opdrachtgever. Zet in Stamgegevens bij de juiste opdrachtgever het vinkje ‘Scania-opdrachtgever’ aan. Ritten worden wel opgeslagen, maar niet in de weekplanning gezet.</div>}
+      {!p.scaniaId && <div className="let-op-balk">Er is geen Scania-opdrachtgever. Zet in Stamgegevens bij de juiste opdrachtgever het vinkje ‘Scania-opdrachtgever’ aan. Ritten worden wel opgeslagen, maar niet in de weekplanning gezet.</div>}
 
       <div className="scania-cijfers">
         <div className="cijferkaart"><b>{inWeek.length}</b><span>Ritten deze week{extraAantal ? ` · waarvan ${extraAantal} extra` : ""}</span></div>
@@ -215,7 +203,7 @@ export default function Scania(p: Props) {
                 <span className="rit-dienst">
                   {r.route === "extra"
                     ? <><span className="extra-label">Extra</span><span>{r.omschrijving?.trim() || "Extra opdracht"}</span></>
-                    : <><span className={`dienst dienst-${r.dienst}`}>{r.dienst === "dag" ? "Dag" : "Nacht"}</span><span>{ROUTE_KORT[r.route]}</span></>}
+                    : <><span className={`dienst dienst-${r.dienst}`}>{r.dienst === "dag" ? "Dag" : "Nacht"}</span><span>{ROUTE[r.route].kort}</span></>}
                 </span>
                 <span className="rit-deel">{delen[0] ? <><b>{delen[0].titel}</b><small>{delen[0].tijden}</small></> : "–"}</span>
                 <span className="rit-deel">{delen.slice(1).length ? delen.slice(1).map((d, j) => <span key={j} className="rit-deel"><b>{d.titel}</b><small>{d.tijden}</small></span>) : r.route === "rade" ? <b>Swap in Rade</b> : "–"}</span>
@@ -253,7 +241,7 @@ export default function Scania(p: Props) {
             {perChauffeur.size === 0 && <div className="zij-rij"><span>Nog niemand ingepland.</span></div>}
           </section>
           {p.magWijzigen && (
-            <label className="vink zij-vink"><input type="checkbox" checked={ookInPlanning} onChange={(e) => zetOokInPlanning(e.target.checked)} />Chauffeur ook op Manpower / Scania zetten in de weekplanning</label>
+            <label className="vink zij-vink"><input type="checkbox" checked={ookInPlanning} onChange={(e) => zetOokInPlanning(e.target.checked)} />Chauffeur ook op {p.scaniaNaam} zetten in de weekplanning</label>
           )}
         </aside>
       </div>
@@ -276,6 +264,7 @@ export default function Scania(p: Props) {
           onKlaar={(t) => { setBewerk(null); toon(t); router.refresh(); }}
           onFout={(t) => toon(t, true)}
           scaniaId={p.scaniaId}
+          scaniaNaam={p.scaniaNaam}
           vakken={p.vakken}
         />
       )}
@@ -289,14 +278,14 @@ export default function Scania(p: Props) {
           </section>
         </div>
       )}
-      {melding && <div className="toast" role={melding.fout ? "alert" : "status"}>{melding.fout && <Icoon naam="waarschuwing" maat={20} />}<span>{melding.t}</span></div>}
+      <Toast melding={melding} sluit={sluit} />
     </main>
   );
 }
 
 function RitPaneel(props: {
   week: number; rit: Rit | null; nieuweRoute: Route; standaardDatum: string; chauffeurs: Chauffeur[]; opScania: Set<string>;
-  afwezig: (id: string, d: string) => string | null; alleRitten: Rit[]; afwezigheid: Afwezigheid[]; scaniaId: string | null; vakken: Vak[];
+  afwezig: (id: string, d: string) => string | null; alleRitten: Rit[]; afwezigheid: Afwezigheid[]; scaniaId: string | null; scaniaNaam: string; vakken: Vak[];
   ookInPlanning: boolean; setOokInPlanning: (v: boolean) => void;
   onSluit: () => void; onKlaar: (t: string) => void; onFout: (t: string) => void;
 }) {
@@ -363,12 +352,12 @@ function RitPaneel(props: {
     if (props.ookInPlanning && chauffeur && props.scaniaId) {
       const bestaand = props.vakken.find((v) => v.medewerker_id === chauffeur && v.datum === datum);
       if (!bestaand || (bestaand.status === "werk" && bestaand.opdrachtgever_id === props.scaniaId)) {
-        await supabase.from("vakken").upsert({ medewerker_id: chauffeur, datum, status: "werk", opdrachtgever_id: props.scaniaId, notitie: extra ? `Extra: ${omschrijving.trim()}` : `${route === "rade" ? "Rade" : "Ishøj"} · ${dienst}`, gewijzigd_door: auth.user?.id ?? null, gewijzigd_op: new Date().toISOString() }, { onConflict: "medewerker_id,datum" });
+        await supabase.from("vakken").upsert({ medewerker_id: chauffeur, datum, status: "werk", opdrachtgever_id: props.scaniaId, notitie: extra ? `Extra: ${omschrijving.trim()}` : `${ROUTE[route].plaats} · ${dienst}`, gewijzigd_door: auth.user?.id ?? null, gewijzigd_op: new Date().toISOString() }, { onConflict: "medewerker_id,datum" });
       }
     }
     const naam = props.chauffeurs.find((c) => c.id === chauffeur)?.naam;
-    const dag = new Date(datum + "T12:00:00Z").toLocaleDateString("nl-NL", { weekday: "short", day: "numeric", month: "short" }).replace(".", "");
-    if (auth.user) await supabase.from("wijzigingen").insert({ gebruiker_id: auth.user.id, omschrijving: `${extra ? `Scania extra opdracht (${omschrijving.trim()})` : "Scania-rit"} ${dag}, ${dienst}: ${naam ?? "nog geen chauffeur"}`, tabel: "scania_ritten", record_id: id });
+    const dag = `${DAG_KORT[dagIndex(datum)]} ${dagMaand(datum)}`;
+    await logWijziging(supabase, "scania_ritten", `${extra ? `Scania extra opdracht (${omschrijving.trim()})` : "Scania-rit"} ${dag}, ${dienst}: ${naam ?? "nog geen chauffeur"}`, id);
     props.onKlaar(r ? (extra ? "Extra opdracht opgeslagen" : "Rit opgeslagen") : (extra ? "Extra opdracht toegevoegd" : "Rit toegevoegd"));
   }
 
@@ -387,8 +376,7 @@ function RitPaneel(props: {
     const { error } = await supabase.from("scania_ritten").delete().eq("id", r.id);
     if (error) { setBezig(false); props.onFout("Verwijderen lukte niet."); return; }
     await vakOpruimen(r.chauffeur_id, r.vertrekdatum);
-    const { data: auth } = await supabase.auth.getUser();
-    if (auth.user) await supabase.from("wijzigingen").insert({ gebruiker_id: auth.user.id, omschrijving: `Scania-rit ${r.vertrekdatum} (${r.dienst}) verwijderd`, tabel: "scania_ritten" });
+    await logWijziging(supabase, "scania_ritten", `Scania-rit ${r.vertrekdatum} (${r.dienst}) verwijderd`);
     props.onKlaar("Rit verwijderd");
   }
 
@@ -411,7 +399,7 @@ function RitPaneel(props: {
     <PaneelSchil
       boven={`Scania · week ${props.week}`}
       titel={extra ? (r ? "Extra opdracht bewerken" : "Extra opdracht") : r ? "Rit bewerken" : "Nieuwe rit"}
-      sub={extra ? "Naast de vaste ritten, bijv. pendelen" : ROUTE_NAAM[route]}
+      sub={extra ? "Naast de vaste ritten, bijv. pendelen" : ROUTE[route].naam}
       onSluit={props.onSluit}
       voet={<PaneelVoet opslaan={opslaan} opslaanLabel={bezig ? "Opslaan…" : "Opslaan"} uit={bezig || tijdenFout || invulFout} onAnnuleren={props.onSluit} gevaar={r ? { label: "Verwijderen", onClick: verwijderen, uit: bezig } : undefined} />}
     >
@@ -426,8 +414,8 @@ function RitPaneel(props: {
       </div>
       <fieldset className="veld"><legend style={{ marginBottom: 0 }}>Route</legend>
         <div className="route-keuze">
-          <button type="button" aria-pressed={route === "ishoj"} onClick={() => wijzig(datum, dienst, "ishoj")}>{ROUTE_NAAM.ishoj}</button>
-          <button type="button" aria-pressed={route === "rade"} onClick={() => wijzig(datum, dienst, "rade")}>{ROUTE_NAAM.rade}</button>
+          <button type="button" aria-pressed={route === "ishoj"} onClick={() => wijzig(datum, dienst, "ishoj")}>{ROUTE.ishoj.naam}</button>
+          <button type="button" aria-pressed={route === "rade"} onClick={() => wijzig(datum, dienst, "rade")}>{ROUTE.rade.naam}</button>
           <button type="button" className="route-extra" aria-pressed={extra} onClick={() => wijzig(datum, dienst, "extra")}>Extra opdracht <small>bijv. pendelen</small></button>
         </div>
       </fieldset>
@@ -470,7 +458,7 @@ function RitPaneel(props: {
       </div>
       {waarschuwing && <p className="infoblok" style={{ background: "var(--fout-bg)", color: "var(--fout)", fontWeight: 600 }}>{waarschuwing}{rust && rust.uren < RUST_UREN ? ` Minimaal ${RUST_UREN} uur rust.` : ""}</p>}
       <div className="veld"><label className="veld-kop" htmlFor="rit-notitie">Notitie</label><input id="rit-notitie" className="invoer" value={notitie} onChange={(e) => setNotitie(e.target.value)} maxLength={120} placeholder="bijv. trailer wisselen, kenteken" /></div>
-      <label className="vink"><input type="checkbox" checked={props.ookInPlanning} onChange={(e) => props.setOokInPlanning(e.target.checked)} />Chauffeur ook op Manpower / Scania zetten in de weekplanning</label>
+      <label className="vink"><input type="checkbox" checked={props.ookInPlanning} onChange={(e) => props.setOokInPlanning(e.target.checked)} />Chauffeur ook op {props.scaniaNaam} zetten in de weekplanning</label>
     </PaneelSchil>
   );
 }

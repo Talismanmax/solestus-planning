@@ -25,7 +25,7 @@ export async function proxy(request: NextRequest) {
 
   const { data } = await supabase.auth.getUser();
   const pad = request.nextUrl.pathname;
-  const openbaar = OPENBAAR.some((p) => pad.startsWith(p));
+  const openbaar = OPENBAAR.some((p) => pad === p || pad.startsWith(p + "/"));
 
   if (!data.user && !openbaar) {
     const url = request.nextUrl.clone();
@@ -35,6 +35,13 @@ export async function proxy(request: NextRequest) {
     const terug = pad !== "/" ? `volgende=${encodeURIComponent(pad + request.nextUrl.search)}` : "";
     url.search = hadSessie ? `?staat=verlopen${terug ? `&${terug}` : ""}` : terug ? `?${terug}` : "";
     return NextResponse.redirect(url);
+  }
+
+  // Ingelogd bij Microsoft maar geen toegang tot de planning (geen gebruiker): uitloggen en de melding tonen,
+  // in plaats van heen en weer te sturen tussen /inloggen en de planning.
+  if (data.user && pad === "/inloggen" && request.nextUrl.searchParams.get("staat") === "mislukt") {
+    await supabase.auth.signOut();
+    return response;
   }
 
   if (data.user && pad === "/inloggen") {

@@ -1,5 +1,6 @@
 import { STATUS, type Afwezigheid, type Vak } from "./planning";
 import { dagTijd, naarIso, tijd } from "./tijd";
+import { afwezigheidOp, DAG_KORT, dagIndex, dagMaand, plusDagen } from "@/lib/planning";
 
 export type Dienst = "dag" | "nacht";
 export type Route = "ishoj" | "rade" | "extra";
@@ -7,19 +8,17 @@ export type RitDeel = { id?: string; volgorde: number; van: string; naar: string
 export type Rit = { id: string; vertrekdatum: string; dienst: Dienst; route: Route; chauffeur_id: string | null; notitie: string | null; omschrijving?: string | null; rit_delen: RitDeel[] };
 export type Chauffeur = { id: string; naam: string; groep: "nl" | "int" | "kantoor"; nationaliteit: string | null };
 
-export const ROUTE_NAAM: Record<Route, string> = { ishoj: "Zwolle – Ishøj – Zwolle", rade: "Zwolle – Rade – Zwolle (swap)", extra: "Extra opdracht" };
-export const ROUTE_KORT: Record<Route, string> = { ishoj: "Ishøj", rade: "Rade · swap", extra: "Extra" };
+/** Namen van de routes: voluit (kop, knoppen), heen (afdruk), kort (tabel) en de plaats (meldingen, weekplanning). */
+export const ROUTE: Record<Route, { naam: string; heen: string; kort: string; plaats: string }> = {
+  ishoj: { naam: "Zwolle – Ishøj – Zwolle", heen: "Zwolle – Ishøj", kort: "Ishøj", plaats: "Ishøj" },
+  rade: { naam: "Zwolle – Rade – Zwolle (swap)", heen: "Zwolle – Rade (swap)", kort: "Rade · swap", plaats: "Rade" },
+  extra: { naam: "Extra opdracht", heen: "Extra opdracht", kort: "Extra", plaats: "de extra opdracht" },
+};
 export const RUST_UREN = 11;
-
-function plusDag(datum: string, n: number) {
-  const d = new Date(datum + "T00:00:00Z");
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
-}
 
 /** Standaardtijden voor een nieuwe rit (Nederlandse tijd). */
 export function standaardDelen(datum: string, dienst: Dienst, route: Route): RitDeel[] {
-  const t = (dag: number, u: string) => naarIso(`${plusDag(datum, dag)}T${u}`);
+  const t = (dag: number, u: string) => naarIso(`${plusDagen(datum, dag)}T${u}`);
   const [start, eind, eindDag] = dienst === "dag" ? ["09:00", "20:00", 0] as const : ["21:00", "08:00", 1] as const;
   if (route === "rade") {
     return [{ volgorde: 1, van: "Zwolle", naar: "Rade (swap) – Zwolle", vertrek: t(0, start), aankomst: t(eindDag, eind) }];
@@ -46,8 +45,8 @@ export const STANDAARDWEEK: { dag: number; dienst: Dienst; route: Route }[] = [
   { dag: 6, dienst: "nacht", route: "ishoj" },
 ];
 
-export const begin = (r: Rit) => r.rit_delen.reduce((a, d) => (d.vertrek < a ? d.vertrek : a), r.rit_delen[0]?.vertrek ?? r.vertrekdatum + "T00:00:00Z");
-export const einde = (r: Rit) => r.rit_delen.reduce((a, d) => (d.aankomst > a ? d.aankomst : a), r.rit_delen[0]?.aankomst ?? r.vertrekdatum + "T23:59:00Z");
+const begin = (r: Rit) => r.rit_delen.reduce((a, d) => (d.vertrek < a ? d.vertrek : a), r.rit_delen[0]?.vertrek ?? r.vertrekdatum + "T00:00:00Z");
+const einde = (r: Rit) => r.rit_delen.reduce((a, d) => (d.aankomst > a ? d.aankomst : a), r.rit_delen[0]?.aankomst ?? r.vertrekdatum + "T23:59:00Z");
 
 /** Uren rust tussen deze rit en de vorige rit van dezelfde chauffeur (null als er geen vorige is). */
 export function rustVoor(rit: Rit, alle: Rit[]): { uren: number; vorige: Rit } | null {
@@ -61,19 +60,15 @@ export function rustVoor(rit: Rit, alle: Rit[]): { uren: number; vorige: Rit } |
 
 /** Afwezigheid van een chauffeur op een dag (periode of vak), als kleine letters, of null. */
 export function afwezigOp(mwId: string, datum: string, afwezigheid: Afwezigheid[], vakken: Vak[]): string | null {
-  const a = afwezigheid.find((x) => x.medewerker_id === mwId && x.van <= datum && x.tot_en_met >= datum);
+  const a = afwezigheidOp(afwezigheid, mwId, datum);
   if (a) return STATUS[a.soort].label.toLowerCase();
   const v = vakken.find((x) => x.medewerker_id === mwId && x.datum === datum);
   if (v && STATUS[v.status].soort === "weg") return STATUS[v.status].label.toLowerCase();
   return null;
 }
 
-export type RitMelding = { kort: string; lang: string };
+type RitMelding = { kort: string; lang: string };
 
-const PLAATS: Record<Route, string> = { ishoj: "Ishøj", rade: "Rade", extra: "de extra opdracht" };
-const DAG_KORT = ["zo", "ma", "di", "wo", "do", "vr", "za"];
-const MAAND = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
-const dm = (datum: string) => { const d = new Date(datum + "T00:00:00Z"); return `${d.getUTCDate()} ${MAAND[d.getUTCMonth()]}`; };
 
 /** Waarschuwingen bij een rit: te weinig rust, of de chauffeur is afwezig. Kort voor in de tabel, lang voor "Let op". */
 export function ritMeldingen(r: Rit, alleRitten: Rit[], afwezigheid: Afwezigheid[], vakken: Vak[]): RitMelding[] {
@@ -82,23 +77,18 @@ export function ritMeldingen(r: Rit, alleRitten: Rit[], afwezigheid: Afwezigheid
   const rust = rustVoor(r, alleRitten);
   if (rust && rust.uren < RUST_UREN) {
     const u = Math.max(0, Math.round(rust.uren));
-    w.push({ kort: `Maar ${u} uur rust na vorige rit`, lang: `Maar ${u} uur rust tussen terugkomst uit ${PLAATS[rust.vorige.route]} en vertrek naar ${PLAATS[r.route]}.` });
+    w.push({ kort: `Maar ${u} uur rust na vorige rit`, lang: `Maar ${u} uur rust tussen terugkomst uit ${ROUTE[rust.vorige.route].plaats} en vertrek naar ${ROUTE[r.route].plaats}.` });
   }
-  const dag = DAG_KORT[new Date(r.vertrekdatum + "T00:00:00Z").getUTCDay()];
-  const a = afwezigheid.find((x) => x.medewerker_id === r.chauffeur_id && x.van <= r.vertrekdatum && x.tot_en_met >= r.vertrekdatum);
+  const dag = DAG_KORT[dagIndex(r.vertrekdatum)];
+  const a = afwezigheidOp(afwezigheid, r.chauffeur_id, r.vertrekdatum);
   if (a) {
     const soort = STATUS[a.soort].label;
-    w.push({ kort: `${soort} op ${dag}`, lang: `Ingepland tijdens ${soort.toLowerCase()} (${dm(a.van)} t/m ${dm(a.tot_en_met)}).` });
+    w.push({ kort: `${soort} op ${dag}`, lang: `Ingepland tijdens ${soort.toLowerCase()} (${dagMaand(a.van)} t/m ${dagMaand(a.tot_en_met)}).` });
   } else {
     const v = vakken.find((x) => x.medewerker_id === r.chauffeur_id && x.datum === r.vertrekdatum);
     if (v && STATUS[v.status].soort === "weg") w.push({ kort: `${STATUS[v.status].label} op ${dag}`, lang: `In de weekplanning staat ${STATUS[v.status].label.toLowerCase()} op deze dag.` });
   }
   return w;
-}
-
-/** Korte waarschuwingen (voor de PDF). */
-export function ritWaarschuwingen(r: Rit, alleRitten: Rit[], afwezigheid: Afwezigheid[], vakken: Vak[]): string[] {
-  return ritMeldingen(r, alleRitten, afwezigheid, vakken).map((m) => m.kort);
 }
 
 /** Regel voor het bericht aan de chauffeur, zoals in het design (Nederlands of Engels). */

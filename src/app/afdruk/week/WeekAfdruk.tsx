@@ -1,9 +1,9 @@
 import Blad from "../Blad";
 import type { laadWeek } from "@/lib/laden";
-import { GROEPEN, STATUS, opdrachtgeverLabel, STATUS_VOLGORDE, celInhoud, dagInfo, dagTelling, plusDagen, tijdstipNL, weekBereik, type Medewerker } from "@/lib/planning";
-import { gemaaktOp } from "@/lib/tijd";
+import { DAG_LANG, GROEPEN, STATUS, STATUS_VOLGORDE, celInhoud, dagInfo, dagTelling, opdrachtgeverLabel, plusDagen, weekBereik, type Medewerker } from "@/lib/planning";
+import { gemaaktOp, tijdstipNL } from "@/lib/tijd";
+import { korteNaam } from "@/lib/namen";
 
-const DAG_LANG = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag", "Zondag"];
 
 export default function WeekAfdruk({ week, maandag, stand, groepId, ogId, bv, d, gebruiker }: {
   week: number; maandag: string; stand: "liggend" | "staand"; groepId?: string; ogId?: string; bv?: string;
@@ -23,7 +23,7 @@ export default function WeekAfdruk({ week, maandag, stand, groepId, ogId, bv, d,
   const liggend = stand === "liggend";
   const kolommen = 8 + (liggend ? 1 : 0);
 
-  const door = gebruiker?.naam?.split(" ")[0] || gebruiker?.email.split("@")[0] || "onbekend";
+  const door = korteNaam(gebruiker);
   const voet = `Gemaakt op ${gemaaktOp()} door ${door}${liggend && d.laatstGewijzigd ? ` · laatst gewijzigd ${tijdstipNL(d.laatstGewijzigd.tijdstip)}` : ""}`;
   const filter = [groep ? groep.label : "Alle groepen", ogFilter ? opdrachtgeverLabel(ogFilter) : "Alle opdrachtgevers", bv ?? "Alle BV's"].join(" · ");
 

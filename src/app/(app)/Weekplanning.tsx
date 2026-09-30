@@ -10,15 +10,20 @@ import WeekKopieren from "./WeekKopieren";
 import AfwezigheidPaneel from "@/components/AfwezigheidPaneel";
 import ExportMenu from "@/components/ExportMenu";
 import Icoon from "@/components/Icoon";
+import Toast, { useToast } from "@/components/Toast";
 import PaneelSchil, { PaneelVoet } from "@/components/PaneelSchil";
 import WeekKiezer from "@/components/WeekKiezer";
 import { weekNaarExcel } from "@/lib/excel";
 import { createClient } from "@/lib/supabase/client";
-import {
-  GROEPEN, STATUS, celInhoud, dagInfo, dagTelling, geldigeVasteInzet, isoWeek, opdrachtgeverLabel, periodeKort, plusDagen, tijdstipNL, vandaagNL, weekParam,
+import { logWijziging } from "@/lib/wijzigingen";
+import { afwezigheidOp,
+  GROEPEN, STATUS, celInhoud, dagIndex, dagInfo, dagTelling, geldigeVasteInzet, isoWeek, opdrachtgeverLabel, periodeKort, plusDagen, vandaagNL, weekParam,
   type Afwezigheid, type Medewerker, type Opdrachtgever, type Vak, type VakStatus, type WeekOpmerking,
 } from "@/lib/planning";
 import type { Rit } from "@/lib/scania";
+import { tijdstipNL } from "@/lib/tijd";
+import VakInhoud from "@/components/VakInhoud";
+import { VAK_KOLOMMEN } from "@/lib/laden";
 
 type Props = {
   jaar: number; week: number; maandag: string;
@@ -36,10 +41,8 @@ type Paneel =
   | null;
 
 type Filters = { groep: string; og: string; bv: string };
-type Toast = { tekst: string; fout?: boolean; opnieuw?: () => void };
 
 const sleutel = (mwId: string, datum: string) => `${mwId}|${datum}`;
-const VAK_VELDEN = "id, medewerker_id, datum, status, opdrachtgever_id, notitie";
 /** Wat "Afwezigheid niet meenemen" overslaat bij het kopiëren van de vorige week. */
 const AFWEZIG_NIET_KOPIEREN: VakStatus[] = ["vakantie", "ziek", "vrij", "einde"];
 const GEEN_FILTER: Filters = { groep: "alle", og: "", bv: "" };
@@ -54,7 +57,7 @@ export default function Weekplanning(p: Props) {
   const [filters, setFilters] = useState<Filters>(GEEN_FILTER);
   const [filterOpen, setFilterOpen] = useState(false);
   const [legenda, setLegenda] = useState(false);
-  const [toast, setToast] = useState<Toast | null>(null);
+  const { melding: toastMelding, toon: melding, sluit: sluitToast } = useToast();
   const [selectie, setSelectie] = useState<Set<string>>(new Set());
   const [klembord, setKlembord] = useState<Invulling | null>(null);
   const [kopieerOpen, setKopieerOpen] = useState(false);
@@ -66,15 +69,9 @@ export default function Weekplanning(p: Props) {
   const [dag, setDag] = useState(() => Math.max(0, dagen.indexOf(vandaag)));
   const ogById = useMemo(() => new Map(p.opdrachtgevers.map((o) => [o.id, o])), [p.opdrachtgevers]);
   const mwById = useMemo(() => new Map(p.medewerkers.map((m) => [m.id, m])), [p.medewerkers]);
-  const voorbeeld = p.opdrachtgevers.some((o) => o.naam.includes("(voorbeeld)"));
   const bvs = useMemo(() => [...new Set(p.medewerkers.map((m) => m.bv).filter((b): b is string => !!b))].sort(), [p.medewerkers]);
 
-  function melding(tekst: string, fout = false, opnieuw?: () => void) {
-    setToast({ tekst, fout, opnieuw });
-    setTimeout(() => setToast((t) => (t?.tekst === tekst ? null : t)), opnieuw ? 12000 : fout ? 6000 : 2500);
-  }
-
-  const afwezigOp = (mwId: string, datum: string) => p.afwezigheid.find((a) => a.medewerker_id === mwId && a.van <= datum && a.tot_en_met >= datum);
+  const afwezigOp = (mwId: string, datum: string) => afwezigheidOp(p.afwezigheid, mwId, datum);
   const cel = (mw: Medewerker, datum: string, i: number) => celInhoud(mw, datum, i, vakken.get(sleutel(mw.id, datum)), p.afwezigheid, ogById);
 
   // Zoeken op medewerker of opdrachtgever; filters op groep, opdrachtgever en BV.
@@ -90,13 +87,12 @@ export default function Weekplanning(p: Props) {
   const aantalFilters = (filters.groep !== "alle" ? 1 : 0) + (filters.og ? 1 : 0) + (filters.bv ? 1 : 0);
 
   const telling = dagen.map((d, i) => dagTelling(p.medewerkers.map((m) => cel(m, d, i))));
-  const labelVan = (w: Invulling) => `${w.opdrachtgeverId ? ogById.get(w.opdrachtgeverId)?.naam ?? "Ingezet" : STATUS[w.status].label}${w.notitie ? ` (${w.notitie})` : ""}`;
+  const labelVan = (w: Invulling) => {
+    const og = w.opdrachtgeverId ? ogById.get(w.opdrachtgeverId) : undefined;
+    return `${w.opdrachtgeverId ? (og ? opdrachtgeverLabel(og) : "Ingezet") : STATUS[w.status].label}${w.notitie ? ` (${w.notitie})` : ""}`;
+  };
 
-  async function logWijziging(omschrijving: string, tabel: string, recordId?: string) {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) return;
-    await supabase.from("wijzigingen").insert({ gebruiker_id: data.user.id, omschrijving, tabel, record_id: recordId ?? null });
-  }
+  const log = (omschrijving: string, tabel: string, recordId?: string) => logWijziging(supabase, tabel, omschrijving, recordId);
 
   async function slaVakOp(mw: Medewerker, datum: string, w: Invulling | null) {
     const k = sleutel(mw.id, datum);
@@ -113,7 +109,7 @@ export default function Weekplanning(p: Props) {
       const next = new Map(vakken); next.delete(k); setVakken(next);
       const { error } = await supabase.from("vakken").delete().eq("id", oud.id);
       if (error) { setVakken(vorige); melding(mislukt, true, opnieuw); return; }
-      await logWijziging(`${mw.naam} ${lang}: leeggemaakt`, "vakken", oud.id);
+      await log(`${mw.naam} ${lang}: leeggemaakt`, "vakken", oud.id);
       melding("Vak leeggemaakt");
       return;
     }
@@ -121,10 +117,10 @@ export default function Weekplanning(p: Props) {
     const { data: auth } = await supabase.auth.getUser();
     const rij = { medewerker_id: mw.id, datum, status: w.status, opdrachtgever_id: w.status === "werk" ? w.opdrachtgeverId : null, notitie: w.notitie.trim() || null, gewijzigd_door: auth.user?.id ?? null, gewijzigd_op: new Date().toISOString() };
     setVakken(new Map(vakken).set(k, { id: oud?.id ?? "nieuw", ...rij }));
-    const { data, error } = await supabase.from("vakken").upsert(rij, { onConflict: "medewerker_id,datum" }).select(VAK_VELDEN).single();
+    const { data, error } = await supabase.from("vakken").upsert(rij, { onConflict: "medewerker_id,datum" }).select(VAK_KOLOMMEN).single();
     if (error || !data) { setVakken(vorige); melding(mislukt, true, opnieuw); return; }
     setVakken((m) => new Map(m).set(k, data as Vak));
-    await logWijziging(`${mw.naam} ${lang}: ${labelVan({ ...w, opdrachtgeverId: rij.opdrachtgever_id })}`, "vakken", data.id);
+    await log(`${mw.naam} ${lang}: ${labelVan({ ...w, opdrachtgeverId: rij.opdrachtgever_id })}`, "vakken", data.id);
     melding("Opgeslagen");
   }
 
@@ -140,7 +136,7 @@ export default function Weekplanning(p: Props) {
       const { error } = await supabase.from("vakken").delete().in("id", ids);
       if (error) { setVakken(vorige); melding("Leegmaken lukte niet. De vakken staan nog in de planning.", true, opnieuw); return; }
       setSelectie(new Set());
-      await logWijziging(`${ids.length} vakken leeggemaakt in week ${p.week}`, "vakken");
+      await log(`${ids.length} vakken leeggemaakt in week ${p.week}`, "vakken");
       melding(`${ids.length} ${ids.length === 1 ? "vak" : "vakken"} leeggemaakt`);
       return;
     }
@@ -153,12 +149,12 @@ export default function Weekplanning(p: Props) {
     const next = new Map(vakken);
     rijen.forEach((r) => next.set(sleutel(r.medewerker_id, r.datum), { id: vakken.get(sleutel(r.medewerker_id, r.datum))?.id ?? "nieuw", ...r }));
     setVakken(next);
-    const { data, error } = await supabase.from("vakken").upsert(rijen, { onConflict: "medewerker_id,datum" }).select(VAK_VELDEN);
+    const { data, error } = await supabase.from("vakken").upsert(rijen, { onConflict: "medewerker_id,datum" }).select(VAK_KOLOMMEN);
     if (error || !data) { setVakken(vorige); melding("Opslaan lukte niet. Je wijzigingen staan nog niet in de planning.", true, opnieuw); return; }
     setVakken((m) => { const n = new Map(m); (data as Vak[]).forEach((v) => n.set(sleutel(v.medewerker_id, v.datum), v)); return n; });
     setSelectie(new Set());
     const namen = [...new Set(rijen.map((r) => mwById.get(r.medewerker_id)?.naam ?? "?"))];
-    await logWijziging(`${namen.length > 2 ? `${namen.length} medewerkers` : namen.join(" en ")}, ${rijen.length} vakken: ${labelVan(w)}`, "vakken");
+    await log(`${namen.length > 2 ? `${namen.length} medewerkers` : namen.join(" en ")}, ${rijen.length} vakken: ${labelVan(w)}`, "vakken");
     melding(`${rijen.length} ${rijen.length === 1 ? "vak" : "vakken"} opgeslagen`);
   }
 
@@ -171,7 +167,7 @@ export default function Weekplanning(p: Props) {
       const next = new Map(opmerkingen); next.delete(mw.id); setOpmerkingen(next);
       const { error } = await supabase.from("week_opmerkingen").delete().eq("id", oud.id);
       if (error) { setOpmerkingen(vorige); melding("Opslaan lukte niet.", true, () => slaOpmerkingOp(mw, tekst)); return; }
-      await logWijziging(`${mw.naam}: opmerking week ${p.week} verwijderd`, "week_opmerkingen", oud.id);
+      await log(`${mw.naam}: opmerking week ${p.week} verwijderd`, "week_opmerkingen", oud.id);
       return;
     }
     const { data: auth } = await supabase.auth.getUser();
@@ -183,7 +179,7 @@ export default function Weekplanning(p: Props) {
     const { data, error } = await q2;
     if (error || !data) { setOpmerkingen(vorige); melding(`Opslaan lukte niet. De opmerking bij ${mw.naam} staat nog niet in de planning.`, true, () => slaOpmerkingOp(mw, tekst)); return; }
     setOpmerkingen((m) => new Map(m).set(mw.id, data as WeekOpmerking));
-    await logWijziging(`${mw.naam}: opmerking "${rij.tekst}"`, "week_opmerkingen", data.id);
+    await log(`${mw.naam}: opmerking "${rij.tekst}"`, "week_opmerkingen", data.id);
     melding("Opgeslagen");
   }
 
@@ -191,7 +187,7 @@ export default function Weekplanning(p: Props) {
   const vorigeIso = isoWeek(vorigeMaandag);
 
   async function vorigeWeekKopieren(zonderAfwezigheid: boolean, metOpmerkingen: boolean) {
-    const { data: oud, error } = await supabase.from("vakken").select(VAK_VELDEN).gte("datum", vorigeMaandag).lte("datum", plusDagen(vorigeMaandag, 6));
+    const { data: oud, error } = await supabase.from("vakken").select(VAK_KOLOMMEN).gte("datum", vorigeMaandag).lte("datum", plusDagen(vorigeMaandag, 6));
     if (error) { melding("Kopiëren lukte niet. Er is niets veranderd.", true, () => vorigeWeekKopieren(zonderAfwezigheid, metOpmerkingen)); return; }
     const { data: auth } = await supabase.auth.getUser();
     const nu = new Date().toISOString();
@@ -200,7 +196,7 @@ export default function Weekplanning(p: Props) {
       .map((v) => ({ medewerker_id: v.medewerker_id, datum: plusDagen(v.datum, 7), status: v.status, opdrachtgever_id: v.opdrachtgever_id, notitie: v.notitie, gewijzigd_door: auth.user?.id ?? null, gewijzigd_op: nu }));
     let aantalOpm = 0;
     if (rijen.length) {
-      const { data, error: e2 } = await supabase.from("vakken").upsert(rijen, { onConflict: "medewerker_id,datum" }).select(VAK_VELDEN);
+      const { data, error: e2 } = await supabase.from("vakken").upsert(rijen, { onConflict: "medewerker_id,datum" }).select(VAK_KOLOMMEN);
       if (e2 || !data) { melding("Kopiëren lukte niet. Er is niets veranderd.", true, () => vorigeWeekKopieren(zonderAfwezigheid, metOpmerkingen)); return; }
       setVakken((m) => { const n = new Map(m); (data as Vak[]).forEach((v) => n.set(sleutel(v.medewerker_id, v.datum), v)); return n; });
     }
@@ -215,7 +211,7 @@ export default function Weekplanning(p: Props) {
       }
     }
     if (!rijen.length && !aantalOpm) { melding(`Week ${vorigeIso.week} heeft niets om te kopiëren.`); return; }
-    await logWijziging(`Week ${vorigeIso.week} gekopieerd naar week ${p.week}: ${rijen.length} vakken${aantalOpm ? `, ${aantalOpm} opmerkingen` : ""}`, "vakken");
+    await log(`Week ${vorigeIso.week} gekopieerd naar week ${p.week}: ${rijen.length} vakken${aantalOpm ? `, ${aantalOpm} opmerkingen` : ""}`, "vakken");
     melding(`${rijen.length} vakken gekopieerd${aantalOpm ? ` en ${aantalOpm} opmerkingen` : ""}`);
   }
 
@@ -235,10 +231,10 @@ export default function Weekplanning(p: Props) {
     // ignoreDuplicates: een vak dat intussen door iemand anders is ingevuld, blijft staan.
     const { data, error } = await supabase.from("vakken")
       .upsert(vasteInzetRijen.map((r) => ({ ...r, notitie: null, gewijzigd_door: auth.user?.id ?? null, gewijzigd_op: nu })), { onConflict: "medewerker_id,datum", ignoreDuplicates: true })
-      .select(VAK_VELDEN);
+      .select(VAK_KOLOMMEN);
     if (error || !data) { melding("Invullen lukte niet. Er is niets veranderd.", true, vasteInzetInvullen); return; }
     setVakken((m) => { const n = new Map(m); (data as Vak[]).forEach((v) => n.set(sleutel(v.medewerker_id, v.datum), v)); return n; });
-    await logWijziging(`Vaste inzet ingevuld in week ${p.week}: ${data.length} vakken`, "vakken");
+    await log(`Vaste inzet ingevuld in week ${p.week}: ${data.length} vakken`, "vakken");
     melding(`${data.length} vakken ingevuld met de vaste inzet`);
   }
 
@@ -303,11 +299,7 @@ export default function Weekplanning(p: Props) {
         onKeyDown={(e) => toetsVak(e, m, i)}
         aria-label={`${m.naam}, ${dagInfo(d, i).lang}: ${c.label || "leeg"}${c.sub ? ", " + c.sub : ""}${c.conflict ? ", ingepland tijdens afwezigheid" : ""}`}
       >
-        <span className={`vak${c.open ? " open" : ""}${c.periode ? " periode" : ""}${gekozen ? " gekozen" : ""}`} style={c.open ? undefined : { background: c.bg, color: c.fg }}>
-          <span className="vak-label">{c.open && <span className="bolletje" />}{c.label}</span>
-          {c.sub && <span className="vak-sub">{c.sub}</span>}
-          {c.conflict && <span className="conflict" title="Ingepland tijdens afwezigheid" aria-hidden="true">!</span>}
-        </span>
+        <VakInhoud c={c} gekozen={gekozen} />
       </button>
     );
   }
@@ -331,7 +323,7 @@ export default function Weekplanning(p: Props) {
   const exportQuery = `week=${weekParam(p.maandag)}&groep=${filters.groep}${filters.og ? `&og=${filters.og}` : ""}${filters.bv ? `&bv=${encodeURIComponent(filters.bv)}` : ""}`;
   const leeg = vakken.size === 0 && !p.laadFout && p.medewerkers.length > 0;
   const paneelMw = paneel && "mw" in paneel ? paneel.mw : null;
-  const vandaagIndex = (new Date(vandaag + "T00:00:00Z").getUTCDay() + 6) % 7;
+  const vandaagIndex = dagIndex(vandaag);
 
   return (
     <main className="pagina">
@@ -346,7 +338,6 @@ export default function Weekplanning(p: Props) {
         <WeekKiezer pad="/" maandag={p.maandag} />
       </div>
 
-      {voorbeeld && <div className="voorbeeld">Je ziet voorbeeldgegevens. Zodra de koppeling met Easyflex2go draait, komen hier de echte medewerkers.</div>}
       {p.laadFout && <div className="melding melding-fout" role="alert" style={{ maxWidth: "none" }}><strong>Laden is niet gelukt</strong>{p.laadFout}</div>}
 
       <div className="werkbalk">
@@ -578,13 +569,7 @@ export default function Weekplanning(p: Props) {
         );
       })()}
       {legenda && <Legenda vandaag={`${dagInfo(vandaag, vandaagIndex).kort} ${Number(vandaag.slice(8))}`} onSluit={() => setLegenda(false)} />}
-      {toast && (
-        <div className={`toast${toast.opnieuw ? " met-knop" : ""}`} role={toast.fout ? "alert" : "status"}>
-          {toast.fout && <Icoon naam="waarschuwing" maat={20} />}
-          <span>{toast.tekst}</span>
-          {toast.opnieuw && <button type="button" className="knop" onClick={() => { const f = toast.opnieuw!; setToast(null); f(); }}>Opnieuw proberen</button>}
-        </div>
-      )}
+      <Toast melding={toastMelding} sluit={sluitToast} />
     </main>
   );
 }

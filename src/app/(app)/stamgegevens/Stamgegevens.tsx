@@ -5,30 +5,20 @@ import { useEffect, useMemo, useState } from "react";
 import MedewerkerPaneel, { type MwStam } from "./MedewerkerPaneel";
 import OpdrachtgeverPaneel, { type OgStam } from "./OpdrachtgeverPaneel";
 import Icoon from "@/components/Icoon";
+import Toast, { useToast } from "@/components/Toast";
 import PaneelSchil, { PaneelVoet } from "@/components/PaneelSchil";
 import { leidVasteInzetAf } from "@/lib/afleiden";
 import { createClient } from "@/lib/supabase/client";
+import { logWijziging } from "@/lib/wijzigingen";
 import { GROEPEN, geldigeVasteInzet, opdrachtgeverLabel, plusDagen, vasteInzetLabel, type Vak, type VasteInzet } from "@/lib/planning";
+import { wanneer } from "@/lib/tijd";
+import { VAK_KOLOMMEN } from "@/lib/laden";
 
 type Mw = MwStam;
 type Og = OgStam;
 type Sync = { tijdstip: string; gelukt: boolean; foutmelding: string | null; medewerkers_bijgewerkt?: number };
 
 const BVS = ["Solestus Shared Services B.V.", "Solestus Nederland B.V.", "Solestus Personeelsdiensten B.V.", "Solestus Payroll Solutions B.V."];
-
-/** "vandaag om 06.00", "gisteren om 18.00" of "ma 28 sep om 06.00". */
-function wanneer(ts: string) {
-  const d = new Date(ts);
-  const f = (o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("nl-NL", { timeZone: "Europe/Amsterdam", ...o }).format(d);
-  const dag = f({ year: "numeric", month: "2-digit", day: "2-digit" });
-  const nu = new Date();
-  const vandaag = new Intl.DateTimeFormat("nl-NL", { timeZone: "Europe/Amsterdam", year: "numeric", month: "2-digit", day: "2-digit" }).format(nu);
-  const gisteren = new Intl.DateTimeFormat("nl-NL", { timeZone: "Europe/Amsterdam", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(nu.getTime() - 86400000));
-  const tijd = f({ hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).replace(":", ".");
-  if (dag === vandaag) return `vandaag om ${tijd}`;
-  if (dag === gisteren) return `gisteren om ${tijd}`;
-  return `${f({ weekday: "short", day: "numeric", month: "short" }).replace(/\./g, "")} om ${tijd}`;
-}
 
 export default function Stamgegevens(p: {
   medewerkers: Mw[]; opdrachtgevers: Og[]; laatsteSync: Sync | null; laatstGelukt: Omit<Sync, "gelukt" | "foutmelding"> | null;
@@ -42,15 +32,11 @@ export default function Stamgegevens(p: {
   const [bewerkOg, setBewerkOg] = useState<Og | "nieuw" | null>(null);
   const [afleiden, setAfleiden] = useState(false);
   const [bijwerken, setBijwerken] = useState(false);
-  const [toast, setToast] = useState<{ tekst: string; fout?: boolean } | null>(null);
+  const { melding, toon, sluit } = useToast();
   const [ookInactief, setOokInactief] = useState(false);
   const [ookVerborgen, setOokVerborgen] = useState(false);
   const ogMap = useMemo(() => new Map(p.opdrachtgevers.map((o) => [o.id, o])), [p.opdrachtgevers]);
 
-  function toon(tekst: string, fout = false) {
-    setToast({ tekst, fout });
-    setTimeout(() => setToast(null), fout ? 8000 : 4000);
-  }
 
   async function nuBijwerken() {
     setBijwerken(true);
@@ -102,7 +88,7 @@ export default function Stamgegevens(p: {
               ? `${ok ? `Laatst gelukt: ${wanneer(ok.tijdstip)}.` : "Het is nog niet eerder gelukt."} Nieuwe medewerkers of wijzigingen van vandaag staan er mogelijk nog niet in.${sync?.foutmelding ? ` (${sync.foutmelding})` : ""}`
               : ok
                 ? `Medewerkers laatst bijgewerkt ${wanneer(ok.tijdstip)} · ${ok.medewerkers_bijgewerkt ?? "?"} medewerkers. Wijzigingen aan chauffeurs doe je in Easyflex2go.`
-                : "Nog niet bijgewerkt. Tot de koppeling draait, staan hier voorbeeldgegevens."}
+                : "Nog niet bijgewerkt. Klik op Nu bijwerken om de medewerkers uit Easyflex2go op te halen."}
           </span>
         </div>
         {p.magWijzigen && (
@@ -206,7 +192,7 @@ export default function Stamgegevens(p: {
           onKlaar={(t, fout) => { if (!fout) { setAfleiden(false); router.refresh(); } toon(t, fout); }}
         />
       )}
-      {toast && <div className="toast" role={toast.fout ? "alert" : "status"}>{toast.fout && <Icoon naam="waarschuwing" maat={20} />}<span>{toast.tekst}</span></div>}
+      <Toast melding={melding} sluit={sluit} />
     </main>
   );
 }
@@ -224,8 +210,7 @@ function KantoorToevoegen({ onSluit, onKlaar }: { onSluit: () => void; onKlaar: 
     const { error } = await supabase.from("medewerkers").insert({ bron: "handmatig", groep: "kantoor", naam: naam.trim(), bv, telefoon: telefoon.trim() || null, nationaliteit: null, volgorde: 1000 });
     setBezig(false);
     if (error) { onKlaar("Toevoegen lukte niet: " + error.message, true); return; }
-    const { data } = await supabase.auth.getUser();
-    if (data.user) await supabase.from("wijzigingen").insert({ gebruiker_id: data.user.id, omschrijving: `Kantoormedewerker ${naam.trim()} toegevoegd`, tabel: "medewerkers" });
+    await logWijziging(supabase, "medewerkers", `Kantoormedewerker ${naam.trim()} toegevoegd`);
     onKlaar(`${naam.trim()} toegevoegd`);
   }
 
@@ -250,7 +235,7 @@ function VasteInzetAfleiden({ maandag, medewerkers, opdrachtgevers, onSluit, onK
   const [bezig, setBezig] = useState(false);
 
   useEffect(() => {
-    supabase.from("vakken").select("id, medewerker_id, datum, status, opdrachtgever_id, notitie").gte("datum", plusDagen(maandag, -28)).lt("datum", maandag)
+    supabase.from("vakken").select(VAK_KOLOMMEN).gte("datum", plusDagen(maandag, -28)).lt("datum", maandag)
       .then(({ data, error }) => {
         if (error) { onKlaar("De planning van de afgelopen weken kon niet worden geladen.", true); return; }
         const afgeleid = leidVasteInzetAf((data ?? []) as Vak[]);
@@ -260,7 +245,6 @@ function VasteInzetAfleiden({ maandag, medewerkers, opdrachtgevers, onSluit, onK
         setGekozen(new Set(lijst.filter(([m]) => !geldigeVasteInzet(m.vaste_inzet)).map(([m]) => m.id)));
       });
     // Eenmalig bij openen van het paneel.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function toepassen() {
@@ -271,8 +255,7 @@ function VasteInzetAfleiden({ maandag, medewerkers, opdrachtgevers, onSluit, onK
       const { error } = await supabase.from("medewerkers").update({ vaste_inzet: v }).eq("id", m.id);
       if (error) { setBezig(false); onKlaar(`Opslaan lukte niet bij ${m.naam}.`, true); return; }
     }
-    const { data } = await supabase.auth.getUser();
-    if (data.user && kies.length) await supabase.from("wijzigingen").insert({ gebruiker_id: data.user.id, omschrijving: `Vaste inzet afgeleid voor ${kies.length} medewerkers`, tabel: "medewerkers" });
+    if (kies.length) await logWijziging(supabase, "medewerkers", `Vaste inzet afgeleid voor ${kies.length} medewerkers`);
     setBezig(false);
     onKlaar(`Vaste inzet ingesteld voor ${kies.length} medewerkers`);
   }

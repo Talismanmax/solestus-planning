@@ -5,15 +5,19 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import "./verloning.css";
 import Icoon from "@/components/Icoon";
+import Toast, { useToast } from "@/components/Toast";
 import type { Verwerkt } from "@/lib/laden";
 import {
   GROEPEN, celInhoud, dagInfo, maandagVan, periodeErnaast, periodeKort, periodeParam, plusDagen, vandaagNL,
   type Afwezigheid, type Medewerker, type Opdrachtgever, type Periode, type Vak, type WeekOpmerking,
 } from "@/lib/planning";
 import { createClient } from "@/lib/supabase/client";
+import { logWijziging } from "@/lib/wijzigingen";
+import { datumKort } from "@/lib/tijd";
+import VakInhoud from "@/components/VakInhoud";
 
 type Props = {
-  periode: Periode; week: number; bv: string;
+  periode: Periode; week: number; bv: string; ik: { id: string; naam: string } | null;
   medewerkers: (Medewerker & { werkmaatschappijen: string[] })[]; opdrachtgevers: Opdrachtgever[]; vakken: Vak[]; afwezigheid: Afwezigheid[];
   opmerkingen: (WeekOpmerking & { week: number })[]; verwerkt: Verwerkt[]; laadFout: string | null;
 };
@@ -24,7 +28,6 @@ type Mw = Props["medewerkers"][number];
 /** BV's van een medewerker: de werkmaatschappijen uit Easyflex2go, anders de BV. */
 const bvsVan = (m: Mw) => (m.werkmaatschappijen?.length ? m.werkmaatschappijen : m.bv ? [m.bv] : []);
 
-const datumKort = (ts: string) => new Intl.DateTimeFormat("nl-NL", { timeZone: "Europe/Amsterdam", day: "numeric", month: "short" }).format(new Date(ts)).replace(".", "");
 
 /** Verloning per 4-wekenperiode: de planning week voor week, met per medewerker een vinkje "verwerkt" voor de hele periode. */
 export default function Verloning(p: Props) {
@@ -34,7 +37,7 @@ export default function Verloning(p: Props) {
   const [bezig, setBezig] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<Filter>("alle");
   const [zoek, setZoek] = useState("");
-  const [toast, setToast] = useState<{ tekst: string; fout?: boolean } | null>(null);
+  const { melding, toon, sluit } = useToast();
 
   const { jaar, periode, weken } = p.periode;
   const pp = periodeParam(p.periode);
@@ -61,30 +64,21 @@ export default function Verloning(p: Props) {
     (filter === "alle" || (filter === "verwerkt") === verwerkt.has(m.id)));
   const aantalVerwerkt = inBv.filter((m) => verwerkt.has(m.id)).length;
 
-  function toon(tekst: string, fout = false) {
-    setToast({ tekst, fout });
-    setTimeout(() => setToast(null), fout ? 6000 : 2500);
-  }
 
   async function wissel(m: Medewerker, aan: boolean) {
     setBezig((b) => new Set(b).add(m.id));
-    const { data: auth } = await supabase.auth.getUser();
-    const { data: g } = auth.user ? await supabase.from("gebruikers").select("naam, email").eq("id", auth.user.id).maybeSingle() : { data: null };
     const { error } = aan
-      ? await supabase.from("verloning_verwerkt").insert({ medewerker_id: m.id, jaar, periode, verwerkt_door: auth.user?.id ?? null })
+      ? await supabase.from("verloning_verwerkt").insert({ medewerker_id: m.id, jaar, periode, verwerkt_door: p.ik?.id ?? null })
       : await supabase.from("verloning_verwerkt").delete().eq("medewerker_id", m.id).eq("jaar", jaar).eq("periode", periode);
     setBezig((b) => { const n = new Set(b); n.delete(m.id); return n; });
     if (error && error.code !== "23505") { toon(`Opslaan lukte niet: ${error.message}`, true); return; }
     setVerwerkt((v) => {
       const n = new Map(v);
-      if (aan) n.set(m.id, { medewerker_id: m.id, verwerkt_op: new Date().toISOString(), door: g?.naam?.split(" ")[0] || g?.email?.split("@")[0] || "jij" });
+      if (aan) n.set(m.id, { medewerker_id: m.id, verwerkt_op: new Date().toISOString(), door: p.ik?.naam ?? "jij" });
       else n.delete(m.id);
       return n;
     });
-    if (auth.user) await supabase.from("wijzigingen").insert({
-      gebruiker_id: auth.user.id, tabel: "verloning_verwerkt", record_id: m.id,
-      omschrijving: `Verloning periode ${periode} ${jaar}: ${m.naam} ${aan ? "verwerkt" : "weer open"}`,
-    });
+    await logWijziging(supabase, "verloning_verwerkt", `Verloning periode ${periode} ${jaar}: ${m.naam} ${aan ? "verwerkt" : "weer open"}`, m.id);
   }
 
   return (
@@ -166,11 +160,7 @@ export default function Verloning(p: Props) {
                       const c = celInhoud(m, d, i, vakken.get(`${m.id}|${d}`), p.afwezigheid, ogById);
                       return (
                         <div key={d} className={`vakcel${i >= 5 ? " weekend" : ""}`} aria-label={`${dagInfo(d, i).lang}: ${c.label || "leeg"}${c.sub ? ", " + c.sub : ""}`}>
-                          <span className={`vak${c.open ? " open" : ""}${c.periode ? " periode" : ""}`} style={c.open ? undefined : { background: c.bg, color: c.fg }}>
-                            <span className="vak-label">{c.open && <span className="bolletje" />}{c.label}</span>
-                            {c.sub && <span className="vak-sub">{c.sub}</span>}
-                            {c.conflict && <span className="conflict" title="Ingepland tijdens afwezigheid" aria-hidden="true">!</span>}
-                          </span>
+                          <VakInhoud c={c} />
                         </div>
                       );
                     })}
@@ -195,7 +185,7 @@ export default function Verloning(p: Props) {
         )}
       </section>
 
-      {toast && <div className="toast" role={toast.fout ? "alert" : "status"}>{toast.fout && <Icoon naam="waarschuwing" maat={20} />}<span>{toast.tekst}</span></div>}
+      <Toast melding={melding} sluit={sluit} />
     </main>
   );
 }

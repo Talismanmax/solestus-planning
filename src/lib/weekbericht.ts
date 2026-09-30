@@ -1,20 +1,18 @@
-import { STATUS, opdrachtgeverLabel, plusDagen, type Cel, type Opdrachtgever, type Vak, type VakStatus } from "@/lib/planning";
+import { DAG_KORT, MAAND, STATUS, TELEFOON, opdrachtgeverLabel, plusDagen, type Cel, type Opdrachtgever, type Vak, type VakStatus } from "@/lib/planning";
 import { ritTekst, type Rit } from "@/lib/scania";
 
-const NL_DAG = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 const EN_DAG = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const NL_MAAND = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
 const EN_MAAND = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /** Engelse namen van de statussen voor het weekbericht. */
-export const STATUS_EN: Record<VakStatus, string> = {
+const STATUS_EN: Record<VakStatus, string> = {
   werk: "Working", kantoor: "Office", thuiswerk: "Working from home", opleiding: "Training", niet_ingezet: "Not scheduled",
   nbb: "Not available", thuis: "At home (rest)", vakantie: "Holiday", vrij: "Day off", ziek: "Sick", einde: "Assignment ended",
 };
 
 const datumLabel = (datum: string, i: number, taal: "nl" | "en") => {
   const d = new Date(datum + "T00:00:00Z");
-  return taal === "en" ? `${EN_DAG[i]} ${d.getUTCDate()} ${EN_MAAND[d.getUTCMonth()]}` : `${NL_DAG[i]} ${d.getUTCDate()} ${NL_MAAND[d.getUTCMonth()]}`;
+  return taal === "en" ? `${EN_DAG[i]} ${d.getUTCDate()} ${EN_MAAND[d.getUTCMonth()]}` : `${DAG_KORT[i]} ${d.getUTCDate()} ${MAAND[d.getUTCMonth()]}`;
 };
 
 /** Bericht voor WhatsApp of sms met de planning van één medewerker voor een week. */
@@ -38,6 +36,6 @@ export function weekbericht(p: {
     regels.push("", en ? "Scania trips:" : "Scania-ritten:");
     p.ritten.forEach((r) => regels.push(ritTekst(r, p.taal)));
   }
-  regels.push("", en ? "Questions? Call us on +31 570 781 010." : "Vragen? Bel ons op 0570-781010.", en ? "Kind regards, Solestus" : "Groet, Solestus");
+  regels.push("", en ? `Questions? Call us on ${TELEFOON.int}.` : `Vragen? Bel ons op ${TELEFOON.nl}.`, en ? "Kind regards, Solestus" : "Groet, Solestus");
   return regels.join("\n");
 }

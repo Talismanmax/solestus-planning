@@ -1,4 +1,5 @@
 import Icoon from "@/components/Icoon";
+import { DAG_KORT } from "@/lib/planning";
 
 const BREEDTES = ["132px", "108px", "148px", "118px"];
 
@@ -21,7 +22,7 @@ export default function Laden() {
         <div className="rooster-kop">
           <div className="rrij">
             <span>Medewerker</span>
-            {["ma", "di", "wo", "do", "vr", "za", "zo"].map((d) => <span key={d} className="dagkop"><span>{d}</span><b>&nbsp;</b></span>)}
+            {DAG_KORT.map((d) => <span key={d} className="dagkop"><span>{d}</span><b>&nbsp;</b></span>)}
             <span>Opmerking</span>
           </div>
           <div className="rrij bezetting-rij">

@@ -5,12 +5,7 @@ import SessieBewaker from "@/components/SessieBewaker";
 import { maandagVan, isoWeek, vandaagNL } from "@/lib/planning";
 import { createClient, getGebruiker } from "@/lib/supabase/server";
 import { naarIso } from "@/lib/tijd";
-
-/** "MA" voor Max, "MZ" voor Max Zomer. */
-function initialen(naam: string) {
-  const w = naam.trim().split(/\s+/);
-  return (w.length > 1 ? w[0][0] + w[w.length - 1][0] : naam.slice(0, 2)).toUpperCase();
-}
+import { initialen } from "@/lib/namen";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const gebruiker = await getGebruiker();
