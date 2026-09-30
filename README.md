@@ -27,7 +27,6 @@ Migraties staan in `supabase/migrations`. Row level security staat aan op alle t
 - `bron` en `ef_id` van medewerkers kan alleen de koppeling (service_role) wijzigen.
 - `koppeling_log` wordt dagelijks opgeschoond (regels ouder dan 90 dagen, cron-taak `koppeling-log-opruimen`).
 - De koppeling draait maximaal eens per 5 minuten (1 minuut na een mislukte poging); foutdetails staan in de logs van de edge function, niet in de tabel.
-- Nog te doen na livegang van deze versie: kolommen `opdrachtgevers.actief` en `koppeling_log.opdrachtgevers_bijgewerkt` laten vallen (de code gebruikt ze niet meer).
 
 ## Beveiliging
 
