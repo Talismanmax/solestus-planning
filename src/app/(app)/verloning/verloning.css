@@ -13,3 +13,4 @@
 .mwrij.is-verwerkt { background: var(--grijs); }
 .naamcel .opm { padding: 0 6px; font-size: 11px; line-height: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .verloning-rooster .rrij { grid-template-columns: 212px repeat(5, minmax(0, 1fr)) repeat(2, minmax(0, 0.7fr)) 168px; }
+.bv-kiezer .invoer { height: 44px; min-width: 250px; background: var(--wit); border-radius: 14px; font-weight: 600; }

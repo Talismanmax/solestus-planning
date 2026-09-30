@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import "./verloning.css";
 import Icoon from "@/components/Icoon";
@@ -12,18 +13,23 @@ import {
 import { createClient } from "@/lib/supabase/client";
 
 type Props = {
-  periode: Periode; week: number;
-  medewerkers: Medewerker[]; opdrachtgevers: Opdrachtgever[]; vakken: Vak[]; afwezigheid: Afwezigheid[];
+  periode: Periode; week: number; bv: string;
+  medewerkers: (Medewerker & { werkmaatschappijen: string[] })[]; opdrachtgevers: Opdrachtgever[]; vakken: Vak[]; afwezigheid: Afwezigheid[];
   opmerkingen: (WeekOpmerking & { week: number })[]; verwerkt: Verwerkt[]; laadFout: string | null;
 };
 
 type Filter = "alle" | "open" | "verwerkt";
+type Mw = Props["medewerkers"][number];
+
+/** BV's van een medewerker: de werkmaatschappijen uit Easyflex2go, anders de BV. */
+const bvsVan = (m: Mw) => (m.werkmaatschappijen?.length ? m.werkmaatschappijen : m.bv ? [m.bv] : []);
 
 const datumKort = (ts: string) => new Intl.DateTimeFormat("nl-NL", { timeZone: "Europe/Amsterdam", day: "numeric", month: "short" }).format(new Date(ts)).replace(".", "");
 
 /** Verloning per 4-wekenperiode: de planning week voor week, met per medewerker een vinkje "verwerkt" voor de hele periode. */
 export default function Verloning(p: Props) {
   const supabase = useMemo(() => createClient(), []);
+  const router = useRouter();
   const [verwerkt, setVerwerkt] = useState(() => new Map(p.verwerkt.map((v) => [v.medewerker_id, v])));
   const [bezig, setBezig] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<Filter>("alle");
@@ -32,6 +38,7 @@ export default function Verloning(p: Props) {
 
   const { jaar, periode, weken } = p.periode;
   const pp = periodeParam(p.periode);
+  const bvQ = p.bv ? `&bv=${encodeURIComponent(p.bv)}` : "";
   const maandag = maandagVan(jaar, p.week);
   const dagen = Array.from({ length: 7 }, (_, i) => plusDagen(maandag, i));
   const vandaag = vandaagNL();
@@ -43,11 +50,16 @@ export default function Verloning(p: Props) {
   const vakken = useMemo(() => new Map(p.vakken.map((v) => [`${v.medewerker_id}|${v.datum}`, v])), [p.vakken]);
   const opmerking = (mwId: string) => p.opmerkingen.find((o) => o.medewerker_id === mwId && o.week === p.week)?.tekst;
 
+  // Filter op BV, zodat de verloning per BV afgewerkt kan worden.
+  const alleBvs = useMemo(() => [...new Set(p.medewerkers.flatMap(bvsVan))].sort(), [p.medewerkers]);
+  const inBv = p.bv ? p.medewerkers.filter((m) => bvsVan(m).includes(p.bv)) : p.medewerkers;
+  const telBv = (bv: string) => { const l = p.medewerkers.filter((m) => bvsVan(m).includes(bv)); return `${l.filter((m) => verwerkt.has(m.id)).length}/${l.length}`; };
+
   const q = zoek.trim().toLowerCase();
-  const zichtbaar = p.medewerkers.filter((m) =>
+  const zichtbaar = inBv.filter((m) =>
     (!q || m.naam.toLowerCase().includes(q)) &&
     (filter === "alle" || (filter === "verwerkt") === verwerkt.has(m.id)));
-  const aantalVerwerkt = p.medewerkers.filter((m) => verwerkt.has(m.id)).length;
+  const aantalVerwerkt = inBv.filter((m) => verwerkt.has(m.id)).length;
 
   function toon(tekst: string, fout = false) {
     setToast({ tekst, fout });
@@ -83,12 +95,12 @@ export default function Verloning(p: Props) {
           <div className="kop-meta">Periode {periode} · week {weken[0]}–{weken[weken.length - 1]} · {periodeKort(begin, einde)} {jaar}</div>
         </div>
         <div className="weekkiezer">
-          <Link className="weekkiezer-pijl" href={`/verloning?periode=${periodeParam(vorige)}`} aria-label="Vorige periode"><Icoon naam="links" maat={20} /></Link>
-          <Link className="weekkiezer-week" href="/verloning" title="Naar de huidige periode">
+          <Link className="weekkiezer-pijl" href={`/verloning?periode=${periodeParam(vorige)}${bvQ}`} aria-label="Vorige periode"><Icoon naam="links" maat={20} /></Link>
+          <Link className="weekkiezer-week" href={`/verloning${p.bv ? `?bv=${encodeURIComponent(p.bv)}` : ""}`} title="Naar de huidige periode">
             <b>Periode {periode}</b>
             <small>week {weken[0]}–{weken[weken.length - 1]} {jaar}</small>
           </Link>
-          <Link className="weekkiezer-pijl" href={`/verloning?periode=${periodeParam(volgende)}`} aria-label="Volgende periode"><Icoon naam="rechts" maat={20} /></Link>
+          <Link className="weekkiezer-pijl" href={`/verloning?periode=${periodeParam(volgende)}${bvQ}`} aria-label="Volgende periode"><Icoon naam="rechts" maat={20} /></Link>
         </div>
       </div>
 
@@ -97,12 +109,19 @@ export default function Verloning(p: Props) {
       <div className="werkbalk">
         <nav className="seg periode-tabs" aria-label="Week">
           {weken.map((w) => (
-            <Link key={w} href={`/verloning?periode=${pp}&week=${w}`} aria-current={w === p.week ? "page" : undefined} scroll={false}>Week {w}</Link>
+            <Link key={w} href={`/verloning?periode=${pp}&week=${w}${bvQ}`} aria-current={w === p.week ? "page" : undefined} scroll={false}>Week {w}</Link>
           ))}
         </nav>
         <label className="zoekveld">
           <Icoon naam="zoek" />
           <input type="search" aria-label="Zoek medewerker" placeholder="Zoek medewerker" value={zoek} onChange={(e) => setZoek(e.target.value)} />
+        </label>
+        <label className="bv-kiezer">
+          <span className="sr-only">BV</span>
+          <select className="invoer" value={p.bv} onChange={(e) => router.push(`/verloning?periode=${pp}&week=${p.week}${e.target.value ? `&bv=${encodeURIComponent(e.target.value)}` : ""}`, { scroll: false })}>
+            <option value="">Alle BV&apos;s ({p.medewerkers.filter((m) => verwerkt.has(m.id)).length}/{p.medewerkers.length})</option>
+            {alleBvs.map((b) => <option key={b} value={b}>{b} ({telBv(b)})</option>)}
+          </select>
         </label>
         <div className="seg" role="group" aria-label="Tonen">
           <button type="button" aria-pressed={filter === "alle"} onClick={() => setFilter("alle")}>Alle</button>
@@ -111,8 +130,8 @@ export default function Verloning(p: Props) {
         </div>
         <div style={{ flexGrow: 1 }} />
         <div className="voortgang" role="status">
-          <span><strong>{aantalVerwerkt}</strong> van {p.medewerkers.length} verwerkt</span>
-          <span className="balk" aria-hidden="true"><i style={{ width: `${p.medewerkers.length ? Math.round((aantalVerwerkt / p.medewerkers.length) * 100) : 0}%` }} /></span>
+          <span><strong>{aantalVerwerkt}</strong> van {inBv.length} verwerkt{p.bv ? ` bij ${p.bv.replace(/^Solestus /, "").replace(/ B\.V\.$/, "")}` : ""}</span>
+          <span className="balk" aria-hidden="true"><i style={{ width: `${inBv.length ? Math.round((aantalVerwerkt / inBv.length) * 100) : 0}%` }} /></span>
         </div>
       </div>
 
@@ -140,6 +159,7 @@ export default function Verloning(p: Props) {
                   <div key={m.id} className={`rrij mwrij${v ? " is-verwerkt" : ""}`}>
                     <div className="naamcel">
                       <span className="naam" style={{ cursor: "default" }}>{m.naam}</span>
+                      {!p.bv && alleBvs.length > 1 && <span className="opm hint">{bvsVan(m).map((b) => b.replace(/^Solestus /, "").replace(/ B\.V\.$/, "")).join(" + ") || "geen BV"}</span>}
                       {opm && <span className="opm hint" title={opm}>{opm}</span>}
                     </div>
                     {dagen.map((d, i) => {
@@ -170,7 +190,7 @@ export default function Verloning(p: Props) {
         })}
         {zichtbaar.length === 0 && (
           <div className="leeg-staat">
-            {filter === "open" && !q ? `Iedereen is verwerkt voor periode ${periode}.` : "Geen medewerkers gevonden."}
+            {filter === "open" && !q ? `Iedereen${p.bv ? ` bij ${p.bv}` : ""} is verwerkt voor periode ${periode}.` : "Geen medewerkers gevonden."}
           </div>
         )}
       </section>

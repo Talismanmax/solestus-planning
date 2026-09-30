@@ -83,7 +83,7 @@ export async function laadVerloning(supabase: Db, jaar: number, periode: number,
   const van = maandagVan(jaar, weken[0]);
   const tot = plusDagen(maandagVan(jaar, weken[weken.length - 1]), 6);
   const [mw, og, vk, af, op, vw] = await Promise.all([
-    supabase.from("medewerkers").select("id, naam, groep, bv, nationaliteit, certificaten, bron, volgorde, telefoon").eq("actief", true).eq("verborgen", false).order("volgorde").order("achternaam").order("naam"),
+    supabase.from("medewerkers").select("id, naam, groep, bv, werkmaatschappijen, nationaliteit, certificaten, bron, volgorde, telefoon").eq("actief", true).eq("verborgen", false).order("volgorde").order("achternaam").order("naam"),
     supabase.from("opdrachtgevers").select("id, naam, korte_naam, plaats, verborgen"),
     supabase.from("vakken").select("id, medewerker_id, datum, status, opdrachtgever_id, notitie").gte("datum", van).lte("datum", tot),
     supabase.from("afwezigheid").select("id, medewerker_id, soort, van, tot_en_met").lte("van", tot).gte("tot_en_met", van),
@@ -93,7 +93,7 @@ export async function laadVerloning(supabase: Db, jaar: number, periode: number,
   const fout = mw.error || og.error || vk.error || af.error || op.error || vw.error;
   const rijen = (vw.data ?? []) as unknown as { medewerker_id: string; verwerkt_op: string; gebruikers: { naam: string | null; email: string } | null }[];
   return {
-    medewerkers: (mw.data ?? []) as Medewerker[],
+    medewerkers: (mw.data ?? []) as (Medewerker & { werkmaatschappijen: string[] })[],
     opdrachtgevers: (og.data ?? []) as Opdrachtgever[],
     vakken: (vk.data ?? []) as Vak[],
     afwezigheid: (af.data ?? []) as Afwezigheid[],
