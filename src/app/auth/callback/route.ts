@@ -20,5 +20,8 @@ export async function GET(request: NextRequest) {
     return mislukt;
   }
 
-  return NextResponse.redirect(`${origin}/`);
+  // Terug naar de pagina waar iemand was (alleen een pad binnen de app).
+  const volgende = searchParams.get("volgende");
+  const pad = volgende && volgende.startsWith("/") && !volgende.startsWith("//") ? volgende : "/";
+  return NextResponse.redirect(`${origin}${pad}`);
 }

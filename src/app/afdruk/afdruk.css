@@ -1,0 +1,124 @@
+/* Afdrukpagina's (A4). Op het scherm een voorbeeld van het blad; op papier alleen het blad. */
+@page {
+  margin: 11mm 11mm 12mm;
+  @bottom-right { content: "Pagina " counter(page) " van " counter(pages); font-family: Fustat, sans-serif; font-size: 8pt; color: #231f20; }
+}
+
+/* Afdrukken is altijd licht, ook als de app in dark mode staat. */
+.afdruk {
+  --geel: #ffed00;
+  --geel-licht: #fff7a8;
+  --zwart: #231f20;
+  --wit: #ffffff;
+  --grijs: #f7f7f6;       /* taupe-10: pagina-achtergrond, invoervelden */
+  --lijn: #ebece8;        /* scheidingslijnen, infoblokken */
+  --lijn-zacht: #d8d8d0;
+  --rand: #b0b1a1;
+  --skelet: #f2f2ef;
+  --fout-bg: #F8DCD5;
+  --fout: #8A2916;
+  --schaduw: 0 12px 40px rgba(35, 31, 32, 0.18);
+  --achter: rgba(35, 31, 32, 0.4);
+  color-scheme: light;
+  --inkt: #231f20;            /* altijd donker: tekst op geel */
+  --zwart-hover: #3a3536;
+  --geel-hover: #f5e300;
+  --fout-hover: #6f2111;
+  --weekend: #fbfbfa;
+  --logo-filter: none;
+  --st-werk-bg: #ebece8; --st-werk-fg: #231f20;
+  --st-kantoor-bg: #E6E8F4; --st-kantoor-fg: #363C72;
+  --st-thuiswerk-bg: #E3EEF1; --st-thuiswerk-fg: #1F5566;
+  --st-opleiding-bg: #EEE4F5; --st-opleiding-fg: #5A3979;
+  --st-niet_ingezet-bg: #FBE9C2; --st-niet_ingezet-fg: #734D00;
+  --st-nbb-bg: #EAEBE7; --st-nbb-fg: #57616A;
+  --st-thuis-bg: #E4EDE0; --st-thuis-fg: #3B5A2C;
+  --st-vakantie-bg: #DCEAFA; --st-vakantie-fg: #1D4C84;
+  --st-vrij-bg: #E9E5F6; --st-vrij-fg: #4A3F7E;
+  --st-ziek-bg: #F8DCD5; --st-ziek-fg: #8A2916;
+  --st-einde-bg: #D33A2C; --st-einde-fg: #FFFFFF;
+  --extra: #5b3fd6; --extra-bg: #efebfd; --extra-hover: #e2dbfb;
+}
+@media print { html, body { background: #fff !important; } }
+.afdruk { color: var(--zwart); background: var(--lijn); min-height: 100vh; padding-bottom: 40px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.afdruk-balk { position: sticky; top: 0; z-index: 10; background: var(--wit); border-bottom: 1px solid var(--lijn-zacht); padding: 12px 24px; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.afdruk-balk > span { flex-grow: 1; }
+
+.blad { background: var(--wit); margin: 24px auto 0; box-shadow: 0 4px 24px rgba(35, 31, 32, .12); display: flex; flex-direction: column; font-size: 12px; line-height: 1.35; }
+.blad-liggend { width: 1123px; min-height: 794px; padding: 40px 44px 28px; }
+.blad-staand { width: 794px; min-height: 1123px; padding: 40px 40px 28px; }
+
+@media print {
+  .afdruk { background: none; padding: 0; min-height: 0; }
+  .afdruk-balk { display: none; }
+  .blad { margin: 0; box-shadow: none; width: auto; min-height: 0; padding: 0; }
+}
+
+/* Kop */
+.blad-kop { display: grid; gap: 4px 24px; border-bottom: 4px solid var(--geel); padding-bottom: 10px; margin-bottom: 14px; }
+.blad-kop h1 { margin: 0; font-size: 26px; line-height: 1.1; }
+.blad-kop-liggend { grid-template-columns: auto 1fr; grid-template-areas: "merk titel" "merk sub"; align-items: end; }
+.blad-kop-liggend h1 { grid-area: titel; text-align: right; }
+.blad-kop-liggend .blad-sub { grid-area: sub; text-align: right; }
+.blad-kop-liggend .blad-merk { grid-area: merk; align-self: end; }
+.blad-kop-staand { grid-template-columns: 1fr auto; grid-template-areas: "merk sub" "titel sub"; align-items: end; }
+.blad-kop-staand .blad-merk { grid-area: merk; }
+.blad-kop-staand h1 { grid-area: titel; }
+.blad-kop-staand .blad-sub { grid-area: sub; text-align: right; align-self: end; }
+.blad-merk { display: flex; align-items: center; gap: 12px; }
+.blad-merk span { border-left: 1.5px solid var(--zwart); padding-left: 12px; font-size: 13px; font-weight: 700; line-height: 18px; }
+.blad-sub { font-size: 11px; }
+.blad-inhoud { flex-grow: 1; display: flex; flex-direction: column; gap: 14px; }
+
+/* Voet */
+.blad-voet { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; border-top: 1px solid var(--lijn-zacht); padding-top: 10px; margin-top: 20px; font-size: 10px; break-inside: avoid; }
+.blad-voet .zilla { font-size: 14px; }
+
+/* Tabellen */
+.pt { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid var(--rand); border-radius: 10px; overflow: hidden; table-layout: fixed; }
+.pt th, .pt td { border-bottom: 1px solid var(--lijn-zacht); border-right: 1px solid var(--lijn-zacht); padding: 5px 7px; text-align: left; vertical-align: top; }
+.pt tr > :last-child { border-right: 0; }
+.pt tbody tr:last-child > * { border-bottom: 0; }
+.pt thead th { background: var(--lijn); font-weight: 700; font-size: 11px; }
+.pt thead th small { display: block; font-weight: 400; }
+.pt tr { break-inside: avoid; }
+.pt .groep td { background: var(--grijs); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 4px 8px; }
+.pt .pnaam b { display: block; font-size: 12px; }
+.pt .pnaam small { font-size: 10px; font-weight: 400; }
+.pt .getal { text-align: right; font-variant-numeric: tabular-nums; }
+.pt td.cel { padding: 3px; }
+.pvak { border-radius: 6px; padding: 4px 6px; font-weight: 700; font-size: 11px; min-height: 30px; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+.pvak small { font-weight: 400; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pvak.periode { font-style: italic; }
+.pvak.open { outline: 1px dashed var(--zwart); outline-offset: -1px; }
+
+.legenda { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; font-size: 10px; }
+.legenda b { font-size: 11px; margin-right: 4px; }
+.legenda .pil { height: auto; padding: 2px 9px; border-radius: 999px; font-size: 10px; font-weight: 700; }
+.toelichting { font-size: 10px; }
+
+/* Kaartjes met cijfers */
+.pcijfers { display: grid; gap: 10px; }
+.pcijfer { border: 1px solid var(--rand); border-radius: 10px; padding: 8px 12px; display: flex; align-items: baseline; gap: 10px; }
+.pcijfer b { font-family: "PP Neue Machina", Fustat, sans-serif; font-weight: 800; font-size: 20px; line-height: 1; }
+.pcijfer span { font-size: 11px; font-weight: 600; }
+.pcijfer.geel { background: var(--geel); border: 1.5px solid var(--zwart); }
+
+.ptitel { margin: 0 0 6px; font-size: 13px; font-weight: 700; }
+.ptitel span { font-weight: 400; font-size: 11px; }
+.plijst { display: flex; flex-direction: column; }
+.plijst > div { display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; padding: 5px 0; border-top: 1px solid var(--lijn-zacht); font-size: 11px; }
+.plijst > div:last-child { border-bottom: 1px solid var(--lijn-zacht); }
+.drie { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.twee { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.soort-pil { font-size: 10px; font-weight: 700; padding: 1px 8px; border-radius: 999px; }
+.let { color: var(--fout); font-weight: 700; }
+.pgeel { background: var(--geel) !important; font-weight: 700; }
+.pdienst { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; box-shadow: inset 0 0 0 1.2px var(--zwart); }
+.pdienst.nacht { background: var(--zwart); color: var(--wit); }
+.pt small { font-size: 10px; }
+
+/* Extra opdracht van Scania: violette rand links, label EXTRA (ook zwart-wit herkenbaar) */
+.pt tr.pextra td { background: #efebfd; }
+.pt tr.pextra td:first-child { box-shadow: inset 4px 0 0 #5b3fd6; }
+.pextra-label { display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: .06em; padding: 1px 7px; border-radius: 999px; background: #5b3fd6; color: #fff; }

@@ -1,22 +1,63 @@
-.menu-anker { position: relative; }
-.menu-anker .menu { width: 260px; }
-.menu-item:disabled { opacity: .5; cursor: default; }
+/* Scania-ritten, volgens het design */
+.knop-hoog { height: 48px; border-radius: 14px; padding: 0 16px; }
+.scania-cijfers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.cijferkaart { background: var(--wit); border-radius: 24px; padding: 20px 24px; display: flex; flex-direction: column; gap: 4px; }
+.cijferkaart b { font-family: "PP Neue Machina", Fustat, sans-serif; font-weight: 800; font-size: 40px; line-height: 1; }
+.cijferkaart span { font-size: 14px; font-weight: 600; }
+.cijferkaart.geel { background: var(--geel); }
+.cijferkaart.geel span, .cijferkaart.zwart span { font-weight: 700; }
+.cijferkaart.zwart { background: var(--zwart); color: var(--wit); }
+.scania-raster { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
 
-.ritten { border: 1px solid var(--lijn); border-radius: 18px; overflow: clip; }
-.rit-kop, .rit-rij { display: grid; grid-template-columns: 130px 90px 120px minmax(0, 1.2fr) minmax(0, 1.2fr) minmax(0, 1.4fr); gap: 12px; padding: 10px 16px; align-items: start; }
-.rit-kop { background: var(--grijs); font-weight: 700; font-size: 13px; }
-.rit-rij { width: 100%; border: 0; border-top: 1px solid var(--lijn); background: var(--wit); text-align: left; cursor: pointer; font-size: 14px; }
+.ritten { padding: 8px 20px 12px; display: flex; flex-direction: column; }
+.rit-rij { display: grid; grid-template-columns: 92px 140px minmax(0, 1fr) minmax(0, 1fr) 196px; gap: 12px; width: 100%; min-height: 62px; padding: 8px 0; align-items: center; text-align: left; border: 0; border-top: 1px solid var(--lijn); background: transparent; }
 .rit-rij.rit-eerste { border-top: 2px solid var(--lijn-zacht); }
-.rit-rij:hover:not(:disabled) { background: var(--geel-licht); }
+.rit-rij:not(.rit-kop):not(:disabled):hover { background: var(--geel-licht); }
 .rit-rij:disabled { cursor: default; color: inherit; }
-.rit-rij small { display: block; font-size: 12px; margin-top: 2px; }
-.rit-leeg { cursor: default; grid-template-columns: 130px 1fr; border-top: 2px solid var(--lijn-zacht); }
-.rit-dag { font-weight: 700; }
-.rit-route { font-weight: 600; }
-.rit-open { display: inline-block; padding: 2px 8px; border-radius: 999px; outline: 1.5px dashed var(--rand); outline-offset: -1.5px; font-weight: 600; }
-.rit-let { color: var(--fout); font-weight: 600; }
-.dienst { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; box-shadow: inset 0 0 0 1.5px var(--zwart); }
+.rit-kop { min-height: 44px; height: 44px; padding: 0; border-top: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+.rit-dag { font-size: 14px; font-weight: 700; }
+.rit-dienst { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; font-size: 13px; font-weight: 600; }
+.dienst { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; box-shadow: inset 0 0 0 1.5px var(--zwart); }
 .dienst-nacht { background: var(--zwart); color: var(--wit); }
 .dienst-dag { background: var(--wit); }
-.tekst-dialoog { position: fixed; top: 50%; left: 50%; right: auto; transform: translate(-50%, -50%); width: 560px; max-width: calc(100vw - 32px); padding: 20px; gap: 12px; }
-.tekst-dialoog textarea { font-family: ui-monospace, Menlo, monospace; font-size: 13px; min-height: 320px; }
+.rit-deel { display: flex; flex-direction: column; gap: 1px; }
+.rit-deel b { font-size: 14px; font-weight: 600; }
+.rit-deel small { font-size: 12px; }
+.rit-chauffeur { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; font-size: 14px; }
+.rit-chauffeur small { font-size: 12px; }
+.rit-open { display: flex; align-items: center; gap: 6px; }
+.rit-let { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 8px; background: var(--fout-bg); color: var(--fout); }
+/* Extra opdracht (bijv. pendelen): violet, zodat hij opvalt tussen de vaste ritten */
+.rit-rij.rit-extra { background: var(--extra-bg); box-shadow: inset 5px 0 0 var(--extra); padding-left: 14px; margin-left: -14px; width: calc(100% + 14px); border-radius: 0 10px 10px 0; }
+.rit-rij.rit-extra:not(:disabled):hover { background: var(--extra-hover); }
+.rit-extra .rit-deel .rit-deel + .rit-deel { margin-top: 4px; }
+.extra-label { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--extra); color: var(--wit); }
+.rit-extra .rit-dienst > span:last-child { font-weight: 700; color: var(--extra); }
+.knop-extra { background: var(--extra-bg); color: var(--extra); box-shadow: inset 0 0 0 1.5px var(--extra); }
+.knop-extra:hover { background: var(--extra-hover); }
+.route-keuze button.route-extra { display: flex; align-items: center; gap: 8px; color: var(--extra); }
+.route-keuze button.route-extra small { font-weight: 600; color: var(--zwart); opacity: .6; }
+.route-keuze button.route-extra[aria-pressed="true"] { background: var(--extra-bg); box-shadow: inset 0 0 0 2px var(--extra); }
+.rit-leeg { padding: 24px 0 12px; border-top: 1px solid var(--lijn); }
+
+.scania-zij { display: flex; flex-direction: column; gap: 16px; }
+.zijkaart { padding: 22px; display: flex; flex-direction: column; gap: 4px; }
+.zijkaart h2 { margin: 0 0 8px; font-size: 17px; font-weight: 700; }
+.let-op { display: flex; flex-direction: column; gap: 4px; padding: 12px 0; border-top: 1px solid var(--lijn); font-size: 14px; line-height: 20px; }
+.zij-rij { display: flex; justify-content: space-between; align-items: center; min-height: 40px; border-top: 1px solid var(--lijn); font-size: 14px; }
+.zij-rij > span:first-child { font-weight: 600; }
+.zij-vink { background: var(--lijn); border-radius: 20px; padding: 16px 18px; }
+
+/* Ritpaneel */
+.route-keuze { display: flex; flex-direction: column; gap: 6px; }
+.route-keuze button { height: 44px; border: 0; border-radius: 12px; padding: 0 14px; background: var(--grijs); text-align: left; font-size: 14px; font-weight: 700; }
+.route-keuze button[aria-pressed="true"] { background: var(--geel); box-shadow: inset 0 0 0 2px var(--zwart); }
+.rit-tijden { border: 0; margin: 0; padding: 14px; min-width: 0; background: var(--grijs); border-radius: 16px; }
+.rit-tijden legend { float: left; width: 100%; padding: 0; margin-bottom: 10px; font-size: 13px; font-weight: 700; }
+.rit-tijden > div { clear: both; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.rit-tijden .invoer { background: var(--wit); height: 42px; border-radius: 10px; padding: 0 10px; font-size: 13px; }
+
+@media (max-width: 1200px) {
+  .scania-raster { grid-template-columns: minmax(0, 1fr); }
+  .scania-cijfers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

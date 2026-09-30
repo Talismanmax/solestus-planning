@@ -1,17 +1,18 @@
 import InlogKnop from "./InlogKnop";
+import Icoon from "@/components/Icoon";
 import Woordmerk from "@/components/Woordmerk";
 
 const TEKSTEN = {
   inloggen: ["Welkom", "Log in met je Microsoft-account van Solestus.", "Inloggen met Microsoft"],
   uitgelogd: ["Je bent uitgelogd", "Tot de volgende keer. Wil je verder plannen, log dan opnieuw in.", "Opnieuw inloggen met Microsoft"],
   mislukt: ["Probeer het nog eens", "Log in met je Microsoft-account van Solestus.", "Opnieuw proberen"],
-  verlopen: ["Je sessie is verlopen", "Je bent een tijd niet actief geweest. Log opnieuw in om verder te gaan.", "Opnieuw inloggen met Microsoft"],
+  verlopen: ["Je sessie is verlopen", "Je was een tijd niet actief. Log opnieuw in om verder te plannen.", "Opnieuw inloggen met Microsoft"],
 } as const;
 
 type Staat = keyof typeof TEKSTEN;
 
-export default async function InloggenPagina({ searchParams }: { searchParams: Promise<{ staat?: string }> }) {
-  const { staat: s } = await searchParams;
+export default async function InloggenPagina({ searchParams }: { searchParams: Promise<{ staat?: string; volgende?: string }> }) {
+  const { staat: s, volgende } = await searchParams;
   const staat: Staat = s && s in TEKSTEN ? (s as Staat) : "inloggen";
   const [titel, intro, knop] = TEKSTEN[staat];
 
@@ -26,24 +27,25 @@ export default async function InloggenPagina({ searchParams }: { searchParams: P
         <div className="stapel-8">
           <span className="pil-zwart machina">Solestus Planning</span>
           <h2 className="machina" style={{ fontSize: 36, margin: 0 }}>{titel}</h2>
-          <p style={{ margin: 0, fontSize: 16, lineHeight: "24px", maxWidth: 440 }}>{intro}</p>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: "24px" }}>{intro}</p>
         </div>
 
         {staat === "mislukt" && (
-          <div role="alert" className="melding melding-fout">
-            <strong>Inloggen is niet gelukt</strong>
-            Microsoft kon je niet aanmelden. Gebruik je account van Solestus (eindigt op @solestus.com) en probeer het opnieuw.
+          <div role="alert" className="inlog-fout">
+            <Icoon naam="fout" maat={20} />
+            <div><strong style={{ fontSize: 15 }}>Inloggen is niet gelukt</strong><br />Microsoft kon je niet aanmelden. Gebruik je account van Solestus (eindigt op @solestus.com) en probeer het opnieuw.</div>
           </div>
         )}
         {staat === "uitgelogd" && (
-          <div role="status" className="melding">
-            Werk je op een gedeelde computer? Sluit dan ook je browser, zodat je Microsoft-sessie stopt.
+          <div role="status" className="inlog-tip">
+            <span className="inlog-tip-icoon"><Icoon naam="vink" maat={18} dik={2.4} /></span>
+            <span>Werk je op een gedeelde computer? Sluit dan ook je browser, zodat je Microsoft-sessie stopt.</span>
           </div>
         )}
 
-        <div className="stapel-12" style={{ maxWidth: 440 }}>
-          <InlogKnop label={knop} />
-          <span style={{ fontSize: 13, lineHeight: "19px" }}>Je wordt doorgestuurd naar Microsoft. Daarna kom je terug in de planning.</span>
+        <div>
+          <InlogKnop label={knop} volgende={volgende} />
+          <p className="inlog-hint">Je wordt doorgestuurd naar Microsoft. Daarna kom je terug in de planning.</p>
         </div>
       </section>
     </main>

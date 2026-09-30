@@ -1,23 +1,33 @@
 "use client";
 
 import { useState } from "react";
+import Icoon from "@/components/Icoon";
+import { markeerActief } from "@/lib/actief";
 import { createClient } from "@/lib/supabase/client";
 
-export default function InlogKnop({ label }: { label: string }) {
+/** Inloggen met Microsoft. `volgende` = pagina om na het inloggen naartoe te gaan; `anderAccount` laat Microsoft een account kiezen. */
+export default function InlogKnop({ label, volgende, anderAccount = false, alsLink = false }: { label: string; volgende?: string; anderAccount?: boolean; alsLink?: boolean }) {
   const [bezig, setBezig] = useState(false);
 
   async function inloggen() {
     setBezig(true);
+    markeerActief();
     const supabase = createClient();
+    const terug = volgende && volgende.startsWith("/") && !volgende.startsWith("//") ? `?volgende=${encodeURIComponent(volgende)}` : "";
     await supabase.auth.signInWithOAuth({
       provider: "azure",
-      options: { scopes: "email", redirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        scopes: "openid email profile",
+        redirectTo: `${window.location.origin}/auth/callback${terug}`,
+        queryParams: anderAccount ? { prompt: "select_account" } : undefined,
+      },
     });
   }
 
+  if (alsLink) return <button type="button" className="link-knop" style={{ alignSelf: "center", fontSize: 14 }} onClick={inloggen} disabled={bezig}>{label}</button>;
   return (
     <button type="button" className="knop knop-zwart knop-groot" onClick={inloggen} disabled={bezig}>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>
+      <Icoon naam="slot" maat={20} />
       {bezig ? "Doorsturen naar Microsoft…" : label}
     </button>
   );

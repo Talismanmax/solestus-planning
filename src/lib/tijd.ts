@@ -1,5 +1,8 @@
 // Tijden in de planning zijn altijd Nederlandse tijd (Europe/Amsterdam).
+import { DAG_KORT, dagIndex } from "@/lib/planning";
 const TZ = "Europe/Amsterdam";
+
+const opmaak = (d: Date, o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("nl-NL", { timeZone: TZ, ...o }).format(d);
 
 function delen(d: Date) {
   const p = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(d);
@@ -29,13 +32,13 @@ export function naarIso(lokaal: string): string {
   return new Date(t).toISOString();
 }
 
-const KORT = ["zo", "ma", "di", "wo", "do", "vr", "za"];
+const KORT_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-/** "ma 09.00" */
-export function dagTijd(iso: string): string {
+/** "ma 09.00" (of "Mon 09.00" in het Engels) */
+export function dagTijd(iso: string, taal: "nl" | "en" = "nl"): string {
   const x = delen(new Date(iso));
-  const dag = new Date(Date.UTC(+x.j, +x.m - 1, +x.d)).getUTCDay();
-  return `${KORT[dag]} ${x.u}.${x.min}`;
+  const dag = dagIndex(`${x.j}-${x.m}-${x.d}`);
+  return `${(taal === "en" ? KORT_EN : DAG_KORT)[dag]} ${x.u}.${x.min}`;
 }
 
 /** "09.00" */
@@ -44,8 +47,29 @@ export function tijd(iso: string): string {
   return `${x.u}.${x.min}`;
 }
 
-/** Datum (yyyy-mm-dd) van een tijdstip in Nederlandse tijd. */
-export function datumVan(iso: string): string {
-  const x = delen(new Date(iso));
-  return `${x.j}-${x.m}-${x.d}`;
+/** "di 29 sep 2026 om 10.12" (Nederlandse tijd). */
+export function gemaaktOp(d: Date = new Date()): string {
+  const f = (o: Intl.DateTimeFormatOptions) => opmaak(d, o);
+  return `${f({ weekday: "short" }).replace(".", "")} ${f({ day: "numeric", month: "short", year: "numeric" }).replace(".", "")} om ${f({ hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).replace(":", ".")}`;
+}
+
+
+/** "ma 28 sep 16:40" (Nederlandse tijd). */
+export function tijdstipNL(ts: string) {
+  return opmaak(new Date(ts), { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+}
+
+/** "14 okt" (Nederlandse tijd). */
+export function datumKort(ts: string) {
+  return opmaak(new Date(ts), { day: "numeric", month: "short" }).replace(".", "");
+}
+
+/** "vandaag om 06.00", "gisteren om 18.00" of "ma 28 sep om 06.00". */
+export function wanneer(ts: string) {
+  const d = new Date(ts), nu = new Date();
+  const datum = (x: Date) => opmaak(x, { year: "numeric", month: "2-digit", day: "2-digit" });
+  const tijd = opmaak(d, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).replace(":", ".");
+  if (datum(d) === datum(nu)) return `vandaag om ${tijd}`;
+  if (datum(d) === datum(new Date(nu.getTime() - 86400000))) return `gisteren om ${tijd}`;
+  return `${opmaak(d, { weekday: "short", day: "numeric", month: "short" }).replace(/\./g, "")} om ${tijd}`;
 }
