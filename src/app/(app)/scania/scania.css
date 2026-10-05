@@ -46,6 +46,19 @@
 .let-op { display: flex; flex-direction: column; gap: 4px; padding: 12px 0; border-top: 1px solid var(--lijn); font-size: 14px; line-height: 20px; }
 .zij-rij { display: flex; justify-content: space-between; align-items: center; min-height: 40px; border-top: 1px solid var(--lijn); font-size: 14px; }
 .zij-rij > span:first-child { font-weight: 600; }
+.zij-uitleg { margin: -4px 0 8px; font-size: 13px; line-height: 18px; opacity: .75; }
+.rijtijd-rij { display: grid; gap: 6px; padding: 10px 0; border-top: 1px solid var(--lijn); font-size: 13px; }
+.rijtijd-naam { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.rijtijd-naam span { font-weight: 600; font-size: 14px; }
+.rijtijd-naam small { opacity: .75; }
+.rijtijd-balk { height: 6px; border-radius: 3px; background: var(--grijs); overflow: hidden; }
+.rijtijd-balk span { display: block; height: 100%; background: var(--zwart); border-radius: 3px; }
+.rijtijd-cijfers { display: flex; justify-content: space-between; gap: 8px; }
+.rijtijd-cijfers b { font-weight: 700; }
+.rijtijd-rij.krap .rijtijd-balk span { background: var(--geel); }
+.rijtijd-rij.krap .rijtijd-nog { background: var(--geel); color: #1A1A1A; border-radius: 6px; padding: 0 6px; }
+.rijtijd-rij.over .rijtijd-balk span { background: var(--fout); }
+.rijtijd-rij.over .rijtijd-cijfers { color: var(--fout); }
 .zij-vink { background: var(--lijn); border-radius: 20px; padding: 16px 18px; }
 
 /* Ritpaneel */

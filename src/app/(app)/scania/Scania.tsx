@@ -13,6 +13,7 @@ import { logWijziging } from "@/lib/wijzigingen";
 import { DAG_KORT, dagIndex, dagInfo, dagMaand, isoWeek, plusDagen, weekParam, type Afwezigheid, type Vak } from "@/lib/planning";
 import { ROUTE, STANDAARDWEEK, afwezigOp, deelRegel, ritMeldingen, ritTekst, rustVoor, RUST_UREN, standaardDelen, type Chauffeur, type Dienst, type Rit, type RitDeel, type Route } from "@/lib/scania";
 import { naarIso, naarLokaal } from "@/lib/tijd";
+import { LIMIET, leesUren, rijtijdStand, rijtijdVan, standaardRijtijd, uren } from "@/lib/rijtijden";
 
 type Props = {
   week: number; maandag: string; ritten: Rit[]; chauffeurs: Chauffeur[]; scaniaId: string | null; scaniaNaam: string;
@@ -48,6 +49,9 @@ export default function Scania(p: Props) {
   const meldingen = new Map(inWeek.map((r) => [r.id, ritMeldingen(r, p.ritten, p.afwezigheid, p.vakken)]));
   const perChauffeur = new Map<string, number>();
   inWeek.forEach((r) => { if (r.chauffeur_id) perChauffeur.set(r.chauffeur_id, (perChauffeur.get(r.chauffeur_id) ?? 0) + 1); });
+  // Rijtijd per chauffeur, de chauffeur die het krapst zit bovenaan.
+  const standen = [...perChauffeur].map(([id, n]) => ({ id, n, s: rijtijdStand(p.ritten, id, p.maandag) }))
+    .sort((a, b) => a.s.nog - b.s.nog || (naam.get(a.id) ?? "").localeCompare(naam.get(b.id) ?? ""));
   const openAantal = inWeek.filter((r) => !r.chauffeur_id).length;
   const extraAantal = inWeek.filter((r) => r.route === "extra").length;
   const metWaarschuwing = inWeek.filter((r) => meldingen.get(r.id)!.length).length;
@@ -80,7 +84,7 @@ export default function Scania(p: Props) {
   async function vorigeWeekKopieren() {
     setMenu(null);
     setBezig(true);
-    const { data, error } = await supabase.from("scania_ritten").select("vertrekdatum, dienst, route, chauffeur_id, notitie, omschrijving, rit_delen(volgorde, van, naar, vertrek, aankomst)")
+    const { data, error } = await supabase.from("scania_ritten").select("vertrekdatum, dienst, route, chauffeur_id, notitie, omschrijving, rit_delen(volgorde, van, naar, vertrek, aankomst, rijtijd_min)")
       .gte("vertrekdatum", plusDagen(p.maandag, -7)).lte("vertrekdatum", plusDagen(p.maandag, -1));
     if (error) { setBezig(false); toon("Kopiëren lukte niet.", true); return; }
     if (!data?.length) { setBezig(false); toon(`Week ${vorigeWeek} heeft geen ritten.`); return; }
@@ -89,7 +93,7 @@ export default function Scania(p: Props) {
     for (const r of data as Omit<Rit, "id">[]) {
       const { data: nieuw, error: e1 } = await supabase.from("scania_ritten").insert({ vertrekdatum: plusDagen(r.vertrekdatum, 7), dienst: r.dienst, route: r.route, omschrijving: r.omschrijving ?? null, chauffeur_id: metChauffeurs ? r.chauffeur_id : null, notitie: null }).select("id").single();
       if (e1 || !nieuw) { setBezig(false); toon("Kopiëren is deels mislukt.", true); router.refresh(); return; }
-      const delen = r.rit_delen.map((d) => ({ rit_id: nieuw.id, volgorde: d.volgorde, van: d.van, naar: d.naar, vertrek: plus7(d.vertrek), aankomst: plus7(d.aankomst) }));
+      const delen = r.rit_delen.map((d) => ({ rit_id: nieuw.id, volgorde: d.volgorde, van: d.van, naar: d.naar, vertrek: plus7(d.vertrek), aankomst: plus7(d.aankomst), rijtijd_min: d.rijtijd_min ?? null }));
       const { error: e2 } = delen.length ? await supabase.from("rit_delen").insert(delen) : { error: null };
       if (e2) { setBezig(false); toon("Kopiëren is deels mislukt: de tijden van een rit zijn niet opgeslagen.", true); router.refresh(); return; }
     }
@@ -234,10 +238,22 @@ export default function Scania(p: Props) {
             </section>
           )}
           <section className="kaart zijkaart">
-            <h2>Chauffeurs deze week</h2>
-            {[...perChauffeur].sort((a, b) => b[1] - a[1] || (naam.get(a[0]) ?? "").localeCompare(naam.get(b[0]) ?? "")).map(([id, n]) => (
-              <div key={id} className="zij-rij"><span>{naam.get(id) ?? "Onbekend"}</span><span><strong>{n}</strong> {n === 1 ? "rit" : "ritten"}</span></div>
-            ))}
+            <h2>Rijtijden</h2>
+            <p className="zij-uitleg">Gepland rijden per chauffeur: deze week (max 56 u), twee weken (max 90 u) en wat er deze week nog bij kan. Alleen Scania-ritten tellen mee.</p>
+            {standen.map(({ id, n, s: st }) => {
+              const klasse = st.deze > LIMIET.week || st.tweeWeken > LIMIET.tweeWeken ? " over" : st.nog < LIMIET.dag ? " krap" : "";
+              return (
+                <div key={id} className={`rijtijd-rij${klasse}`}>
+                  <div className="rijtijd-naam"><span>{naam.get(id) ?? "Onbekend"}</span><small>{n} {n === 1 ? "rit" : "ritten"}{st.verlengd ? ` · ${st.verlengd}× boven 9 u` : ""}</small></div>
+                  <div className="rijtijd-balk" aria-hidden><span style={{ width: `${Math.min(100, (st.deze / LIMIET.week) * 100)}%` }} /></div>
+                  <div className="rijtijd-cijfers">
+                    <span><b>{uren(st.deze)}</b> week</span>
+                    <span><b>{uren(st.tweeWeken)}</b> 2 weken</span>
+                    <span className="rijtijd-nog"><b>{uren(st.nog)}</b> nog</span>
+                  </div>
+                </div>
+              );
+            })}
             {perChauffeur.size === 0 && <div className="zij-rij"><span>Nog niemand ingepland.</span></div>}
           </section>
           {p.magWijzigen && (
@@ -313,9 +329,17 @@ function RitPaneel(props: {
       return;
     }
     setDatum(d); setDienst(di); setRoute(ro);
-    setDelen(standaardDelen(d, di, ro));
+    setDelen(standaardDelen(d, di, ro)); setRijInvoer({});
   }
   const zetDeel = (i: number, w: Partial<RitDeel>) => setDelen(delen.map((x, j) => (j === i ? { ...x, ...w } : x)));
+  // Rijtijd zoals getypt; leeg = de standaard van de route.
+  const [rijInvoer, setRijInvoer] = useState<Record<number, string>>({});
+  const rijTekst = (i: number, d: RitDeel) => rijInvoer[i] ?? (d.rijtijd_min != null ? `${Math.floor(d.rijtijd_min / 60)}:${String(d.rijtijd_min % 60).padStart(2, "0")}` : "");
+  function zetRijtijd(i: number, t: string) {
+    setRijInvoer({ ...rijInvoer, [i]: t });
+    zetDeel(i, { rijtijd_min: leesUren(t) });
+  }
+  const rijFout = delen.some((d, i) => rijTekst(i, d).trim() !== "" && leesUren(rijTekst(i, d)) === null);
   function deelErbij() {
     const laatste = delen[delen.length - 1];
     const plus = (iso: string, uur: number) => new Date(Date.parse(iso) + uur * 3600000).toISOString();
@@ -329,7 +353,7 @@ function RitPaneel(props: {
   const invulFout = extra && (!omschrijving.trim() || delen.some((d) => !d.van.trim() || !d.naar.trim()));
 
   async function opslaan() {
-    if (tijdenFout || invulFout) return;
+    if (tijdenFout || invulFout || rijFout) return;
     setBezig(true);
     const { data: auth } = await supabase.auth.getUser();
     const rij = { vertrekdatum: datum, dienst, route, omschrijving: extra ? omschrijving.trim() : null, chauffeur_id: chauffeur || null, notitie: notitie.trim() || null, gewijzigd_door: auth.user?.id ?? null, gewijzigd_op: new Date().toISOString() };
@@ -343,7 +367,7 @@ function RitPaneel(props: {
       if (error || !data) { setBezig(false); props.onFout("Opslaan lukte niet."); return; }
       id = data.id;
     }
-    const { error: e2 } = await supabase.from("rit_delen").insert(delen.map((d, i) => ({ rit_id: id, volgorde: i + 1, van: d.van, naar: d.naar, vertrek: d.vertrek, aankomst: d.aankomst })));
+    const { error: e2 } = await supabase.from("rit_delen").insert(delen.map((d, i) => ({ rit_id: id, volgorde: i + 1, van: d.van, naar: d.naar, vertrek: d.vertrek, aankomst: d.aankomst, rijtijd_min: d.rijtijd_min ?? null })));
     if (e2) { setBezig(false); props.onFout("De tijden zijn niet opgeslagen."); return; }
 
     // Andere chauffeur of andere dag: het oude vak in de weekplanning opruimen.
@@ -385,11 +409,15 @@ function RitPaneel(props: {
   const opScania = props.chauffeurs.filter((c) => props.opScania.has(c.id) && past(c));
   const overig = props.chauffeurs.filter((c) => !props.opScania.has(c.id) && past(c));
   const overigZichtbaar = q ? overig.slice(0, 40) : overig.slice(0, 6);
+  const zonderDeze = props.alleRitten.filter((x) => x.id !== r?.id);
+  const ritRij = delen.reduce((a, d) => a + rijtijdVan(route, d), 0);
+  const maandag = plusDagen(datum, -dagIndex(datum));
   const knop = (c: Chauffeur) => {
     const a = props.afwezig(c.id, datum);
+    const nog = rijtijdStand(zonderDeze, c.id, maandag).nog;
     return (
       <button key={c.id} type="button" aria-pressed={chauffeur === c.id} onClick={() => setChauffeur(c.id)}>
-        <span>{c.naam}</span><small>{a ?? (c.nationaliteit && c.nationaliteit !== "NL" ? c.nationaliteit : "")}</small>
+        <span>{c.naam}</span><small style={!a && nog < ritRij ? { color: "var(--fout)", fontWeight: 700 } : undefined}>{a ?? `nog ${uren(nog)}`}</small>
       </button>
     );
   };
@@ -401,7 +429,7 @@ function RitPaneel(props: {
       titel={extra ? (r ? "Extra opdracht bewerken" : "Extra opdracht") : r ? "Rit bewerken" : "Nieuwe rit"}
       sub={extra ? "Naast de vaste ritten, bijv. pendelen" : ROUTE[route].naam}
       onSluit={props.onSluit}
-      voet={<PaneelVoet opslaan={opslaan} opslaanLabel={bezig ? "Opslaan…" : "Opslaan"} uit={bezig || tijdenFout || invulFout} onAnnuleren={props.onSluit} gevaar={r ? { label: "Verwijderen", onClick: verwijderen, uit: bezig } : undefined} />}
+      voet={<PaneelVoet opslaan={opslaan} opslaanLabel={bezig ? "Opslaan…" : "Opslaan"} uit={bezig || tijdenFout || invulFout || rijFout} onAnnuleren={props.onSluit} gevaar={r ? { label: "Verwijderen", onClick: verwijderen, uit: bezig } : undefined} />}
     >
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, alignItems: "end" }}>
         <div className="veld"><label className="veld-kop" htmlFor="rit-datum">Vertrekdatum</label><input id="rit-datum" className="invoer" type="date" value={datum} onChange={(e) => e.target.value && wijzig(e.target.value, dienst, route)} /></div>
@@ -427,7 +455,7 @@ function RitPaneel(props: {
       )}
       {delen.map((d, i) => (
         <fieldset key={i} className="rit-tijden">
-          <legend style={extra ? { display: "flex", justifyContent: "space-between" } : undefined}>{legLabel(i)}{extra && delen.length > 1 && <button type="button" className="link-knop" style={{ fontSize: 12 }} onClick={() => setDelen(delen.filter((_, j) => j !== i))}>Verwijderen</button>}</legend>
+          <legend style={extra ? { display: "flex", justifyContent: "space-between" } : undefined}>{legLabel(i)}{extra && delen.length > 1 && <button type="button" className="link-knop" style={{ fontSize: 12 }} onClick={() => { setDelen(delen.filter((_, j) => j !== i)); setRijInvoer({}); }}>Verwijderen</button>}</legend>
           {extra && (
             <div style={{ marginBottom: 10 }}>
               <label className="veld"><span style={{ fontSize: 12, fontWeight: 600 }}>Van</span><input className="invoer" value={d.van} onChange={(e) => zetDeel(i, { van: e.target.value })} maxLength={40} /></label>
@@ -438,10 +466,16 @@ function RitPaneel(props: {
             <label className="veld"><span style={{ fontSize: 12, fontWeight: 600 }}>Vertrek</span><input className="invoer" type="datetime-local" value={naarLokaal(d.vertrek)} onChange={(e) => e.target.value && setDelen(delen.map((x, j) => j === i ? { ...x, vertrek: naarIso(e.target.value) } : x))} /></label>
             <label className="veld"><span style={{ fontSize: 12, fontWeight: 600 }}>Aankomst</span><input className="invoer" type="datetime-local" value={naarLokaal(d.aankomst)} onChange={(e) => e.target.value && setDelen(delen.map((x, j) => j === i ? { ...x, aankomst: naarIso(e.target.value) } : x))} /></label>
           </div>
+          <label className="veld rijtijd-veld">
+            <span style={{ fontSize: 12, fontWeight: 600 }}>Rijtijd (uren:minuten)</span>
+            <input className="invoer" inputMode="numeric" value={rijTekst(i, d)} onChange={(e) => zetRijtijd(i, e.target.value)} placeholder={`standaard ${uren(standaardRijtijd(route, d))}`} aria-invalid={rijTekst(i, d).trim() !== "" && leesUren(rijTekst(i, d)) === null} />
+          </label>
         </fieldset>
       ))}
       {extra && <button type="button" className="knop knop-tekst" style={{ alignSelf: "flex-start" }} onClick={deelErbij}><Icoon naam="plus" />Deel toevoegen</button>}
       {invulFout && <p className="hint">Vul de opdracht en bij elk deel van en naar in.</p>}
+      {rijFout && <p className="hint" role="alert" style={{ color: "var(--fout)" }}>Schrijf de rijtijd als uren:minuten, bijv. 8:30, of laat het leeg voor de standaard.</p>}
+      {!rijFout && <p className="hint">Rijtijd is alleen het rijden, zonder pauzes, veerboot en wachten. Leeg = standaard voor deze route.</p>}
       {tijdenFout && <p className="infoblok" style={{ background: "var(--fout-bg)", color: "var(--fout)", fontWeight: 600 }} role="alert">De aankomst moet na het vertrek liggen.</p>}
       <div className="veld">
         <label className="veld-kop" htmlFor="rit-chauffeur">Chauffeur</label>
@@ -456,6 +490,10 @@ function RitPaneel(props: {
           {q && opScania.length + overig.length === 0 && <span className="keuzelijst-leeg">Geen chauffeur gevonden.</span>}
         </div>
       </div>
+      {chauffeur && (() => {
+        const st = rijtijdStand([...zonderDeze, proef], chauffeur, maandag);
+        return <p className="hint">Deze rit {uren(ritRij)} rijden. Daarmee deze week {uren(st.deze)} van 56 u, twee weken {uren(st.tweeWeken)} van 90 u; nog {uren(st.nog)} over.</p>;
+      })()}
       {waarschuwing && <p className="infoblok" style={{ background: "var(--fout-bg)", color: "var(--fout)", fontWeight: 600 }}>{waarschuwing}{rust && rust.uren < RUST_UREN ? ` Minimaal ${RUST_UREN} uur rust.` : ""}</p>}
       <div className="veld"><label className="veld-kop" htmlFor="rit-notitie">Notitie</label><input id="rit-notitie" className="invoer" value={notitie} onChange={(e) => setNotitie(e.target.value)} maxLength={120} placeholder="bijv. trailer wisselen, kenteken" /></div>
       <label className="vink"><input type="checkbox" checked={props.ookInPlanning} onChange={(e) => props.setOokInPlanning(e.target.checked)} />Chauffeur ook op {props.scaniaNaam} zetten in de weekplanning</label>
