@@ -59,6 +59,15 @@ export default function Weekplanning(p: Props) {
   const [legenda, setLegenda] = useState(false);
   const { melding: toastMelding, toon: melding, sluit: sluitToast } = useToast();
   const [selectie, setSelectie] = useState<Set<string>>(new Set());
+  // Nieuwe gegevens van de server (andere week of verversen): de eigen kopie bijwerken.
+  // Zonder dit bleef na het wisselen van week de vorige week in de staat staan en leek de planning leeg.
+  const [bron, setBron] = useState({ vakken: p.vakken, opmerkingen: p.opmerkingen });
+  if (bron.vakken !== p.vakken || bron.opmerkingen !== p.opmerkingen) {
+    setBron({ vakken: p.vakken, opmerkingen: p.opmerkingen });
+    setVakken(new Map(p.vakken.map((v) => [sleutel(v.medewerker_id, v.datum), v])));
+    setOpmerkingen(new Map(p.opmerkingen.map((o) => [o.medewerker_id, o])));
+    if (bron.vakken !== p.vakken) setSelectie(new Set());
+  }
   const [klembord, setKlembord] = useState<Invulling | null>(null);
   const [kopieerOpen, setKopieerOpen] = useState(false);
   const [vasteOpen, setVasteOpen] = useState(false);

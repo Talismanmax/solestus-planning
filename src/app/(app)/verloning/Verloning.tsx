@@ -34,6 +34,9 @@ export default function Verloning(p: Props) {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const [verwerkt, setVerwerkt] = useState(() => new Map(p.verwerkt.map((v) => [v.medewerker_id, v])));
+  // Andere periode of verversen: de vinkjes opnieuw uit de servergegevens halen.
+  const [bron, setBron] = useState(p.verwerkt);
+  if (bron !== p.verwerkt) { setBron(p.verwerkt); setVerwerkt(new Map(p.verwerkt.map((v) => [v.medewerker_id, v]))); }
   const [bezig, setBezig] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<Filter>("alle");
   const [zoek, setZoek] = useState("");
