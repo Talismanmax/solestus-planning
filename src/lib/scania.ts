@@ -1,10 +1,11 @@
 import { STATUS, type Afwezigheid, type Vak } from "./planning";
 import { dagTijd, naarIso, tijd } from "./tijd";
 import { afwezigheidOp, DAG_KORT, dagIndex, dagMaand, plusDagen } from "@/lib/planning";
+import { rijtijdMeldingen } from "./rijtijden";
 
 export type Dienst = "dag" | "nacht";
 export type Route = "ishoj" | "rade" | "extra";
-export type RitDeel = { id?: string; volgorde: number; van: string; naar: string; vertrek: string; aankomst: string };
+export type RitDeel = { id?: string; volgorde: number; van: string; naar: string; vertrek: string; aankomst: string; rijtijd_min?: number | null };
 export type Rit = { id: string; vertrekdatum: string; dienst: Dienst; route: Route; chauffeur_id: string | null; notitie: string | null; omschrijving?: string | null; rit_delen: RitDeel[] };
 export type Chauffeur = { id: string; naam: string; groep: "nl" | "int" | "kantoor"; nationaliteit: string | null };
 
@@ -70,7 +71,7 @@ export function afwezigOp(mwId: string, datum: string, afwezigheid: Afwezigheid[
 type RitMelding = { kort: string; lang: string };
 
 
-/** Waarschuwingen bij een rit: te weinig rust, of de chauffeur is afwezig. Kort voor in de tabel, lang voor "Let op". */
+/** Waarschuwingen bij een rit: te weinig rust, rijtijd boven de grens, of de chauffeur is afwezig. Kort voor in de tabel, lang voor "Let op". */
 export function ritMeldingen(r: Rit, alleRitten: Rit[], afwezigheid: Afwezigheid[], vakken: Vak[]): RitMelding[] {
   const w: RitMelding[] = [];
   if (!r.chauffeur_id) return w;
@@ -79,6 +80,7 @@ export function ritMeldingen(r: Rit, alleRitten: Rit[], afwezigheid: Afwezigheid
     const u = Math.max(0, Math.round(rust.uren));
     w.push({ kort: `Maar ${u} uur rust na vorige rit`, lang: `Maar ${u} uur rust tussen terugkomst uit ${ROUTE[rust.vorige.route].plaats} en vertrek naar ${ROUTE[r.route].plaats}.` });
   }
+  w.push(...rijtijdMeldingen(r, alleRitten));
   const dag = DAG_KORT[dagIndex(r.vertrekdatum)];
   const a = afwezigheidOp(afwezigheid, r.chauffeur_id, r.vertrekdatum);
   if (a) {

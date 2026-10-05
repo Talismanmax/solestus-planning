@@ -3,6 +3,7 @@ import type { laadScania } from "@/lib/laden";
 import { TELEFOON, dagInfo, plusDagen, weekBereik } from "@/lib/planning";
 import { ROUTE, deelRegel, ritMeldingen } from "@/lib/scania";
 import { gemaaktOp } from "@/lib/tijd";
+import { rijtijdStand, uren } from "@/lib/rijtijden";
 import { korteNaam } from "@/lib/namen";
 
 export default function ScaniaAfdruk({ week, maandag, d, gebruiker }: {
@@ -60,7 +61,7 @@ export default function ScaniaAfdruk({ week, maandag, d, gebruiker }: {
           <h2 className="ptitel">Chauffeurs deze week</h2>
           <div className="plijst">
             {[...perChauffeur].sort((a, b) => b[1] - a[1]).map(([id, n]) => (
-              <div key={id} style={{ gridTemplateColumns: "1fr auto" }}><span>{naam.get(id) ?? "Onbekend"}</span><b>{n} {n === 1 ? "rit" : "ritten"}</b></div>
+              <div key={id} style={{ gridTemplateColumns: "1fr auto" }}><span>{naam.get(id) ?? "Onbekend"}</span><b>{n} {n === 1 ? "rit" : "ritten"} · {uren(rijtijdStand(d.ritten, id, maandag).deze)} rijden</b></div>
             ))}
             {perChauffeur.size === 0 && <div style={{ gridTemplateColumns: "1fr" }}>Nog geen chauffeurs ingepland.</div>}
           </div>

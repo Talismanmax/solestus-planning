@@ -8,7 +8,7 @@ type Db = Awaited<ReturnType<typeof createClient>>;
 /** Kolommen die overal hetzelfde worden opgevraagd. */
 export const VAK_KOLOMMEN = "id, medewerker_id, datum, status, opdrachtgever_id, notitie";
 const AFWEZIG_KOLOMMEN = "id, medewerker_id, soort, van, tot_en_met";
-const RIT_KOLOMMEN = "id, vertrekdatum, dienst, route, chauffeur_id, notitie, omschrijving, rit_delen(id, volgorde, van, naar, vertrek, aankomst)";
+const RIT_KOLOMMEN = "id, vertrekdatum, dienst, route, chauffeur_id, notitie, omschrijving, rit_delen(id, volgorde, van, naar, vertrek, aankomst, rijtijd_min)";
 
 /** Alles voor de weekplanning (scherm en PDF). */
 export async function laadWeek(supabase: Db, jaar: number, week: number, maandag: string) {
@@ -43,7 +43,8 @@ export async function laadScania(supabase: Db, maandag: string) {
   const zondag = plusDagen(maandag, 6);
   const [ritten, chauffeurs, scania, afw, vakken] = await Promise.all([
     supabase.from("scania_ritten").select(RIT_KOLOMMEN)
-      .gte("vertrekdatum", plusDagen(maandag, -2)).lte("vertrekdatum", plusDagen(zondag, 1)).order("vertrekdatum"),
+      // Ook de week ervoor en erna: voor rust, rijtijd over twee weken en de wekelijkse rust.
+      .gte("vertrekdatum", plusDagen(maandag, -9)).lte("vertrekdatum", plusDagen(zondag, 7)).order("vertrekdatum"),
     supabase.from("medewerkers").select("id, naam, groep, nationaliteit").eq("actief", true).eq("verborgen", false).in("groep", ["nl", "int"]).order("achternaam").order("naam"),
     supabase.from("opdrachtgevers").select("id, naam, korte_naam").eq("scania", true).limit(1).maybeSingle(),
     supabase.from("afwezigheid").select(AFWEZIG_KOLOMMEN).lte("van", zondag).gte("tot_en_met", maandag),
